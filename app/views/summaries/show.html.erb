@@ -98,6 +98,27 @@
             <% end %>
           </div>
         </div>
+
+        <div class="mt-6 bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+          <h3 class="text-lg font-medium mb-4">
+            <span class="mr-2">📝</span>Transcript
+          </h3>
+
+          <div class="space-y-2 max-h-[500px] overflow-y-auto">
+            <% @summary[:transcript].each do |segment| %>
+              <div class="group hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                <div class="flex items-start space-x-3">
+                  <span class="text-sm text-gray-500 font-mono whitespace-nowrap">
+                    <%= Time.at(segment['start']).utc.strftime("%H:%M:%S") %>
+                  </span>
+                  <p class="text-gray-800">
+                    <%= segment['text'] %>
+                  </p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -1,23 +1,44 @@
 class SummariesController < ApplicationController
   def show
-    @summary = {
-      title: "BEATEN ONLY 3 TIMES IN 14 YEARS! | OL' SOUTH'S 10LB PANCAKE CHALLENGE | BeardMeatsFood",
-      channel: "BeardMeatsFood",
-      date: "4 Dec 2022",
-      time: "13:21",
-      rating: 4.9,
-      votes: 33,
-      video_id: "dQw4w9WgXcQ",  # This is just a placeholder YouTube video ID
-      tldr: "In this entertaining food challenge at Old South Pancake House in Fort Worth, Texas, a man attempts the infamous 10-pound pancake stack, a feat only three people have completed. Despite starting with determination, the massive size of the pancakes proves overwhelming. With only 60 minutes to finish, he struggles physically and mentally, battling the bulk and texture of the pancakes. Though he doesn't succeed, the experience leaves him reflecting on the journey and embracing the lesson in failure, humor, and growth. A light-hearted yet challenging tale of attempting the impossible.",
-      takeaways: [
-        "The speaker recently achieved second place in a pancake challenge, winning $1,000 for their efforts.",
-        "The location of the challenge is in Fort Worth, Texas, which the speaker compares to the proximity of Leeds and Bradford in the UK."
-      ],
-      tags: [
-        "Pancake Challenge", "Fort Worth", "Food Challenge", "Texas",
-        "Epic Fail", "Foodie Adventure", "Competitive Eating",
-        "Restaurant Challenge", "Old South Pancake House", "Humor", "Viral Video"
-      ]
-    }
+    video_id = extract_video_id(params[:youtube_url])
+    transcript_result = YoutubeTranscriptService.fetch_transcript(video_id)
+
+    if transcript_result["success"]
+      @summary = {
+        video_id: video_id,
+        title: "Video Title", # You might want to fetch this from YouTube API
+        channel: "Channel Name",
+        date: Time.now.strftime("%B %d, %Y"),
+        time: "10:30",
+        rating: 4.5,
+        votes: 123,
+        tldr: generate_tldr(transcript_result["transcript"]),
+        takeaways: generate_takeaways(transcript_result["transcript"]),
+        tags: [ "AI", "Technology", "Education" ],
+        transcript: transcript_result["transcript"]
+      }
+    else
+      flash[:error] = transcript_result["error"]
+      redirect_to root_path
+    end
+  end
+
+  private
+
+  def extract_video_id(url)
+    url.split("v=").last
+  end
+
+  def generate_tldr(transcript)
+    transcript.first(3).map { |segment| segment["text"] }.join(" ")
+  end
+
+  def generate_takeaways(transcript)
+    # You could implement AI key points extraction here
+    [
+      "Key point 1 from the video",
+      "Key point 2 from the video",
+      "Key point 3 from the video"
+    ]
   end
 end

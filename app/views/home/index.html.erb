@@ -12,6 +12,7 @@
     <%= form_with url: summary_path(1), method: :get, class: "relative" do |f| %>
       <%= f.text_field :youtube_url,
           placeholder: "Enter YouTube video link here...",
+          required: true,
           class: "w-full px-4 py-3 rounded-full border border-purple-300 focus:outline-none focus:border-purple-500" %>
 
       <%= f.submit "Submit",
