@@ -5,7 +5,9 @@ class YoutubeTranscriptService
     script_path = Rails.root.join("script/python/youtube_transcript.py")
 
     # Execute Python script and capture output
+    Rails.logger.debug("Executing Python script with video_id: #{video_id}")
     output = `#{python_path} #{script_path} #{video_id}`
+    Rails.logger.debug("Python script output")
 
     # Parse JSON response
     JSON.parse(output)
