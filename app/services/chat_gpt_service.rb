@@ -2,10 +2,8 @@ class ChatGptService
   def self.generate_summary(transcript)
     client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
 
-    # Debug log
     Rails.logger.debug "Starting ChatGPT summary generation..."
 
-    # Convert transcript segments to plain text
     full_text = transcript.map { |segment| segment["text"] }.join(" ")
 
     response = client.chat(
@@ -14,12 +12,24 @@ class ChatGptService
         messages: [
           {
             role: "system",
-            content: "You are a helpful and creative Editor. Usually you work on analyzing podcast transcripts.
+            content: "You are a helpful and creative Editor who analyzes transcripts.
             You focus on names, numbers, concepts, technologies, techniques, tools and etc.
-            Please provide: 1) A brief TLDR.
-            2) up to 10 key takeaways.
-            3) Relevant tags. Focus on names, numbers, concepts, technologies, techniques, and tools mentioned. Up to 50 tags are allowed.
-            4) About 500 to 800 words of summary."
+            Your response must be in valid JSON format with the following schema:
+            {
+              'tldr': 'brief one-paragraph summary',
+              'takeaways': [
+                'takeaway 1',
+                'takeaway 2',
+                // up to 10 takeaways
+              ],
+              'tags': [
+                'tag1',
+                'tag2',
+                // up to 50 tags, focusing on names, technologies, concepts, tools and etc.
+              ],
+              'summary': 'detailed 500-800 word summary'
+            }
+            Do not include any other text outside of this JSON structure."
           },
           {
             role: "user",
@@ -30,10 +40,9 @@ class ChatGptService
       }
     )
 
-    # Debug log
     Rails.logger.debug "ChatGPT Response received: #{response.inspect}"
 
-    self.parse_response(response.dig("choices", 0, "message", "content"))
+    parse_json_response(response.dig("choices", 0, "message", "content"))
   rescue => e
     Rails.logger.error "ChatGPT API Error: #{e.message}"
     {
@@ -42,18 +51,24 @@ class ChatGptService
     }
   end
 
-  def self.parse_response(content)
+  def self.parse_json_response(content)
     return { success: false, error: "No content received" } unless content
 
-    # Debug log
     Rails.logger.debug "Parsing content: #{content}"
 
+    parsed = JSON.parse(content)
     {
       success: true,
-      tldr: content.match(/TLDR:(.+?)(?=Key Takeaways:)/m)&.captures&.first&.strip || "tldr not available",
-      takeaways: content.scan(/\d\.\s(.+?)(?=\d\.|Tags:|$)/m).flatten.map(&:strip) || [],
-      tags: (content.match(/Tags:(.+)$/m)&.captures&.first&.strip&.scan(/#(\w+)/)&.flatten || []),
-      summary: content.match(/Summary:(.+?)(?=Detailed Summary:)/m)&.captures&.first&.strip || "summary not available"
+      tldr: parsed["tldr"],
+      takeaways: parsed["takeaways"],
+      tags: parsed["tags"],
+      summary: parsed["summary"]
+    }
+  rescue JSON::ParserError => e
+    Rails.logger.error "JSON parsing error: #{e.message}"
+    {
+      success: false,
+      error: "Failed to parse response: #{e.message}"
     }
   end
 end
