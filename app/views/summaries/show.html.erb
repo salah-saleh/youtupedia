@@ -1,3 +1,11 @@
+<% if Rails.env.development? %>
+  <div id="debug" class="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg z-50">
+    <p>Debug Info:</p>
+    <p id="debug-time">Current Time: -</p>
+    <p id="debug-state">Player State: -</p>
+  </div>
+<% end %>
+
 <div class="max-w-6xl mx-auto px-4 py-8">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Left Column -->
@@ -65,7 +73,8 @@
     <div class="space-y-6">
       <div class="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg overflow-hidden">
         <iframe
-          src="https://www.youtube.com/embed/<%= @summary[:video_id] %>"
+          id="youtube-player"
+          src="https://www.youtube.com/embed/<%= @summary[:video_id] %>?enablejsapi=1"
           frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
@@ -104,9 +113,13 @@
             <span class="mr-2">📝</span>Transcript
           </h3>
 
-          <div class="space-y-2 max-h-[500px] overflow-y-auto">
+          <div class="space-y-2 max-h-[500px] overflow-y-auto" id="transcript-container">
             <% @summary[:transcript].each do |segment| %>
-              <div class="group hover:bg-gray-50 p-2 rounded-lg transition-colors">
+              <div
+                class="group hover:bg-gray-50 p-2 rounded-lg transition-colors cursor-pointer transcript-segment"
+                data-start="<%= segment['start'] %>"
+                data-duration="<%= segment['duration'] %>"
+                onclick="seekToTime(<%= segment['start'] %>)">
                 <div class="flex items-start space-x-3">
                   <span class="text-sm text-gray-500 font-mono whitespace-nowrap">
                     <%= Time.at(segment['start']).utc.strftime("%H:%M:%S") %>
@@ -123,3 +136,111 @@
     </div>
   </div>
 </div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  let player;
+  let currentSegment = null;
+
+  window.onYouTubeIframeAPIReady = function() {
+    console.log("YouTube API Ready");
+    try {
+      player = new YT.Player('youtube-player', {
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange,
+          'onError': onPlayerError
+        }
+      });
+    } catch (e) {
+      console.error("Error initializing YouTube player:", e);
+    }
+  };
+
+  function onPlayerReady(event) {
+    console.log("Player Ready, instance:", player);
+    setInterval(updateDebug, 100);
+    setInterval(checkTranscriptTime, 100);
+  }
+
+  function checkTranscriptTime() {
+    if (player && player.getCurrentTime) {
+      const currentTime = player.getCurrentTime();
+      highlightCurrentSegment(currentTime);
+    }
+  }
+
+  function highlightCurrentSegment(currentTime) {
+    const segments = document.querySelectorAll('.transcript-segment');
+    let activeSegment = null;
+
+    segments.forEach(segment => {
+      const start = parseFloat(segment.dataset.start);
+      const duration = parseFloat(segment.dataset.duration);
+      const end = start + duration;
+
+      segment.classList.remove('bg-purple-50', 'border-l-4', 'border-purple-500');
+
+      if (currentTime >= start && currentTime < end) {
+        activeSegment = segment;
+        segment.classList.add('bg-purple-50', 'border-l-4', 'border-purple-500');
+      }
+    });
+
+    if (activeSegment && activeSegment !== currentSegment) {
+      currentSegment = activeSegment;
+      const container = document.getElementById('transcript-container');
+
+      const containerRect = container.getBoundingClientRect();
+      const activeRect = activeSegment.getBoundingClientRect();
+
+      if (activeRect.top < containerRect.top || activeRect.bottom > containerRect.bottom) {
+        activeSegment.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+  }
+
+  function seekToTime(seconds) {
+    console.log("Seeking to:", seconds);
+    try {
+      if (player && player.seekTo) {
+        player.seekTo(seconds, true);
+        player.playVideo();
+        highlightCurrentSegment(seconds);
+      } else {
+        console.warn("Player not ready for seeking", {
+          playerExists: !!player,
+          seekToExists: player && !!player.seekTo
+        });
+      }
+    } catch (e) {
+      console.error("Seek error:", e);
+    }
+  }
+
+  function onPlayerError(event) {
+    console.error("Player Error:", event.data);
+  }
+
+  function updateDebug() {
+    try {
+      if (player && player.getCurrentTime) {
+        document.getElementById('debug-time').textContent =
+          `Current Time: ${player.getCurrentTime().toFixed(2)}`;
+        document.getElementById('debug-state').textContent =
+          `Player State: ${player.getPlayerState()}`;
+      }
+    } catch (e) {
+      console.error("Debug update error:", e);
+    }
+  }
+
+  function onPlayerStateChange(event) {
+    console.log("Player State Changed:", event.data);
+  }
+
+  console.log("Script loaded, waiting for YouTube API...");
+</script>
