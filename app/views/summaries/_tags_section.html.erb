@@ -1,0 +1,16 @@
+<div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+  <h3 class="text-lg font-medium mb-4">
+    <span class="mr-2">🏷️</span>Related Tags
+  </h3>
+
+  <div class="flex flex-wrap gap-2">
+    <% tags.each do |tag| %>
+      <%= link_to "#",
+          class: "inline-flex items-center px-3 py-1 rounded-full text-sm
+                 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors" do %>
+        <span class="mr-1">#</span>
+        <%= tag %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["player", "transcript", "debug", "debugTime", "debugState", "segment"]
+  static targets = ["player", "transcript", "debug", "debugTime", "debugState", "segment", "loadingIndicator"]
   static values = {
     videoId: String
   }
@@ -13,44 +13,67 @@ export default class extends Controller {
   }
 
   loadYouTubeAPI() {
+    console.log("Loading YouTube API...")
     if (window.YT) {
       this.initializePlayer()
     } else {
-      // Load the IFrame Player API code asynchronously
       const tag = document.createElement('script')
       tag.src = "https://www.youtube.com/iframe_api"
       const firstScriptTag = document.getElementsByTagName('script')[0]
       firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-
-      // Set up global callback
       window.onYouTubeIframeAPIReady = () => this.initializePlayer()
     }
   }
 
   initializePlayer() {
-    console.log("Initializing YouTube player")
+    console.log("Initializing player...")
     try {
       this.player = new YT.Player(this.playerTarget, {
         videoId: this.videoIdValue,
         events: {
-          'onReady': () => this.onPlayerReady(),
+          'onReady': (event) => this.onPlayerReady(event),
           'onStateChange': (event) => this.onPlayerStateChange(event),
           'onError': (event) => this.onPlayerError(event)
         }
       })
     } catch (e) {
-      console.error("Error initializing YouTube player:", e)
+      console.error("Error initializing player:", e)
     }
   }
 
-  onPlayerReady() {
-    console.log("Player ready")
+  onPlayerReady(event) {
+    console.log("Player ready!")
+    if (this.hasLoadingIndicatorTarget) {
+      console.log("Found loading indicator, hiding it...")
+      this.loadingIndicatorTarget.style.display = 'none'
+    } else {
+      console.log("Loading indicator target not found!")
+    }
     this.startMonitoring()
   }
 
   startMonitoring() {
-    setInterval(() => this.updateDebug(), 100)
-    setInterval(() => this.checkTranscriptTime(), 100)
+    setInterval(() => {
+      if (this.player && this.player.getCurrentTime) {
+        this.updateDebug()
+        this.checkTranscriptTime()
+      }
+    }, 100)
+  }
+
+  updateDebug() {
+    if (!this.hasDebugTarget) return
+
+    try {
+      if (this.player?.getCurrentTime) {
+        this.debugTimeTarget.textContent =
+          `Current Time: ${this.player.getCurrentTime().toFixed(2)}`
+        this.debugStateTarget.textContent =
+          `Player State: ${this.player.getPlayerState()}`
+      }
+    } catch (e) {
+      console.error("Debug update error:", e)
+    }
   }
 
   checkTranscriptTime() {
@@ -107,21 +130,6 @@ export default class extends Controller {
       }
     } catch (e) {
       console.error("Seek error:", e)
-    }
-  }
-
-  updateDebug() {
-    if (!this.hasDebugTarget) return
-
-    try {
-      if (this.player?.getCurrentTime) {
-        this.debugTimeTarget.textContent =
-          `Current Time: ${this.player.getCurrentTime().toFixed(2)}`
-        this.debugStateTarget.textContent =
-          `Player State: ${this.player.getPlayerState()}`
-      }
-    } catch (e) {
-      console.error("Debug update error:", e)
     }
   }
 

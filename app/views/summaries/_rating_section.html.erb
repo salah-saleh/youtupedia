@@ -1,0 +1,7 @@
+<div class="flex items-center justify-between">
+  <h2 class="text-xl">Summary</h2>
+  <div class="flex items-center space-x-2">
+    <span class="text-sm text-gray-600">Rate This</span>
+    <%= render "rating_stars", rating: summary[:rating], votes: summary[:votes] %>
+  </div>
+</div>

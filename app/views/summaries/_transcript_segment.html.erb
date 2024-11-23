@@ -1,0 +1,14 @@
+<div class="group hover:bg-gray-50 p-2 rounded-lg transition-colors cursor-pointer"
+     data-youtube-target="segment"
+     data-start="<%= transcript_segment['start'] %>"
+     data-duration="<%= transcript_segment['duration'] %>"
+     data-action="click->youtube#seekToTime">
+  <div class="flex items-start space-x-3">
+    <span class="text-sm text-gray-500 font-mono whitespace-nowrap">
+      <%= Time.at(transcript_segment['start']).utc.strftime("%H:%M:%S") %>
+    </span>
+    <p class="text-gray-800">
+      <%= transcript_segment['text'] %>
+    </p>
+  </div>
+</div>
