@@ -36,3 +36,8 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 gpt-config.txt
+
+# Ignore environment variables
+.env
+.env.development
+.env.test
