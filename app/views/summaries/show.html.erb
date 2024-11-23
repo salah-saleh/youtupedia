@@ -1,246 +1,136 @@
-<% if Rails.env.development? %>
-  <div id="debug" class="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg z-50">
-    <p>Debug Info:</p>
-    <p id="debug-time">Current Time: -</p>
-    <p id="debug-state">Player State: -</p>
-  </div>
-<% end %>
+<div data-controller="youtube" data-youtube-video-id-value="<%= @summary[:video_id] %>">
+  <% if Rails.env.development? %>
+    <div id="debug"
+         data-youtube-target="debug"
+         class="fixed bottom-4 right-4 bg-black bg-opacity-75 text-white p-4 rounded-lg z-50">
+      <p>Debug Info:</p>
+      <p data-youtube-target="debugTime">Current Time: -</p>
+      <p data-youtube-target="debugState">Player State: -</p>
+    </div>
+  <% end %>
 
-<div class="max-w-6xl mx-auto px-4 py-8">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <!-- Left Column -->
-    <div class="space-y-6">
-      <div>
-        <h1 class="text-2xl font-bold mb-3">
-          <%= @summary[:title] %>
-        </h1>
-
-        <div class="flex items-center text-gray-600 text-sm space-x-4 mb-6">
-          <span><%= @summary[:channel] %></span>
-          <span>•</span>
-          <span><%= @summary[:date] %></span>
-          <span>•</span>
-          <span><%= @summary[:time] %></span>
-        </div>
-      </div>
-
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Left Column -->
       <div class="space-y-6">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl">Summary</h2>
-          <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-600">Rate This</span>
-            <div class="flex items-center">
-              <% 5.times do |i| %>
-                <% if i < @summary[:rating].floor %>
-                  <span class="text-yellow-400">★</span>
-                <% else %>
-                  <span class="text-gray-300">★</span>
+        <div>
+          <h1 class="text-2xl font-bold mb-3">
+            <%= @summary[:title] %>
+          </h1>
+
+          <div class="flex items-center text-gray-600 text-sm space-x-4 mb-6">
+            <span><%= @summary[:channel] %></span>
+            <span>•</span>
+            <span><%= @summary[:date] %></span>
+            <span>•</span>
+            <span><%= @summary[:time] %></span>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl">Summary</h2>
+            <div class="flex items-center space-x-2">
+              <span class="text-sm text-gray-600">Rate This</span>
+              <div class="flex items-center">
+                <% 5.times do |i| %>
+                  <% if i < @summary[:rating].floor %>
+                    <span class="text-yellow-400">★</span>
+                  <% else %>
+                    <span class="text-gray-300">★</span>
+                  <% end %>
                 <% end %>
-              <% end %>
-              <span class="ml-2 text-sm text-gray-600">
-                <%= @summary[:rating] %>/5 (<%= @summary[:votes] %> votes)
-              </span>
+                <span class="ml-2 text-sm text-gray-600">
+                  <%= @summary[:rating] %>/5 (<%= @summary[:votes] %> votes)
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
-          <div class="mb-4">
-            <h3 class="text-gray-500 text-sm font-medium uppercase">TLDR</h3>
+          <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+            <div class="mb-4">
+              <h3 class="text-gray-500 text-sm font-medium uppercase">TLDR</h3>
+            </div>
+            <p class="text-gray-800 leading-relaxed">
+              <%= @summary[:tldr] %>
+            </p>
           </div>
-          <p class="text-gray-800 leading-relaxed">
-            <%= @summary[:tldr] %>
-          </p>
-        </div>
 
-        <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
-          <h3 class="text-purple-600 font-medium mb-4">
-            <span class="mr-2">💡</span>Takeaways
-          </h3>
-          <ul class="space-y-4">
-            <% @summary[:takeaways].each do |takeaway| %>
-              <li class="flex items-start space-x-2">
-                <span class="mt-1">😊</span>
-                <span class="text-gray-800"><%= takeaway %></span>
-              </li>
-            <% end %>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column -->
-    <div class="space-y-6">
-      <div class="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg overflow-hidden">
-        <iframe
-          id="youtube-player"
-          src="https://www.youtube.com/embed/<%= @summary[:video_id] %>?enablejsapi=1"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
-          class="w-full h-full">
-        </iframe>
-      </div>
-
-      <div class="space-y-4">
-        <div class="grid grid-cols-3 gap-3">
-          <button class="flex items-center justify-center px-4 py-2 rounded-lg border border-purple-200 bg-purple-50 text-purple-600 hover:bg-purple-100">
-            <span class="mr-2">📝</span>Summary
-          </button>
-          <button class="flex items-center justify-center px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">
-            <span class="mr-2">📋</span>Outlines
-          </button>
-          <button class="flex items-center justify-center px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">
-            <span class="mr-2">🗺</span>Mindmap
-          </button>
-        </div>
-
-        <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
-          <h3 class="text-lg font-medium mb-4">
-            <span class="mr-2">🏷</span>Related Tags
-          </h3>
-          <div class="flex flex-wrap gap-2">
-            <% @summary[:tags].each do |tag| %>
-              <span class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700 hover:bg-gray-200 cursor-pointer">
-                <%= tag %>
-              </span>
-            <% end %>
+          <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+            <h3 class="text-purple-600 font-medium mb-4">
+              <span class="mr-2">💡</span>Takeaways
+            </h3>
+            <ul class="space-y-4">
+              <% @summary[:takeaways].each do |takeaway| %>
+                <li class="flex items-start space-x-2">
+                  <span class="mt-1">😊</span>
+                  <span class="text-gray-800"><%= takeaway %></span>
+                </li>
+              <% end %>
+            </ul>
           </div>
         </div>
+      </div>
 
-        <div class="mt-6 bg-white rounded-lg border border-gray-100 shadow-sm p-6">
-          <h3 class="text-lg font-medium mb-4">
-            <span class="mr-2">📝</span>Transcript
-          </h3>
+      <!-- Right Column -->
+      <div class="space-y-6">
+        <div class="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg overflow-hidden">
+          <div data-youtube-target="player"></div>
+        </div>
 
-          <div class="space-y-2 max-h-[500px] overflow-y-auto" id="transcript-container">
-            <% @summary[:transcript].each do |segment| %>
-              <div
-                class="group hover:bg-gray-50 p-2 rounded-lg transition-colors cursor-pointer transcript-segment"
-                data-start="<%= segment['start'] %>"
-                data-duration="<%= segment['duration'] %>"
-                onclick="seekToTime(<%= segment['start'] %>)">
-                <div class="flex items-start space-x-3">
-                  <span class="text-sm text-gray-500 font-mono whitespace-nowrap">
-                    <%= Time.at(segment['start']).utc.strftime("%H:%M:%S") %>
-                  </span>
-                  <p class="text-gray-800">
-                    <%= segment['text'] %>
-                  </p>
+        <div class="space-y-4">
+          <div class="grid grid-cols-3 gap-3">
+            <button class="flex items-center justify-center px-4 py-2 rounded-lg border border-purple-200 bg-purple-50 text-purple-600 hover:bg-purple-100">
+              <span class="mr-2">📝</span>Summary
+            </button>
+            <button class="flex items-center justify-center px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">
+              <span class="mr-2">📋</span>Outlines
+            </button>
+            <button class="flex items-center justify-center px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">
+              <span class="mr-2">🗺</span>Mindmap
+            </button>
+          </div>
+
+          <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+            <h3 class="text-lg font-medium mb-4">
+              <span class="mr-2">🏷</span>Related Tags
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              <% @summary[:tags].each do |tag| %>
+                <span class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700 hover:bg-gray-200 cursor-pointer">
+                  <%= tag %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="mt-6 bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+            <h3 class="text-lg font-medium mb-4">
+              <span class="mr-2">📝</span>Transcript
+            </h3>
+
+            <div class="space-y-2 max-h-[500px] overflow-y-auto"
+                 data-youtube-target="transcript">
+              <% @summary[:transcript].each do |segment| %>
+                <div class="group hover:bg-gray-50 p-2 rounded-lg transition-colors cursor-pointer"
+                     data-youtube-target="segment"
+                     data-start="<%= segment['start'] %>"
+                     data-duration="<%= segment['duration'] %>"
+                     data-action="click->youtube#seekToTime">
+                  <div class="flex items-start space-x-3">
+                    <span class="text-sm text-gray-500 font-mono whitespace-nowrap">
+                      <%= Time.at(segment['start']).utc.strftime("%H:%M:%S") %>
+                    </span>
+                    <p class="text-gray-800">
+                      <%= segment['text'] %>
+                    </p>
+                  </div>
                 </div>
-              </div>
-            <% end %>
+              <% end %>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
-
-<script src="https://www.youtube.com/iframe_api"></script>
-<script>
-  let player;
-  let currentSegment = null;
-
-  window.onYouTubeIframeAPIReady = function() {
-    console.log("YouTube API Ready");
-    try {
-      player = new YT.Player('youtube-player', {
-        events: {
-          'onReady': onPlayerReady,
-          'onStateChange': onPlayerStateChange,
-          'onError': onPlayerError
-        }
-      });
-    } catch (e) {
-      console.error("Error initializing YouTube player:", e);
-    }
-  };
-
-  function onPlayerReady(event) {
-    console.log("Player Ready, instance:", player);
-    setInterval(updateDebug, 100);
-    setInterval(checkTranscriptTime, 100);
-  }
-
-  function checkTranscriptTime() {
-    if (player && player.getCurrentTime) {
-      const currentTime = player.getCurrentTime();
-      highlightCurrentSegment(currentTime);
-    }
-  }
-
-  function highlightCurrentSegment(currentTime) {
-    const segments = document.querySelectorAll('.transcript-segment');
-    let activeSegment = null;
-
-    segments.forEach(segment => {
-      const start = parseFloat(segment.dataset.start);
-      const duration = parseFloat(segment.dataset.duration);
-      const end = start + duration;
-
-      segment.classList.remove('bg-purple-50', 'border-l-4', 'border-purple-500');
-
-      if (currentTime >= start && currentTime < end) {
-        activeSegment = segment;
-        segment.classList.add('bg-purple-50', 'border-l-4', 'border-purple-500');
-      }
-    });
-
-    if (activeSegment && activeSegment !== currentSegment) {
-      currentSegment = activeSegment;
-      const container = document.getElementById('transcript-container');
-
-      const containerRect = container.getBoundingClientRect();
-      const activeRect = activeSegment.getBoundingClientRect();
-
-      if (activeRect.top < containerRect.top || activeRect.bottom > containerRect.bottom) {
-        activeSegment.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }
-    }
-  }
-
-  function seekToTime(seconds) {
-    console.log("Seeking to:", seconds);
-    try {
-      if (player && player.seekTo) {
-        player.seekTo(seconds, true);
-        player.playVideo();
-        highlightCurrentSegment(seconds);
-      } else {
-        console.warn("Player not ready for seeking", {
-          playerExists: !!player,
-          seekToExists: player && !!player.seekTo
-        });
-      }
-    } catch (e) {
-      console.error("Seek error:", e);
-    }
-  }
-
-  function onPlayerError(event) {
-    console.error("Player Error:", event.data);
-  }
-
-  function updateDebug() {
-    try {
-      if (player && player.getCurrentTime) {
-        document.getElementById('debug-time').textContent =
-          `Current Time: ${player.getCurrentTime().toFixed(2)}`;
-        document.getElementById('debug-state').textContent =
-          `Player State: ${player.getPlayerState()}`;
-      }
-    } catch (e) {
-      console.error("Debug update error:", e);
-    }
-  }
-
-  function onPlayerStateChange(event) {
-    console.log("Player State Changed:", event.data);
-  }
-
-  console.log("Script loaded, waiting for YouTube API...");
-</script>
