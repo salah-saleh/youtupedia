@@ -1,9 +1,30 @@
 class ChatGptService
-  def self.generate_summary(transcript)
+  CACHE_DIR = Rails.root.join("tmp/summaries")
+
+  def self.generate_summary(video_id, transcript)
+    # Create cache directory if it doesn't exist
+    FileUtils.mkdir_p(CACHE_DIR) unless Dir.exist?(CACHE_DIR)
+
+    # Create a unique cache key based on transcript content
+    cache_key = Digest::MD5.hexdigest(transcript.to_json)
+    cache_file = CACHE_DIR.join("#{video_id}_#{cache_key}.json")
+
+    if File.exist?(cache_file)
+      Rails.logger.debug("Loading summary from cache for video_id: #{video_id} and key: #{cache_key}")
+      JSON.parse(File.read(cache_file), symbolize_names: true)
+    else
+      Rails.logger.debug("Generating new summary for video_id: #{video_id} and key: #{cache_key}")
+      fetch_and_cache_summary(transcript, cache_file, cache_key, video_id)
+    end
+  rescue => e
+    Rails.logger.error "Summary Error: #{e.message}"
+    { success: false, error: "Failed to generate summary: #{e.message}" }
+  end
+
+  private
+
+  def self.fetch_and_cache_summary(transcript, cache_file, cache_key, video_id)
     client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
-
-    Rails.logger.debug "Starting ChatGPT summary generation..."
-
     full_text = transcript.map { |segment| segment["text"] }.join(" ")
 
     response = client.chat(
@@ -40,35 +61,23 @@ class ChatGptService
       }
     )
 
-    Rails.logger.debug "ChatGPT Response received: #{response.inspect}"
-
-    parse_json_response(response.dig("choices", 0, "message", "content"))
-  rescue => e
-    Rails.logger.error "ChatGPT API Error: #{e.message}"
-    {
-      success: false,
-      error: "Failed to generate summary: #{e.message}"
-    }
-  end
-
-  def self.parse_json_response(content)
+    content = response.dig("choices", 0, "message", "content")
     return { success: false, error: "No content received" } unless content
 
-    Rails.logger.debug "Parsing content: #{content}"
-
-    parsed = JSON.parse(content)
-    {
+    result = JSON.parse(content)
+    result = {
       success: true,
-      tldr: parsed["tldr"],
-      takeaways: parsed["takeaways"],
-      tags: parsed["tags"],
-      summary: parsed["summary"]
+      tldr: result["tldr"],
+      takeaways: result["takeaways"],
+      tags: result["tags"],
+      summary: result["summary"]
     }
+
+    Rails.logger.debug("Caching summary for video_id: #{video_id} and key: #{cache_key}")
+    File.write(cache_file, result.to_json)
+
+    result
   rescue JSON::ParserError => e
-    Rails.logger.error "JSON parsing error: #{e.message}"
-    {
-      success: false,
-      error: "Failed to parse response: #{e.message}"
-    }
+    { success: false, error: "Failed to parse response: #{e.message}" }
   end
 end
