@@ -27,14 +27,28 @@ class YoutubeMetadataService
     response = client.list_videos("snippet", id: video_id)
 
     if response.items.any?
-      video = response.items.first.snippet
+      snippet = response.items.first.snippet
+      metadata = {
+        title: snippet.title,
+        description: snippet.description,
+        channel_title: snippet.channel_title,
+        channel_id: snippet.channel_id,
+        published_at: snippet.published_at,
+        thumbnails: {
+          default: snippet.thumbnails.default&.url,
+          medium: snippet.thumbnails.medium&.url,
+          high: snippet.thumbnails.high&.url,
+          standard: snippet.thumbnails.standard&.url,
+          maxres: snippet.thumbnails.maxres&.url
+        },
+        category_id: snippet.category_id,
+        tags: snippet.tags,
+        live_broadcast_content: snippet.live_broadcast_content
+      }
+
       result = {
         success: true,
-        title: video.title,
-        channel: video.channel_title,
-        date: video.published_at.strftime("%B %d, %Y"),
-        thumbnail: video.thumbnails.high.url,
-        description: video.description
+        metadata: metadata
       }
 
       Rails.logger.debug("Caching metadata for video_id: #{video_id}")

@@ -4,8 +4,8 @@ class SummariesController < ApplicationController
     transcript_result = YoutubeTranscriptService.fetch_transcript(video_id)
     metadata_result = YoutubeMetadataService.fetch_metadata(video_id)
 
-    if transcript_result["success"] && metadata_result[:success]
-      summary_content = ChatGptService.generate_summary(video_id, transcript_result["transcript"])
+    if transcript_result[:success] && metadata_result[:success]
+      summary_content = ChatGptService.generate_summary(video_id, transcript_result[:transcript_full])
 
       @summary = {
         video_id: video_id,
@@ -14,7 +14,7 @@ class SummariesController < ApplicationController
         date: metadata_result[:date],
         thumbnail: metadata_result[:thumbnail],
         description: metadata_result[:description],
-        transcript: transcript_result[:transcript],
+        transcript: transcript_result[:transcript_segmented],
         tldr: summary_content[:tldr],
         takeaways: summary_content[:takeaways],
         tags: summary_content[:tags],
@@ -23,7 +23,7 @@ class SummariesController < ApplicationController
         votes: 123
       }
     else
-      error_message = transcript_result["success"] ?
+      error_message = transcript_result[:success] ?
         metadata_result[:error] :
         "Could not fetch video transcript"
       redirect_to root_path, alert: error_message

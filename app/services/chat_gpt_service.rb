@@ -5,16 +5,14 @@ class ChatGptService
     # Create cache directory if it doesn't exist
     FileUtils.mkdir_p(CACHE_DIR) unless Dir.exist?(CACHE_DIR)
 
-    # Create a unique cache key based on transcript content
-    cache_key = Digest::MD5.hexdigest(transcript.to_json)
-    cache_file = CACHE_DIR.join("#{video_id}_#{cache_key}.json")
+    cache_file = CACHE_DIR.join("#{video_id}.json")
 
     if File.exist?(cache_file)
-      Rails.logger.debug("Loading summary from cache for video_id: #{video_id} and key: #{cache_key}")
+      Rails.logger.debug("Loading summary from cache for video_id: #{video_id}")
       JSON.parse(File.read(cache_file), symbolize_names: true)
     else
-      Rails.logger.debug("Generating new summary for video_id: #{video_id} and key: #{cache_key}")
-      fetch_and_cache_summary(transcript, cache_file, cache_key, video_id)
+      Rails.logger.debug("Generating new summary for video_id: #{video_id}")
+      fetch_and_cache_summary(transcript, cache_file, video_id)
     end
   rescue => e
     Rails.logger.error "Summary Error: #{e.message}"
@@ -23,9 +21,13 @@ class ChatGptService
 
   private
 
-  def self.fetch_and_cache_summary(transcript, cache_file, cache_key, video_id)
+  def self.fetch_and_cache_summary(transcript, cache_file, video_id)
     client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
-    full_text = transcript.map { |segment| segment["text"] }.join(" ")
+    full_text = transcript
+    # check if length is less than 100, throw error
+    if full_text.length < 100
+      return { success: false, error: "Transcript is too short to generate a summary" }
+    end
 
     response = client.chat(
       parameters: {
@@ -73,7 +75,7 @@ class ChatGptService
       summary: result["summary"]
     }
 
-    Rails.logger.debug("Caching summary for video_id: #{video_id} and key: #{cache_key}")
+    Rails.logger.debug("Caching summary for video_id: #{video_id}")
     File.write(cache_file, result.to_json)
 
     result
