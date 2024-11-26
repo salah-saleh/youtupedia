@@ -1,0 +1,38 @@
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">YouTube Channel Videos</h1>
+
+  <%= form_tag channel_path, method: :get, class: "mb-8" do %>
+    <div class="flex gap-4">
+      <%= text_field_tag :channel_id, params[:channel_id],
+          class: "flex-1 p-2 border rounded",
+          placeholder: "Enter YouTube Channel ID (e.g., UCxxx...)" %>
+      <%= submit_tag "Fetch Videos",
+          class: "px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" %>
+    </div>
+  <% end %>
+
+  <% if flash[:alert].present? %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      <%= flash[:alert] %>
+    </div>
+  <% end %>
+
+  <% if @videos.present? %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @videos.each do |video| %>
+        <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <%= link_to summaries_path(youtube_url: video[:url]), class: "block" do %>
+            <div class="p-4">
+              <h3 class="font-semibold text-lg mb-2 line-clamp-2">
+                <%= video[:title] %>
+              </h3>
+              <p class="text-gray-600 text-sm">
+                Published: <%= DateTime.parse(video[:published_at]).strftime("%B %d, %Y") rescue video[:published_at] %>
+              </p>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

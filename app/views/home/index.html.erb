@@ -9,7 +9,7 @@
   </p>
 
   <div class="mb-8">
-    <%= form_with url: summary_path(1), method: :get, class: "relative" do |f| %>
+    <%= form_with url: summaries_path, method: :get, class: "relative" do |f| %>
       <%= f.text_field :youtube_url,
           placeholder: "Enter YouTube video link here...",
           required: true,

@@ -43,7 +43,7 @@ class ChatGptService
               'takeaways': [
                 'takeaway 1',
                 'takeaway 2',
-                // up to 10 takeaways
+                // up to 19 takeaways
               ],
               'tags': [
                 'tag1',

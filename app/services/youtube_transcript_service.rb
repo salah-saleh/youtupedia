@@ -47,7 +47,7 @@ class YoutubeTranscriptService
       File.write(segmented_cache_file, output)
 
       # Create and cache the full text version
-      full_text = result[:transcript].map { |entry| entry["text"] }.join(" ")
+      full_text = result[:transcript].map { |entry| entry[:text] }.join(" ")
       full_version = {
         success: true,
         transcript: full_text
