@@ -23,18 +23,28 @@
       <!-- Recent Summaries Section -->
       <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold mb-4">Recent Summaries</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <% 6.times do %>
-            <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
-              <h3 class="font-medium mb-2">How to Build a Dashboard with Tailwind CSS</h3>
-              <p class="text-sm text-gray-600 mb-2">Channel Name</p>
-              <div class="flex justify-between text-sm text-gray-500">
-                <span>5 min read</span>
-                <span>2 days ago</span>
-              </div>
-            </div>
-          <% end %>
-        </div>
+        <% if @recent_summaries.any? %>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <% @recent_summaries.each do |summary| %>
+              <%= link_to summaries_path(youtube_url: "https://www.youtube.com/watch?v=#{summary[:video_id]}"),
+                    class: "border rounded-lg p-4 hover:shadow-md transition-shadow block" do %>
+                <div class="aspect-video mb-3">
+                  <%= image_tag summary[:thumbnail],
+                        class: "w-full h-full object-cover rounded",
+                        alt: summary[:title] %>
+                </div>
+                <h3 class="font-medium mb-2 line-clamp-2"><%= summary[:title] %></h3>
+                <p class="text-sm text-gray-600 mb-2"><%= summary[:channel] %></p>
+                <div class="flex justify-between text-sm text-gray-500">
+                  <span>Published at</span>
+                  <span><%= time_ago_in_words(summary[:published_at]) %> ago</span>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-gray-500 text-center py-8">No summaries available yet. Try summarizing a video above!</p>
+        <% end %>
       </div>
     <% end %>
   </div>
