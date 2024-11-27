@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html class="h-full">
+<head>
+  <title>Dashboard</title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+  <%= javascript_importmap_tags %>
+
+</head>
+<body class="h-full">
+  <!-- Top Navigation Bar -->
+  <nav class="bg-white border-b">
+    <div class="max-w-full mx-auto px-4">
+      <div class="flex justify-between h-14">
+        <!-- Left side -->
+        <div class="flex items-center">
+          <div class="text-xl font-bold">YTSummary</div>
+        </div>
+
+        <!-- Right side -->
+        <div class="flex items-center space-x-4">
+          <button class="hover:bg-gray-100 px-3 py-1 rounded-md">Notify</button>
+          <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white">
+            U
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex h-[calc(100vh-3.5rem)]">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white border-r">
+      <div class="p-4 space-y-2">
+        <%= link_to "Home", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
+        <%= link_to "My Summaries", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
+        <%= link_to "Saved", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
+        <%= link_to "History", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
+        <div class="border-t my-2"></div>
+        <%= link_to "Settings", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto bg-gray-50">
+      <div class="p-6">
+        <%= yield %>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<div class="max-w-4xl mx-auto text-center">
+  <h1 class="text-6xl font-bold mb-4">
+    Watch less, learn more and fast
+    <span class="block">from long videos</span>
+  </h1>
+
+  <p class="text-xl text-gray-600 mb-8">
+    Get YouTube video summaries in a minute. Just paste the link below.
+  </p>
+
+  <div class="mb-8">
+    <%= form_with url: summaries_path, method: :get, class: "relative" do |f| %>
+      <%= f.text_field :youtube_url,
+          placeholder: "Enter YouTube video link here...",
+          required: true,
+          class: "w-full px-4 py-3 rounded-full border border-purple-300 focus:outline-none focus:border-purple-500" %>
+
+      <%= f.submit "Submit",
+          class: "absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-purple-500 text-white rounded-full hover:bg-purple-600" %>
+    <% end %>
+  </div>
+</div>
