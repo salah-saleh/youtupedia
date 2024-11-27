@@ -17,7 +17,9 @@
       <div class="flex justify-between h-14">
         <!-- Left side -->
         <div class="flex items-center">
-          <div class="text-xl font-bold">YTSummary</div>
+          <%= link_to root_path, class: "text-xl font-bold hover:text-gray-700" do %>
+            YTSummary
+          <% end %>
         </div>
 
         <!-- Right side -->
@@ -35,7 +37,7 @@
     <!-- Sidebar -->
     <div class="w-64 bg-white border-r">
       <div class="p-4 space-y-2">
-        <%= link_to "Home", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
+        <%= link_to "Home", root_path, class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
         <%= link_to "My Summaries", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
         <%= link_to "Saved", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
         <%= link_to "History", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
