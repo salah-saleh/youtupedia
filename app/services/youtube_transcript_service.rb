@@ -36,7 +36,10 @@ class YoutubeTranscriptService
   end
 
   def self.create_full_transcript(segmented_transcript)
-    full_text = segmented_transcript.map { |entry| entry[:text] }.join(" ")
+    full_text = segmented_transcript.map do |entry|
+      "#{entry[:text]} (#{entry[:start]})"
+    end.join(" ")
+
     {
       success: true,
       transcript: full_text

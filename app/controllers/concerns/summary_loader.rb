@@ -8,7 +8,7 @@ module SummaryLoader
     Dir.glob(metadata_dir.join("*.json"))
       .sort_by { |f| File.mtime(f) }
       .reverse
-      .first(6)
+      .first(20)
       .map do |file|
         video_id = File.basename(file, ".json")
         metadata = JSON.parse(File.read(file), symbolize_names: true)

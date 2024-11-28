@@ -18,6 +18,7 @@ class ChatGptService
     client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
     response = client.chat(
       parameters: {
+        # store: true,
         model: "gpt-4o-mini",
         messages: [
           {
@@ -52,22 +53,40 @@ class ChatGptService
     <<~PROMPT
       You are a helpful and creative Editor who analyzes transcripts.
       You focus on names, numbers, concepts, technologies, techniques, tools and etc.
+      You will receive text with timestamps. for example:
+      "we will speak about AI today (0.5) it is gonna be a long video (1.5)"
+      For takeaways and tags you will need to give reference to the timestamp in seconds.
+      For tldr, you will not need to give timestamps.
+      For summary, you will need to give timestamps as reference. e.g. blah blah blah (0.5) blah blah blah (1.5).
       Your response must be in valid JSON format with the following schema:
       {
         "tldr": "brief one-paragraph summary",
         "takeaways": [
-          "takeaway 1",
-          "takeaway 2",
+          {
+            "timestamp": 45,
+            "content": "takeaway 1"
+          },
+          {
+            "timestamp": 120,
+            "content": "takeaway 2"
+          }
           // up to 19 takeaways
         ],
         "tags": [
-          "tag1",
-          "tag2",
-          // up to 50 tags, focusing on names, technologies, concepts, tools and etc.
+          {
+            "timestamp": 45,
+            "tag": "tag1"
+          },
+          {
+            "timestamp": 120,
+            "tag": "tag2"
+          }
+          // up to 10 tags, focusing on names, technologies, concepts, tools and etc.
         ],
         "summary": "detailed 500-800 word summary"
       }
       Do not include any other text outside of this JSON structure.
+      Always include timestamps in seconds for each takeaway and tag, representing when this concept first appears in the video.
     PROMPT
   end
 end
