@@ -119,17 +119,10 @@ export default class extends Controller {
   }
 
   seekToTime(event) {
-    const seconds = parseFloat(event.currentTarget.dataset.start)
-    console.log("Seeking to:", seconds)
-
-    try {
-      if (this.player?.seekTo) {
-        this.player.seekTo(seconds, true)
-        this.player.playVideo()
-        this.highlightCurrentSegment(seconds)
-      }
-    } catch (e) {
-      console.error("Seek error:", e)
+    const time = parseFloat(event.currentTarget.dataset.time);
+    if (this.player?.seekTo) {
+      this.player.seekTo(time, true);
+      this.player.playVideo();
     }
   }
 

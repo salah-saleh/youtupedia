@@ -2,7 +2,22 @@
   <div class="mb-4">
     <h3 class="text-gray-500 text-sm font-medium uppercase">Detailed Summary</h3>
   </div>
-  <p class="text-gray-800 leading-relaxed">
-    <%= summary[:summary] %>
-  </p>
+  <div class="text-gray-800 leading-relaxed">
+    <%
+      # Split by timestamps (e.g., "text (123.45)")
+      parts = summary[:summary].scan(/([^()]+)(?:\((\d+(?:\.\d+)?)\))?/)
+      parts.each do |text, timestamp|
+        if timestamp
+    %>
+        <%= text %>
+        <button class="inline-flex items-center px-1 mx-1 text-sm text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded"
+                data-action="click->youtube#seekToTime"
+                data-time="<%= timestamp.to_f %>">
+          <%= Time.at(timestamp.to_f).utc.strftime("%H:%M:%S") %>
+        </button>
+    <%  else %>
+        <%= text %>
+    <%  end %>
+    <% end %>
+  </div>
 </div>
