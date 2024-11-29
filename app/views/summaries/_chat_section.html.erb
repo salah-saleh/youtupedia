@@ -1,0 +1,32 @@
+<div class="bg-white shadow rounded-lg p-4"
+     data-controller="chat"
+     data-chat-video-id-value="<%= @summary[:video_id] %>">
+  <h3 class="text-lg font-medium text-gray-900 mb-4">Chat about this video</h3>
+
+  <div class="space-y-4">
+    <div class="chat-messages space-y-4 max-h-96 overflow-y-auto mb-4"
+         data-chat-target="messagesContainer">
+      <!-- Messages will be inserted here dynamically -->
+    </div>
+
+    <form data-action="submit->chat#submitQuestion" class="relative">
+      <textarea
+        data-chat-target="input"
+        class="w-full rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500 resize-none"
+        rows="3"
+        placeholder="Ask any question about this video..."
+      ></textarea>
+
+      <div class="absolute bottom-2 right-2 flex items-center gap-2">
+        <div data-chat-target="loading" class="hidden">
+          <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-500"></div>
+        </div>
+        <button type="submit"
+                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                data-chat-target="submitButton">
+          Send
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

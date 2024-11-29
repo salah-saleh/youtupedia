@@ -14,4 +14,11 @@ Rails.application.routes.draw do
   resources :channels, only: [ :show ] do
     resources :videos, only: [ :index ], controller: "channels/videos"
   end
+
+  # Summaries features
+  resources :summaries do
+    member do
+      post "ask_gpt"
+    end
+  end
 end

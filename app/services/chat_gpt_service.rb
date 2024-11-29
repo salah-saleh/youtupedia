@@ -10,6 +10,35 @@ class ChatGptService
     { success: false, error: "Failed to generate summary: #{e.message}" }
   end
 
+  def self.answer_question(question, transcript)
+    client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
+
+    response = client.chat(
+      parameters: {
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant answering questions about a video transcript. Provide clear and concise answers based on the transcript content."
+          },
+          {
+            role: "user",
+            content: "Here is the transcript: #{transcript}\n\nQuestion: #{question}"
+          }
+        ],
+        temperature: 0.7
+      }
+    )
+
+    content = response.dig("choices", 0, "message", "content")
+    return { success: false, error: "No content received" } unless content
+
+    { success: true, answer: content }
+  rescue => e
+    Rails.logger.error "Chat GPT Error: #{e.message}"
+    { success: false, error: "Failed to process question: #{e.message}" }
+  end
+
   private
 
   def self.generate_from_api(transcript)
