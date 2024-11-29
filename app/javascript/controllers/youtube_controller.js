@@ -109,11 +109,11 @@ export default class extends Controller {
       const containerRect = container.getBoundingClientRect()
       const activeRect = activeSegment.getBoundingClientRect()
 
-      if (activeRect.top < containerRect.top || activeRect.bottom > containerRect.bottom) {
-        activeSegment.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        })
+      const relativeTop = activeRect.top - containerRect.top
+      const relativeBottom = activeRect.bottom - containerRect.top
+
+      if (relativeTop < 0 || relativeBottom > containerRect.height) {
+        container.scrollTop = container.scrollTop + relativeTop - (containerRect.height / 2) + (activeRect.height / 2)
       }
     }
   }
