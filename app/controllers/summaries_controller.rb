@@ -36,12 +36,10 @@ class SummariesController < ApplicationController
     video_id = params[:id]
     question = params[:question]
 
-    # Load transcript from disk or service
     transcript_result = YoutubeTranscriptService.fetch_transcript(video_id)
 
     if transcript_result[:success]
-      transcript = transcript_result[:transcript_full]
-      result = ChatGptService.answer_question(question, transcript)
+      result = ChatGptService.answer_question(video_id, question, transcript_result[:transcript_full])
 
       if result[:success]
         render json: { success: true, answer: result[:answer] }

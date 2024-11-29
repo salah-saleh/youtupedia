@@ -10,28 +10,56 @@ class ChatGptService
     { success: false, error: "Failed to generate summary: #{e.message}" }
   end
 
-  def self.answer_question(question, transcript)
+  def self.answer_question(video_id, question, transcript)
     client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
+    thread_data = ChatThreadService.create_or_load_thread(video_id)
+
+    # Build conversation history
+    messages = [
+      {
+        role: "system",
+        content: <<~PROMPT
+          You are a helpful assistant answering questions about a video transcript.
+          Provide clear and concise answers based on the transcript content.
+          PLease answer stictly about the transcript content.
+          If asked about any other topic, please say you can only answer about the transcript content.
+          Your response must be in markdown format.
+        PROMPT
+      },
+      {
+        role: "user",
+        content: "Here is the transcript to analyze: #{transcript}"
+      }
+    ]
+
+    # Add conversation history
+    thread_data[:messages].each do |msg|
+      messages << {
+        role: msg[:role],
+        content: msg[:content]
+      }
+    end
+
+    # Add the new question
+    messages << {
+      role: "user",
+      content: question
+    }
 
     response = client.chat(
       parameters: {
         model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant answering questions about a video transcript. Provide clear and concise answers based on the transcript content."
-          },
-          {
-            role: "user",
-            content: "Here is the transcript: #{transcript}\n\nQuestion: #{question}"
-          }
-        ],
+        messages: messages,
         temperature: 0.7
       }
     )
 
     content = response.dig("choices", 0, "message", "content")
     return { success: false, error: "No content received" } unless content
+
+    # Save the conversation
+    ChatThreadService.save_message(video_id, "user", question)
+    ChatThreadService.save_message(video_id, "assistant", content)
 
     { success: true, answer: content }
   rescue => e

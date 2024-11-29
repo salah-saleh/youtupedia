@@ -59,7 +59,7 @@ export default class extends Controller {
         <span class="font-medium ${role === 'user' ? 'text-purple-700' : 'text-gray-700'}">
           ${role === 'user' ? 'You' : 'Assistant'}:
         </span>
-        <div class="flex-1">${content}</div>
+        <div class="flex-1 prose prose-sm max-w-none">${content}</div>
       </div>
     `
     this.messagesContainerTarget.appendChild(messageDiv)

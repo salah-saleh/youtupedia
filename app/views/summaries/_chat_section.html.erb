@@ -6,7 +6,21 @@
   <div class="space-y-4">
     <div class="chat-messages space-y-4 max-h-96 overflow-y-auto mb-4"
          data-chat-target="messagesContainer">
-      <!-- Messages will be inserted here dynamically -->
+      <% ChatThreadService.create_or_load_thread(@summary[:video_id])[:messages].each do |message| %>
+        <div class="p-3 rounded-lg <%= message[:role] == 'user' ? 'bg-purple-50' : 'bg-gray-50' %>">
+          <div class="flex items-start gap-2">
+            <span class="font-medium <%= message[:role] == 'user' ? 'text-purple-700' : 'text-gray-700' %>">
+              <%= message[:role] == 'user' ? 'You' : 'Assistant' %>:
+            </span>
+            <div class="flex-1 prose prose-sm max-w-none">
+              <%= message[:content_html].html_safe %>
+            </div>
+            <span class="text-xs text-gray-400">
+              <%= time_ago_in_words(message[:timestamp]) %> ago
+            </span>
+          </div>
+        </div>
+      <% end %>
     </div>
 
     <form data-action="submit->chat#submitQuestion" class="relative">
