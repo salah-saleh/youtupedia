@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   helper_method :user_signed_in?
+  helper TimeHelper
 
   def user_signed_in?
     # Mock logic for now
