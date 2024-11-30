@@ -11,9 +11,7 @@ Rails.application.routes.draw do
   get "/summary", to: "summaries#show" # For showing individual summaries
 
   # Channel features
-  resources :channels, only: [ :show ] do
-    resources :videos, only: [ :index ], controller: "channels/videos"
-  end
+  resources :channels, only: [ :index, :show, :create ]
 
   # Summaries features
   resources :summaries do
