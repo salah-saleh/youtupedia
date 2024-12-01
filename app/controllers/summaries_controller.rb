@@ -13,7 +13,7 @@ class SummariesController < ApplicationController
     return redirect_to root_path, alert: @transcript[:error] unless @transcript[:success]
 
     # Schedule the summary generation
-    SummaryGeneratorJob.schedule(video_id, @transcript[:transcript_full])
+    ChatGptService.process_async(video_id, @transcript[:transcript_full])
 
     # Show loading state initially
     @summary = {
@@ -36,8 +36,8 @@ class SummariesController < ApplicationController
     video_id = params[:id]
     Rails.logger.debug "CHECK_STATUS: Starting check for video #{video_id}"
 
-    cache_service = Cache::FileCacheService.new("summaries")
-    Rails.logger.debug "CHECK_STATUS: Created cache service for 'summaries' namespace"
+    cache_service = Cache::FileCacheService.new(ChatGptService.cache_namespace)
+    Rails.logger.debug "CHECK_STATUS: Created cache service for '#{ChatGptService.cache_namespace}' namespace"
 
     if cache_service.exist?(video_id)
       Rails.logger.debug "CHECK_STATUS: Cache file exists, attempting to read"
