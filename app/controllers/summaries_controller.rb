@@ -12,9 +12,10 @@ class SummariesController < ApplicationController
     @transcript = YoutubeTranscriptService.fetch_transcript(video_id)
     return redirect_to root_path, alert: @transcript[:error] unless @transcript[:success]
 
-    summary_content = ChatGptService.generate_summary(video_id, @transcript[:transcript_full])
-    return redirect_to root_path, alert: summary_content[:error] unless summary_content[:success]
+    # Schedule the summary generation
+    SummaryGeneratorJob.schedule(video_id, @transcript[:transcript_full])
 
+    # Show loading state initially
     @summary = {
       video_id: video_id,
       title: @metadata.dig(:metadata, :title),
@@ -23,31 +24,83 @@ class SummariesController < ApplicationController
       thumbnail: @metadata.dig(:metadata, :thumbnails, :high),
       description: @metadata.dig(:metadata, :description),
       transcript: @transcript[:transcript_segmented],
-      tldr: summary_content[:tldr],
-      takeaways: summary_content[:takeaways],
-      tags: summary_content[:tags],
-      summary: summary_content[:summary],
-      rating: 4.5, # Mock data
-      votes: 123  # Mock data
+      loading: true,
+      tldr: "",
+      takeaways: [],
+      tags: [],
+      summary: ""
     }
   end
 
-  def ask_gpt
+  def check_status
     video_id = params[:id]
-    question = params[:question]
+    Rails.logger.debug "CHECK_STATUS: Starting check for video #{video_id}"
 
-    transcript_result = YoutubeTranscriptService.fetch_transcript(video_id)
+    cache_service = Cache::FileCacheService.new("summaries")
+    Rails.logger.debug "CHECK_STATUS: Created cache service for 'summaries' namespace"
 
-    if transcript_result[:success]
-      result = ChatGptService.answer_question(video_id, question, transcript_result[:transcript_full])
-
-      if result[:success]
-        render json: { success: true, answer: result[:answer] }
-      else
-        render json: { success: false, error: result[:error] }, status: :unprocessable_entity
-      end
+    if cache_service.exist?(video_id)
+      Rails.logger.debug "CHECK_STATUS: Cache file exists, attempting to read"
+      result = cache_service.read(video_id)
+      Rails.logger.debug "CHECK_STATUS: Read result from cache: #{result.inspect.first(100)}"
     else
-      render json: { success: false, error: "Could not load video transcript" }, status: :unprocessable_entity
+      Rails.logger.debug "CHECK_STATUS: Cache file does not exist"
+      result = nil
+    end
+
+    respond_to do |format|
+      # JSON response for status check
+      format.json do
+        response_data = if result && result[:success]
+          Rails.logger.debug "CHECK_STATUS: Found successful result in cache"
+          {
+            status: "completed",
+            summary: result
+          }
+        else
+          Rails.logger.debug "CHECK_STATUS: No successful result in cache yet"
+          {
+            status: "processing"
+          }
+        end
+
+        Rails.logger.debug "CHECK_STATUS: Sending JSON response: #{response_data.inspect}"
+        render json: response_data
+      end
+
+      # Turbo Stream response for section updates
+      format.turbo_stream do
+        summary_data = if result && result[:success]
+          Rails.logger.debug "CHECK_STATUS: Preparing successful Turbo Stream response"
+          result.merge(loading: false)
+        else
+          Rails.logger.debug "CHECK_STATUS: Preparing loading Turbo Stream response"
+          {
+            loading: true,
+            tldr: "",
+            takeaways: [],
+            tags: [],
+            summary: ""
+          }
+        end
+
+        Rails.logger.debug "CHECK_STATUS: Frame ID: #{params[:frame_id]}"
+        Rails.logger.debug "CHECK_STATUS: Summary data for Turbo Stream: #{summary_data.inspect}"
+
+        partial_name = case params[:frame_id]
+        when "summary"
+          "summary_detail_section"
+        else
+          "#{params[:frame_id]}_section"
+        end
+
+        Rails.logger.debug "CHECK_STATUS: Rendering Turbo Stream with partial: #{partial_name}"
+        render turbo_stream: turbo_stream.update(
+          params[:frame_id],
+          partial: partial_name,
+          locals: { summary: summary_data }
+        )
+      end
     end
   end
 

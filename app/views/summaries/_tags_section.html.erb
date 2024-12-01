@@ -1,23 +1,33 @@
-<div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
-  <h3 class="text-lg font-medium mb-4">
-    <span class="mr-2">🏷️</span>Related Tags
-  </h3>
+<%= turbo_frame_tag "tags" do %>
+  <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+    <h3 class="text-lg font-medium mb-4">
+      <span class="mr-2">🏷️</span>Related Tags
+    </h3>
 
-  <div class="flex flex-wrap gap-2">
-    <% summary[:tags].each do |tag| %>
-      <div class="group relative">
-        <%= link_to "#",
-            class: "inline-flex items-center px-3 py-1 rounded-full text-sm
-                   bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors" do %>
-          <span class="mr-1">#</span>
-          <%= tag[:tag] %>
+    <% if summary[:loading] %>
+      <div class="animate-pulse flex flex-wrap gap-2">
+        <% 5.times do %>
+          <div class="h-8 bg-gray-200 rounded-full w-20"></div>
         <% end %>
-        <button class="absolute -top-1 -right-1 hidden group-hover:block text-xs text-purple-500 hover:text-purple-700 bg-white rounded-full px-1"
-                data-action="click->youtube#seekToTime"
-                data-time="<%= tag[:timestamp] %>">
-          <%= Time.at(tag[:timestamp]).utc.strftime("%H:%M:%S") %>
-        </button>
+      </div>
+    <% else %>
+      <div class="flex flex-wrap gap-2">
+        <% summary[:tags].each do |tag| %>
+          <div class="group relative">
+            <%= link_to "#",
+                class: "inline-flex items-center px-3 py-1 rounded-full text-sm
+                       bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors" do %>
+              <span class="mr-1">#</span>
+              <%= tag[:tag] %>
+            <% end %>
+            <button class="absolute -top-1 -right-1 hidden group-hover:block text-xs text-purple-500 hover:text-purple-700 bg-white rounded-full px-1"
+                   data-action="click->youtube#seekToTime"
+                   data-time="<%= tag[:timestamp] %>">
+              <%= Time.at(tag[:timestamp]).utc.strftime("%H:%M:%S") %>
+            </button>
+          </div>
+        <% end %>
       </div>
     <% end %>
   </div>
-</div>
+<% end %>

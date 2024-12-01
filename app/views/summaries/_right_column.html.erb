@@ -3,8 +3,10 @@
 
   <div class="space-y-4">
     <%= render "navigation_buttons" %>
-    <%= render "transcript_section", transcript: @summary[:transcript] %>
-    <%= render "tags_section", summary: @summary %>
-    <%= render "chat_section" %>
+    <%= render "transcript_section", transcript: summary[:transcript] %>
+    <div data-summary-loader-target="tags">
+      <%= render "tags_section", summary: summary %>
+    </div>
+    <%= render "chat_section", summary: summary %>
   </div>
 </div>

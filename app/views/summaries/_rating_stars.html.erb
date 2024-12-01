@@ -1,3 +1,8 @@
+<%
+  # Default to 0 if rating is nil
+  rating = (local_assigns[:rating] || 0).to_f
+%>
+
 <div class="flex items-center space-x-1">
   <div class="flex items-center">
     <% 5.times do |i| %>

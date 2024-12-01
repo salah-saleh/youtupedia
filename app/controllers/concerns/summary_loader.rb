@@ -2,7 +2,7 @@ module SummaryLoader
   extend ActiveSupport::Concern
 
   def load_recent_summaries
-    metadata_dir = Rails.root.join("tmp/metadata")
+    metadata_dir = Rails.root.join("tmp/cache/metadata")
     return [] unless Dir.exist?(metadata_dir)
 
     Dir.glob(metadata_dir.join("*.json"))

@@ -16,7 +16,8 @@ Rails.application.routes.draw do
   # Summaries features
   resources :summaries do
     member do
-      post "ask_gpt"
+      get :check_status
+      post :ask_gpt
     end
   end
 end

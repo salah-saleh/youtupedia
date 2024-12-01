@@ -3,8 +3,14 @@
 
   <div class="space-y-6">
     <%= render "rating_section", summary: summary %>
-    <%= render "tldr_section", summary: summary %>
-    <%= render "takeaways_section", summary: summary %>
-    <%= render "summary_detail_section", summary: summary %>
+    <div data-summary-loader-target="tldr">
+      <%= render "tldr_section", summary: summary %>
+    </div>
+    <div data-summary-loader-target="takeaways">
+      <%= render "takeaways_section", summary: summary %>
+    </div>
+    <div data-summary-loader-target="summary">
+      <%= render "summary_detail_section", summary: summary %>
+    </div>
   </div>
 </div>

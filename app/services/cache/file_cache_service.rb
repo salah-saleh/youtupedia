@@ -1,37 +1,77 @@
-class Cache::FileCacheService
-  def initialize(cache_dir)
-    @cache_dir = Rails.root.join("tmp", cache_dir)
-    FileUtils.mkdir_p(@cache_dir) unless Dir.exist?(@cache_dir)
-  end
-
-  def fetch(key, version: nil)
-    cache_file = cache_path(key, version)
-
-    if File.exist?(cache_file)
-      Rails.logger.info("Cache hit: Loading from #{cache_file}")
-      return JSON.parse(File.read(cache_file), symbolize_names: true)
+module Cache
+  class FileCacheService
+    def initialize(namespace)
+      @namespace = namespace
+      @cache_dir = Rails.root.join("tmp", "cache", namespace)
+      FileUtils.mkdir_p(@cache_dir)
+      Rails.logger.debug "CACHE: Initialized FileCacheService for namespace '#{namespace}' at #{@cache_dir}"
     end
 
-    Rails.logger.info("Cache miss: Fetching fresh data for #{key}")
-    result = yield # Execute the block (API call)
-    write(key, result, version: version)
-    result
-  rescue => e
-    Rails.logger.error "Cache error for #{key}: #{e.message}"
-    yield # On cache error, fallback to fresh data
-  end
+    def fetch(key, &block)
+      Rails.logger.debug "CACHE: Attempting to fetch '#{key}' from namespace '#{@namespace}'"
+      path = cache_path(key)
 
-  def write(key, data, version: nil)
-    cache_file = cache_path(key, version)
-    Rails.logger.info("Writing cache to #{cache_file}")
-    File.write(cache_file, JSON.pretty_generate(data))
-    data
-  end
+      if exist?(key)
+        Rails.logger.debug "CACHE: Cache hit for '#{key}' in namespace '#{@namespace}'"
+        data = read(key)
+        Rails.logger.debug "CACHE: Retrieved data for '#{key}': #{data.inspect.first(100)}"
+        data
+      elsif block_given?
+        Rails.logger.debug "CACHE: Cache miss for '#{key}', generating data..."
+        data = yield
+        write(key, data)
+        Rails.logger.debug "CACHE: Generated and cached data for '#{key}': #{data.inspect.first(100)}"
+        data
+      else
+        Rails.logger.debug "CACHE: Cache miss for '#{key}' and no block given"
+        nil
+      end
+    end
 
-  private
+    def write(key, data)
+      Rails.logger.debug "CACHE: Writing data for '#{key}' to namespace '#{@namespace}'"
+      path = cache_path(key)
+      File.write(path, data.to_json)
+      Rails.logger.debug "CACHE: Successfully wrote data to #{path}"
+      data
+    end
 
-  def cache_path(key, version)
-    filename = version ? "#{key}_#{version}.json" : "#{key}.json"
-    @cache_dir.join(filename)
+    def read(key)
+      Rails.logger.debug "CACHE: Reading '#{key}' from namespace '#{@namespace}'"
+      path = cache_path(key)
+      data = JSON.parse(File.read(path), symbolize_names: true)
+      Rails.logger.debug "CACHE: Successfully read data from #{path}"
+      data
+    rescue JSON::ParserError => e
+      Rails.logger.error "CACHE: JSON parse error for '#{key}': #{e.message}"
+      nil
+    rescue Errno::ENOENT => e
+      Rails.logger.error "CACHE: File not found for '#{key}': #{e.message}"
+      nil
+    end
+
+    def exist?(key)
+      path = cache_path(key)
+      exists = File.exist?(path)
+      Rails.logger.debug "CACHE: Checking existence of '#{key}' in namespace '#{@namespace}': #{exists}"
+      exists
+    end
+
+    def delete(key)
+      Rails.logger.debug "CACHE: Deleting '#{key}' from namespace '#{@namespace}'"
+      path = cache_path(key)
+      if File.exist?(path)
+        File.delete(path)
+        Rails.logger.debug "CACHE: Successfully deleted #{path}"
+      else
+        Rails.logger.debug "CACHE: File not found for deletion: #{path}"
+      end
+    end
+
+    private
+
+    def cache_path(key)
+      Rails.root.join(@cache_dir, "#{key}.json")
+    end
   end
 end

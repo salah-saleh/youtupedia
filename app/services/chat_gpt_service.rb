@@ -94,13 +94,13 @@ class ChatGptService
     content = response.dig("choices", 0, "message", "content")
     return { success: false, error: "No content received" } unless content
 
-    result = JSON.parse(content, symbolize_names: true)
+    result = JSON.parse(content)
     {
       success: true,
-      tldr: result[:tldr],
-      takeaways: result[:takeaways],
-      tags: result[:tags],
-      summary: result[:summary]
+      tldr: result["tldr"],
+      takeaways: result["takeaways"],
+      tags: result["tags"],
+      summary: result["summary"]
     }
   rescue JSON::ParserError => e
     { success: false, error: "Failed to parse response: #{e.message}" }
