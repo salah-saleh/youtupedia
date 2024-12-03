@@ -104,6 +104,25 @@ class SummariesController < ApplicationController
     end
   end
 
+  def ask_gpt
+    video_id = params[:id]
+    question = params[:question]
+
+    transcript_result = YoutubeTranscriptService.fetch_transcript(video_id)
+
+    if transcript_result[:success]
+      result = ChatGptService.answer_question(video_id, question, transcript_result[:transcript_full])
+
+      if result[:success]
+        render json: { success: true, answer: result[:answer] }
+      else
+        render json: { success: false, error: result[:error] }, status: :unprocessable_entity
+      end
+    else
+      render json: { success: false, error: "Could not load video transcript" }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def extract_video_id(url)

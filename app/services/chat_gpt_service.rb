@@ -36,7 +36,7 @@ class ChatGptService < BaseAsyncService
     { success: false, error: "Failed to generate summary: #{e.message}" }
   end
 
-  def answer_question(video_id, question, transcript)
+  def self.answer_question(video_id, question, transcript)
     client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
     thread_data = ChatThreadService.create_or_load_thread(video_id)
 
@@ -99,11 +99,11 @@ class ChatGptService < BaseAsyncService
       You are an AI assistant that helps summarize video transcripts.
       Please analyze the transcript and provide:
       1. A brief TLDR
-      2. Key takeaways with timestamps
+      2. Ten key conculusions or takeaways with timestamps. PLease be informative and not just a list of topics.
       3. Important tags/topics with timestamps
-      4. A detailed summary that references timestamps
+      4. A detailed summary of 500 to 700 words that references timestamps
 
-      Format your response as a JSON object with the following structure (Don't include any other text, don't include the word JSON):
+      Your response has to be a valid JSON object with the following structure. Don't include any other text in your response:
       {
         "tldr": "Brief summary here",
         "takeaways": [

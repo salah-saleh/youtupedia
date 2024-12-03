@@ -12,9 +12,16 @@
     </div>
 
     <% if summary[:loading] %>
-      <div class="animate-pulse">
-        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div data-controller="loading-message">
+        <div class="animate-pulse">
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+        <div class="mt-4 text-sm text-gray-500 italic">
+          <span data-loading-message-target="message">
+            Teaching AI to speed read... might take a few seconds 🤓
+          </span>
+        </div>
       </div>
     <% else %>
       <div class="text-gray-800 leading-relaxed" data-copy-target="source">
