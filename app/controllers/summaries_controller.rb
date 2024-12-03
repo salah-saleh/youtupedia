@@ -2,22 +2,44 @@ class SummariesController < ApplicationController
   include SummaryLoader
   layout "dashboard"
 
-  def show
+  def create_from_url
     video_id = extract_video_id(params[:youtube_url])
     return redirect_to root_path, alert: "Invalid YouTube URL" unless video_id
 
-    @metadata = YoutubeMetadataService.fetch_metadata(video_id)
+    # Redirect to show page, which will handle the summary creation if needed
+    redirect_to summary_path(id: video_id)
+  end
+
+  def show
+    @video_id = params[:id]
+    cache_service = Cache::FileCacheService.new(ChatGptService.cache_namespace)
+
+    # If summary exists in cache, load it
+    if cache_service.exist?(@video_id)
+      result = cache_service.read(@video_id)
+      if result[:success]
+        @summary = {
+          video_id: @video_id,
+          loading: false
+        }.merge(result)
+        return
+      end
+    end
+
+    # If we get here, either there's no summary or it failed
+    # Let's try to create it
+    @metadata = YoutubeMetadataService.fetch_metadata(@video_id)
     return redirect_to root_path, alert: @metadata[:error] unless @metadata[:success]
 
-    @transcript = YoutubeTranscriptService.fetch_transcript(video_id)
+    @transcript = YoutubeTranscriptService.fetch_transcript(@video_id)
     return redirect_to root_path, alert: @transcript[:error] unless @transcript[:success]
 
     # Schedule the summary generation
-    ChatGptService.process_async(video_id, @transcript[:transcript_full])
+    ChatGptService.process_async(@video_id, @transcript[:transcript_full])
 
-    # Show loading state initially
+    # Show loading state
     @summary = {
-      video_id: video_id,
+      video_id: @video_id,
       title: @metadata.dig(:metadata, :title),
       channel: @metadata.dig(:metadata, :channel_title),
       date: @metadata.dig(:metadata, :published_at),

@@ -5,7 +5,7 @@
       <h2 class="text-lg font-semibold mb-4">Quick Summary</h2>
 
       <div class="relative">
-        <%= form_with url: summary_path, method: :get, class: "flex" do |f| %>
+        <%= form_with url: create_from_url_summaries_path, method: :get, class: "flex" do |f| %>
           <%= f.text_field :youtube_url,
               placeholder: "Enter YouTube video link here...",
               required: true,
@@ -26,7 +26,7 @@
         <% if @recent_summaries.any? %>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <% @recent_summaries.each do |summary| %>
-              <%= link_to summary_path(youtube_url: "https://www.youtube.com/watch?v=#{summary[:video_id]}"),
+              <%= link_to create_from_url_summaries_path(youtube_url: "https://www.youtube.com/watch?v=#{summary[:video_id]}"),
                     class: "border rounded-lg p-4 hover:shadow-md transition-shadow block" do %>
                 <div class="aspect-video mb-3">
                   <%= image_tag summary[:thumbnail],

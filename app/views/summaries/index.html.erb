@@ -4,7 +4,7 @@
     <h2 class="text-lg font-semibold mb-4">Quick Summary</h2>
 
     <div class="relative">
-      <%= form_with url: summary_path, method: :get, class: "flex" do |f| %>
+      <%= form_with url: create_from_url_summaries_path, method: :get, class: "flex" do |f| %>
         <%= f.text_field :youtube_url,
             placeholder: "Enter YouTube video link here...",
             required: true,

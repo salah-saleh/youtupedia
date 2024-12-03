@@ -51,7 +51,7 @@
           <h3 class="text-lg font-medium mb-4">Latest Videos</h3>
           <div class="space-y-4">
             <% @videos.each do |video| %>
-              <%= link_to summary_path(youtube_url: "https://www.youtube.com/watch?v=#{video[:video_id]}"),
+              <%= link_to summary_path(video[:video_id]),
                     class: "flex gap-4 p-2 hover:bg-gray-50 rounded-lg transition-colors" do %>
                 <div class="w-48 aspect-video flex-shrink-0">
                   <%= image_tag video[:thumbnail], class: "w-full h-full object-cover rounded" %>
