@@ -10,10 +10,10 @@ export default class extends Controller {
         notification.classList.remove("translate-x-full", "opacity-0")
       }, 100)
 
-      // Auto-hide after 5 seconds
+      // Auto-hide after 2.5 seconds
       setTimeout(() => {
         this.hide(notification)
-      }, 5000)
+      }, 2500)
     })
   }
 
