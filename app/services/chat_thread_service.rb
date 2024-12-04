@@ -1,9 +1,7 @@
 class ChatThreadService
-  MOCK_USER_ID = "user_123" # TODO: Replace with real user authentication
-
   def self.create_or_load_thread(video_id)
     cache_service = Cache::FileCacheService.new("chat_threads")
-    thread_key = "#{MOCK_USER_ID}_#{video_id}"
+    thread_key = thread_key_for(video_id)
 
     thread_data = cache_service.fetch(thread_key) do
       {
@@ -22,7 +20,7 @@ class ChatThreadService
 
   def self.save_message(video_id, role, content)
     cache_service = Cache::FileCacheService.new("chat_threads")
-    thread_key = "#{MOCK_USER_ID}_#{video_id}"
+    thread_key = thread_key_for(video_id)
     thread_data = cache_service.fetch(thread_key) || { messages: [] }
 
     # Add new message with both raw markdown and rendered HTML
@@ -38,6 +36,10 @@ class ChatThreadService
   end
 
   private
+
+  def self.thread_key_for(video_id)
+    "#{Current.user.id}_#{video_id}"
+  end
 
   def self.markdown
     @markdown ||= Redcarpet::Markdown.new(

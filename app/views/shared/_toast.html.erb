@@ -1,0 +1,33 @@
+<div
+  id="toast-notifications"
+  class="fixed top-4 right-4 z-50"
+  data-controller="toast"
+>
+  <% if notice %>
+    <div
+      class="bg-green-50 text-green-600 px-4 py-3 rounded-lg shadow-lg mb-3 flex items-center transform translate-x-full opacity-0 transition-all duration-300"
+      data-toast-target="notification"
+    >
+      <div class="flex-1"><%= notice %></div>
+      <button class="ml-4 text-green-500 hover:text-green-700" data-action="toast#close">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  <% end %>
+
+  <% if alert %>
+    <div
+      class="bg-red-50 text-red-600 px-4 py-3 rounded-lg shadow-lg mb-3 flex items-center transform translate-x-full opacity-0 transition-all duration-300"
+      data-toast-target="notification"
+    >
+      <div class="flex-1"><%= alert %></div>
+      <button class="ml-4 text-red-500 hover:text-red-700" data-action="toast#close">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  <% end %>
+</div>

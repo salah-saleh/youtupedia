@@ -5,7 +5,7 @@ class AsyncJobProcessor < ApplicationJob
     cache_service = Cache::FileCacheService.new(service_class_name.demodulize.underscore.pluralize)
     return if cache_service.exist?(key)
 
-    Rails.logger.debug "ASYNC_JOB: Scheduling #{service_class_name} for key #{key} with args: #{args.inspect}"
+    Rails.logger.debug "ASYNC_JOB: Scheduling #{service_class_name} for key #{key}"
     set(wait: 1.second).perform_later(service_class_name, key, *args)
   end
 

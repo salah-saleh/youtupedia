@@ -1,6 +1,7 @@
 class SummariesController < ApplicationController
   include SummaryLoader
-  layout "dashboard"
+  layout :determine_layout
+  before_action :authenticate!
 
   def create_from_url
     video_id = extract_video_id(params[:youtube_url])
@@ -18,6 +19,9 @@ class SummariesController < ApplicationController
     if cache_service.exist?(@video_id)
       result = cache_service.read(@video_id)
       if result[:success]
+        # Add to user's summaries if not already added
+        UserDataService.add_item(Current.user.id, :summaries, @video_id)
+
         @summary = {
           video_id: @video_id,
           loading: false
@@ -35,7 +39,7 @@ class SummariesController < ApplicationController
     return redirect_to root_path, alert: @transcript[:error] unless @transcript[:success]
 
     # Schedule the summary generation
-    ChatGptService.process_async(@video_id, @transcript[:transcript_full])
+    ChatGptService.process_async(@video_id, @transcript[:transcript_full], @metadata)
 
     # Show loading state
     @summary = {
@@ -52,6 +56,25 @@ class SummariesController < ApplicationController
       tags: [],
       summary: ""
     }
+  end
+
+  def index
+    # Only show summaries belonging to the current user
+    @summaries = UserDataService.user_items(Current.user.id, :summaries).map do |video_id|
+      cache_service = Cache::FileCacheService.new(ChatGptService.cache_namespace)
+      if cache_service.exist?(video_id)
+        result = cache_service.read(video_id)
+        if result[:success]
+          {
+            video_id: video_id,
+            title: result[:title],
+            channel: result[:channel],
+            published_at: result[:date],
+            thumbnail: result[:thumbnail]
+          }
+        end
+      end
+    end.compact
   end
 
   def check_status
@@ -107,7 +130,7 @@ class SummariesController < ApplicationController
         end
 
         Rails.logger.debug "CHECK_STATUS: Frame ID: #{params[:frame_id]}"
-        Rails.logger.debug "CHECK_STATUS: Summary data for Turbo Stream: #{summary_data.inspect}"
+        Rails.logger.debug "CHECK_STATUS: Summary data for Turbo Stream"
 
         partial_name = case params[:frame_id]
         when "summary"

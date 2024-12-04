@@ -7,9 +7,9 @@ class BaseAsyncService
     cache_service = Cache::FileCacheService.new(cache_namespace)
 
     cache_service.fetch(key) do
-      Rails.logger.debug "#{self.name}: Processing #{key} with args: #{args.inspect}"
+      Rails.logger.debug "#{self.name}: Processing #{key}"
       result = new.perform(*args)
-      Rails.logger.debug "#{self.name}: Completed processing #{key} with result: #{result.inspect.first(100)}"
+      Rails.logger.debug "#{self.name}: Completed processing #{key}"
       result
     end
   end

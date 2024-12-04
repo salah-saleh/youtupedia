@@ -14,13 +14,13 @@ module Cache
       if exist?(key)
         Rails.logger.debug "CACHE: Cache hit for '#{key}' in namespace '#{@namespace}'"
         data = read(key)
-        Rails.logger.debug "CACHE: Retrieved data for '#{key}': #{data.inspect.first(100)}"
+        Rails.logger.debug "CACHE: Retrieved data for '#{key}"
         data
       elsif block_given?
         Rails.logger.debug "CACHE: Cache miss for '#{key}', generating data..."
         data = yield
         write(key, data)
-        Rails.logger.debug "CACHE: Generated and cached data for '#{key}': #{data.inspect.first(100)}"
+        Rails.logger.debug "CACHE: Generated and cached data for '#{key}"
         data
       else
         Rails.logger.debug "CACHE: Cache miss for '#{key}' and no block given"

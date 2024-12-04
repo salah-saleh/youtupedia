@@ -1,4 +1,6 @@
 class YoutubeUrlsController < ApplicationController
+  before_action :authenticate!
+
   def parse
     url = params[:url]
 
@@ -10,11 +12,11 @@ class YoutubeUrlsController < ApplicationController
         if channel_data[:success]
           # Save channel and redirect to show page
           cache_service = Cache::FileCacheService.new("channels")
-          channels = cache_service.fetch("user_123_channels") { [] }
+          channels = cache_service.fetch("channels_#{Current.user.id}") { [] }
 
           unless channels.any? { |c| c[:channel_id] == channel_data[:channel_id] }
             channels << channel_data
-            cache_service.write("user_123_channels", channels)
+            cache_service.write("channels_#{Current.user.id}", channels)
           end
 
           redirect_to channel_path(channel_data[:channel_id])
