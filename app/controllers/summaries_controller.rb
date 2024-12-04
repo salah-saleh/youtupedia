@@ -13,33 +13,17 @@ class SummariesController < ApplicationController
 
   def show
     @video_id = params[:id]
-    cache_service = Cache::FileCacheService.new(ChatGptService.cache_namespace)
 
-    # If summary exists in cache, load it
-    if cache_service.exist?(@video_id)
-      result = cache_service.read(@video_id)
-      if result[:success]
-        # Add to user's summaries if not already added
-        UserDataService.add_item(Current.user.id, :summaries, @video_id)
-
-        @summary = {
-          video_id: @video_id,
-          loading: false
-        }.merge(result)
-        return
-      end
-    end
-
-    # If we get here, either there's no summary or it failed
-    # Let's try to create it
-    @metadata = YoutubeMetadataService.fetch_metadata(@video_id)
+    @metadata = Youtube::YoutubeMetadataService.fetch_metadata(@video_id)
     return redirect_to root_path, alert: @metadata[:error] unless @metadata[:success]
 
-    @transcript = YoutubeTranscriptService.fetch_transcript(@video_id)
+    @transcript = Youtube::YoutubeTranscriptService.fetch_transcript(@video_id)
     return redirect_to root_path, alert: @transcript[:error] unless @transcript[:success]
 
+    UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id)
+
     # Schedule the summary generation
-    ChatGptService.process_async(@video_id, @transcript[:transcript_full], @metadata)
+    Chat::ChatGptService.process_async(@video_id, @transcript[:transcript_full], @metadata)
 
     # Show loading state
     @summary = {
@@ -60,8 +44,8 @@ class SummariesController < ApplicationController
 
   def index
     # Only show summaries belonging to the current user
-    @summaries = UserDataService.user_items(Current.user.id, :summaries).map do |video_id|
-      cache_service = Cache::FileCacheService.new(ChatGptService.cache_namespace)
+    @summaries = UserServices::UserDataService.user_items(Current.user.id, :summaries).map do |video_id|
+      cache_service = Cache::FileCacheService.new(Chat::ChatGptService.cache_namespace)
       if cache_service.exist?(video_id)
         result = cache_service.read(video_id)
         if result[:success]
@@ -81,8 +65,8 @@ class SummariesController < ApplicationController
     video_id = params[:id]
     Rails.logger.debug "CHECK_STATUS: Starting check for video #{video_id}"
 
-    cache_service = Cache::FileCacheService.new(ChatGptService.cache_namespace)
-    Rails.logger.debug "CHECK_STATUS: Created cache service for '#{ChatGptService.cache_namespace}' namespace"
+    cache_service = Cache::FileCacheService.new(Chat::ChatGptService.cache_namespace)
+    Rails.logger.debug "CHECK_STATUS: Created cache service for '#{Chat::ChatGptService.cache_namespace}' namespace"
 
     if cache_service.exist?(video_id)
       Rails.logger.debug "CHECK_STATUS: Cache file exists, attempting to read"
@@ -153,10 +137,10 @@ class SummariesController < ApplicationController
     video_id = params[:id]
     question = params[:question]
 
-    transcript_result = YoutubeTranscriptService.fetch_transcript(video_id)
+    transcript_result = Youtube::YoutubeTranscriptService.fetch_transcript(video_id)
 
     if transcript_result[:success]
-      result = ChatGptService.answer_question(video_id, question, transcript_result[:transcript_full])
+      result = Chat::ChatGptService.answer_question(video_id, question, transcript_result[:transcript_full])
 
       if result[:success]
         render json: { success: true, answer: result[:answer] }

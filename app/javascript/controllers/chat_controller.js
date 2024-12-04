@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { marked } from "marked"
 
 export default class extends Controller {
   static targets = ["input", "messagesContainer", "submitButton", "loading"]
@@ -8,6 +9,10 @@ export default class extends Controller {
 
   connect() {
     this.csrfToken = document.querySelector("meta[name='csrf-token']").content
+    marked.setOptions({
+      breaks: true,
+      gfm: true
+    })
   }
 
   async submitQuestion(event) {
@@ -53,13 +58,15 @@ export default class extends Controller {
 
   addMessageToChat(role, content) {
     const messageDiv = document.createElement("div")
-    messageDiv.className = `p-3 rounded-lg ${this.getMessageClasses(role)}`
+    messageDiv.className = `p-3 rounded-lg mb-4 ${this.getMessageClasses(role)}`
     messageDiv.innerHTML = `
       <div class="flex items-start gap-2">
         <span class="font-medium ${role === 'user' ? 'text-purple-700' : 'text-gray-700'}">
           ${role === 'user' ? 'You' : 'Assistant'}:
         </span>
-        <div class="flex-1 prose prose-sm max-w-none">${content}</div>
+        <div class="flex-1 prose prose-sm max-w-none">
+          ${role === 'user' ? content : marked.parse(content)}
+        </div>
       </div>
     `
     this.messagesContainerTarget.appendChild(messageDiv)

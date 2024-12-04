@@ -1,12 +1,12 @@
 <div class="bg-white shadow rounded-lg p-4"
      data-controller="chat"
-     data-chat-video-id-value="<%= @summary[:video_id] %>">
+     data-chat-video-id-value="<%= summary[:video_id] %>">
   <h3 class="text-lg font-medium text-gray-900 mb-4">Chat about this video</h3>
 
   <div class="space-y-4">
     <div class="chat-messages space-y-4 max-h-96 overflow-y-auto mb-4"
          data-chat-target="messagesContainer">
-      <% ChatThreadService.create_or_load_thread(@summary[:video_id])[:messages].each do |message| %>
+      <% Chat::ChatThreadService.create_or_load_thread(summary[:video_id])[:messages].each do |message| %>
         <div class="p-3 rounded-lg <%= message[:role] == 'user' ? 'bg-purple-50' : 'bg-gray-50' %>">
           <div class="flex items-start gap-2">
             <span class="font-medium <%= message[:role] == 'user' ? 'text-purple-700' : 'text-gray-700' %>">

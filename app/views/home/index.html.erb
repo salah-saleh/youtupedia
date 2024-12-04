@@ -18,13 +18,13 @@
     <section>
       <h2 class="text-xl font-bold mb-4">Recent Summaries</h2>
       <% if user_signed_in? %>
-        <% video_ids = UserDataService.user_items(Current.user.id, :summaries) %>
+        <% video_ids = UserServices::UserDataService.user_items(Current.user.id, :summaries) %>
         <% summaries = video_ids.map do |video_id|
-          cache_service = Cache::FileCacheService.new(ChatGptService.cache_namespace)
+          cache_service = Cache::FileCacheService.new(Chat::ChatGptService.cache_namespace)
           if cache_service.exist?(video_id)
             result = cache_service.read(video_id)
             if result[:success]
-              metadata = YoutubeMetadataService.fetch_metadata(video_id)
+              metadata = Youtube::YoutubeMetadataService.fetch_metadata(video_id)
               if metadata[:success]
                 {
                   video_id: video_id,
