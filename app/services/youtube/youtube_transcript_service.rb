@@ -21,6 +21,7 @@ module Youtube
       }
     rescue => e
       Rails.logger.error "Transcript Error: #{e.message}"
+
       { success: false, error: e.message }
     end
 
