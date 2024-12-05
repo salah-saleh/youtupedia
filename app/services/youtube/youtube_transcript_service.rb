@@ -27,7 +27,12 @@ module Youtube
     private
 
     def self.fetch_from_python(video_id)
-      python_path = Rails.root.join("venv/bin/python")
+      # Use the system Python path on Heroku, fallback to venv for local development
+      python_path = if Rails.env.production?
+        "/usr/local/bin/python"
+      else
+        Rails.root.join("venv/bin/python")
+      end
       script_path = Rails.root.join("lib/python/youtube_transcript.py")
 
       Rails.logger.debug("Executing Python script with video_id: #{video_id}")
