@@ -2,10 +2,19 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import sys
 import json
 
+# https://github.com/jdepoix/youtube-transcript-api/issues/303
+# https://dashboard.nodemaven.com/
 def get_transcript(video_id):
     try:
-        # Get transcript list
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+        # Get transcript list with proxy
+        proxy = "http://ytp-country-us-sid-cyr3h9pnd6dobjg8o-ttl-5m-filter-medium:kidxhmat9@gate.nodemaven.com:8080/"
+        transcript_list = YouTubeTranscriptApi.get_transcript(
+            video_id,
+            proxies={
+                "http": proxy,
+                "https": proxy
+            }
+        )
 
         # Format the transcript
         formatted_transcript = []

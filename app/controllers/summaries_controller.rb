@@ -138,9 +138,10 @@ class SummariesController < ApplicationController
     question = params[:question]
 
     transcript_result = Youtube::YoutubeTranscriptService.fetch_transcript(video_id)
+    metadata = Youtube::YoutubeMetadataService.fetch_metadata(video_id)
 
-    if transcript_result[:success]
-      result = Chat::ChatGptService.answer_question(video_id, question, transcript_result[:transcript_full])
+    if transcript_result[:success] && metadata[:success]
+      result = Chat::ChatGptService.answer_question(video_id, question, transcript_result[:transcript_full], metadata)
 
       if result[:success]
         render json: { success: true, answer: result[:answer] }

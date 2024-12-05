@@ -52,7 +52,7 @@ module Chat
       end
     end
 
-    def self.answer_question(video_id, question, transcript)
+    def self.answer_question(video_id, question, transcript, metadata)
       client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
       thread_data = Chat::ChatThreadService.create_or_load_thread(video_id)
 
@@ -70,7 +70,7 @@ module Chat
         },
         {
           role: "user",
-          content: "Here is the transcript to analyze: #{transcript}"
+          content: "Here is the transcript to analyze: #{transcript} with the following metadata: #{metadata}"
         }
       ]
 

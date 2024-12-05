@@ -13,7 +13,7 @@ export default class extends Controller {
       // Auto-hide after 2.5 seconds
       setTimeout(() => {
         this.hide(notification)
-      }, 2500)
+      }, 5000)
     })
   }
 
