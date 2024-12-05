@@ -69,3 +69,4 @@ gem "ruby-openai"
 gem "dotenv-rails", groups: [ :development, :test ]
 gem "google-apis-youtube_v3"
 gem "redcarpet"
+gem "pg"
