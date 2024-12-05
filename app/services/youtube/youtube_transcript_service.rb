@@ -27,9 +27,9 @@ module Youtube
     private
 
     def self.fetch_from_python(video_id)
-      # Use the system Python path on Heroku, fallback to venv for local development
+      # Use Heroku's Python path in production, fallback to venv for local development
       python_path = if Rails.env.production?
-        "/usr/local/bin/python"
+        "/app/.heroku/python/bin/python"
       else
         Rails.root.join("venv/bin/python")
       end
