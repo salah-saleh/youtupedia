@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html class="h-full">
+  <%= render "shared/head" do %>
+    <%= yield :title %>
+  <% end %>
+
+  <body class="h-full">
+    <div class="min-h-full flex flex-col">
+      <%= render "shared/nav", dashboard: local_assigns[:dashboard] %>
+      <%= render "shared/toast" %>
+
+      <% if local_assigns[:dashboard] %>
+        <div class="flex flex-1 h-[calc(100vh-3.5rem)]">
+          <!-- Sidebar -->
+          <div class="w-64 flex-shrink-0 bg-white border-r">
+            <div class="p-4 space-y-2">
+              <%= link_to "Summaries", root_path, class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
+              <%= link_to "Channels", channels_path, class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
+              <div class="border-t my-2"></div>
+              <%= link_to "Settings", "#", class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
+            </div>
+          </div>
+
+          <!-- Main Content -->
+          <div class="flex-1 overflow-auto bg-gray-50">
+            <div class="p-6">
+              <div class="<%= content_for?(:container_width) ? yield(:container_width) : 'max-w-7xl' %> mx-auto w-full px-4">
+                <%= yield %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <!-- Main Content -->
+        <main class="flex-1">
+          <div class="<%= content_for?(:container_width) ? yield(:container_width) : 'max-w-7xl' %> mx-auto w-full px-4">
+            <%= yield %>
+          </div>
+        </main>
+      <% end %>
+    </div>
+  </body>
+</html>
