@@ -19,13 +19,11 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resources :registrations, only: [ :new, :create ]
 
-  # Development-only routes
-  if Rails.env.development?
-    namespace :dev do
-      resources :users do
-        member do
-          post :switch
-        end
+  # Dev/Admin routes - available in all environments when accessed through settings
+  namespace :dev do
+    resources :users do
+      member do
+        post :switch
       end
     end
   end

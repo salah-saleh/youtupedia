@@ -1,5 +1,6 @@
 module Dev
   class UsersController < ApplicationController
+    include DevRouteProtection
     layout :determine_layout
 
     def index
