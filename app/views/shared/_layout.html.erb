@@ -10,9 +10,9 @@
       <%= render "shared/toast" %>
 
       <% if local_assigns[:dashboard] %>
-        <div class="flex flex-1 h-[calc(100vh-3.5rem)]">
-          <!-- Sidebar -->
-          <div class="w-64 flex-shrink-0 bg-white border-r">
+        <div class="flex flex-col lg:flex-row flex-1 h-[calc(100vh-3.5rem)]">
+          <!-- Sidebar - Hidden on mobile, shown on lg screens -->
+          <div class="hidden lg:block w-64 flex-shrink-0 bg-white border-r">
             <div class="p-4 space-y-2">
               <%= link_to "Summaries", root_path, class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
               <%= link_to "Channels", channels_path, class: "block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md" %>
@@ -21,9 +21,18 @@
             </div>
           </div>
 
+          <!-- Mobile Navigation -->
+          <div class="lg:hidden bg-white border-b">
+            <div class="flex space-x-4 p-4 overflow-x-auto">
+              <%= link_to "Summaries", root_path, class: "whitespace-nowrap px-4 py-2.5 text-base text-gray-700 hover:bg-gray-100 rounded-md" %>
+              <%= link_to "Channels", channels_path, class: "whitespace-nowrap px-4 py-2.5 text-base text-gray-700 hover:bg-gray-100 rounded-md" %>
+              <%= link_to "Settings", "#", class: "whitespace-nowrap px-4 py-2.5 text-base text-gray-700 hover:bg-gray-100 rounded-md" %>
+            </div>
+          </div>
+
           <!-- Main Content -->
           <div class="flex-1 overflow-auto bg-gray-50">
-            <div class="p-6">
+            <div class="p-4 lg:p-6">
               <div class="<%= content_for?(:container_width) ? yield(:container_width) : 'max-w-7xl' %> mx-auto w-full px-4">
                 <%= yield %>
               </div>
