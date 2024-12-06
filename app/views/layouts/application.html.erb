@@ -1,47 +1,10 @@
 <!DOCTYPE html>
 <html class="h-full">
-  <head>
-    <title>Yt</title>
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
-    <%= javascript_importmap_tags %>
-  </head>
+  <%= render "shared/head" %>
 
   <body class="h-full">
     <div class="min-h-full flex flex-col">
-      <!-- Top Navigation Bar -->
-      <nav class="bg-white border-b">
-        <div class="max-w-full mx-auto px-4">
-          <div class="flex h-14 items-center justify-between">
-            <!-- Left side -->
-            <div>
-              <%= link_to root_path, class: "text-xl font-bold hover:text-gray-700" do %>
-                Yt
-              <% end %>
-            </div>
-
-            <!-- Right side -->
-            <div class="flex items-center space-x-4">
-              <%= link_to "Home", root_path, class: "text-gray-700 hover:text-gray-900" %>
-              <% if user_signed_in? %>
-                <% if Rails.env.development? %>
-                  <%= link_to "Manage Users", dev_users_path, class: "text-gray-700 hover:text-gray-900" %>
-                <% end %>
-                <%= button_to "Sign Out", session_path, method: :delete,
-                    class: "text-gray-700 hover:text-gray-900" %>
-              <% else %>
-                <%= link_to "Sign Up", new_registration_path, class: "text-gray-700 hover:text-gray-900" %>
-                <%= link_to "Sign In", new_session_path, class: "text-gray-700 hover:text-gray-900" %>
-              <% end %>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <!-- Toast Notifications -->
+      <%= render "shared/nav" %>
       <%= render "shared/toast" %>
 
       <!-- Main Content -->
