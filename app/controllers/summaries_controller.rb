@@ -1,7 +1,7 @@
 class SummariesController < ApplicationController
+  include AuthenticatedController
   include SummaryLoader
   layout :determine_layout
-  before_action :authenticate!
 
   def create_from_url
     video_id = extract_video_id(params[:youtube_url])

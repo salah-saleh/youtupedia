@@ -60,6 +60,18 @@ module Youtube
       end
     end
 
+    def self.fetch_channels_for_user(user_id)
+      # Only show channels belonging to the current user
+      channel_ids = UserServices::UserDataService.user_items(user_id, :channels)
+      cache_service = Cache::FileCacheService.new("channels")
+
+      channel_ids.map do |channel_id|
+        if cache_service.exist?(channel_id)
+          cache_service.read(channel_id)
+        end
+      end.compact
+    end
+
     private
 
     def self.extract_channel_id(url)

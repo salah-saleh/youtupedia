@@ -29,4 +29,6 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  get "settings", to: "settings#index"
 end

@@ -1,16 +1,8 @@
 class ChannelsController < ApplicationController
-  layout "dashboard"
-  before_action :authenticate!
+  include AuthenticatedController
 
   def index
-    # Only show channels belonging to the current user
-    channel_ids = UserServices::UserDataService.user_items(Current.user.id, :channels)
-    cache_service = Cache::FileCacheService.new("channels")
-    @channels = channel_ids.map do |channel_id|
-      if cache_service.exist?(channel_id)
-        cache_service.read(channel_id)
-      end
-    end.compact
+    @channels = Youtube::YoutubeChannelService.fetch_channels_for_user(Current.user.id)
   end
 
   def show

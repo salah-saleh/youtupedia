@@ -1,0 +1,27 @@
+<div class="overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead>
+      <tr>
+        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Email</th>
+        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+        <th class="px-6 py-3 text-right text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-200">
+      <% users.each do |user| %>
+        <tr>
+          <td class="px-6 py-4 whitespace-nowrap text-base lg:text-sm text-gray-900">
+            <%= user.email_address %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-base lg:text-sm text-gray-500">
+            <%= user.created_at.strftime("%B %d, %Y") %>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-base lg:text-sm font-medium">
+            <%= button_to "Switch to User", switch_dev_user_path(user), method: :post,
+                class: "text-purple-600 hover:text-purple-900" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
