@@ -5,8 +5,4 @@ class HomeController < ApplicationController
   end
 
   private
-
-  def determine_layout
-    user_signed_in? ? "dashboard" : "application"
-  end
 end

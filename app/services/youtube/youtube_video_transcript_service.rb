@@ -1,16 +1,13 @@
 module Youtube
-  class YoutubeTranscriptService
+  class YoutubeVideoTranscriptService < YoutubeBaseService
     def self.fetch_transcript(video_id)
-      segmented_cache = Cache::FileCacheService.new("transcripts/segmented")
-      full_cache = Cache::FileCacheService.new("transcripts/full")
-
-      segmented_result = segmented_cache.fetch(video_id) do
+      segmented_result = fetch_cached(video_id, "transcripts/segmented") do
         fetch_from_python(video_id)
       end
 
       return segmented_result unless segmented_result[:success]
 
-      full_result = full_cache.fetch(video_id) do
+      full_result = fetch_cached(video_id, "transcripts/full") do
         create_full_transcript(segmented_result[:transcript])
       end
 
@@ -20,20 +17,13 @@ module Youtube
         transcript_full: full_result[:transcript]
       }
     rescue => e
-      Rails.logger.error "Transcript Error: #{e.message}"
-
-      { success: false, error: e.message }
+      handle_error(e, "Transcript Error")
     end
 
     private
 
     def self.fetch_from_python(video_id)
-      # Use Heroku's Python path in production, fallback to venv for local development
-      python_path = if Rails.env.production?
-        "/app/.heroku/python/bin/python"
-      else
-        Rails.root.join("venv/bin/python")
-      end
+      python_path = determine_python_path
       script_path = Rails.root.join("lib/python/youtube_transcript.py")
 
       Rails.logger.debug("Executing Python script with video_id: #{video_id}")
@@ -51,6 +41,14 @@ module Youtube
         success: true,
         transcript: full_text
       }
+    end
+
+    def self.determine_python_path
+      if Rails.env.production?
+        "/app/.heroku/python/bin/python"
+      else
+        Rails.root.join("venv/bin/python")
+      end
     end
   end
 end

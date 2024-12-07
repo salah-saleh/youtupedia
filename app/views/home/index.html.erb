@@ -26,7 +26,7 @@
           if cache_service.exist?(video_id)
             result = cache_service.read(video_id)
             if result[:success]
-              metadata = Youtube::YoutubeMetadataService.fetch_metadata(video_id)
+              metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
               if metadata[:success]
                 {
                   video_id: video_id,

@@ -1,7 +1,6 @@
 class SummariesController < ApplicationController
-  include AuthenticatedController
-  include SummaryLoader
-  layout :determine_layout
+  before_action :authenticate!
+  layout "dashboard"
 
   def create_from_url
     video_id = extract_video_id(params[:youtube_url])
@@ -14,32 +13,69 @@ class SummariesController < ApplicationController
   def show
     @video_id = params[:id]
 
-    @metadata = Youtube::YoutubeMetadataService.fetch_metadata(@video_id)
+    @metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(@video_id)
     return redirect_to root_path, alert: @metadata[:error] unless @metadata[:success]
 
-    @transcript = Youtube::YoutubeTranscriptService.fetch_transcript(@video_id)
+    @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id)
     return redirect_to root_path, alert: @transcript[:error] unless @transcript[:success]
 
     UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id)
 
-    # Schedule the summary generation
-    Chat::ChatGptService.process_async(@video_id, @transcript[:transcript_full], @metadata)
+    cache_service = Cache::FileCacheService.new(Chat::ChatGptService.cache_namespace)
+    result = cache_service.exist?(@video_id) ? cache_service.read(@video_id) : nil
+    if result
+      # Show loading state
+      if result[:success]
+        @summary = {
+          video_id: @video_id,
+          title: @metadata.dig(:metadata, :title),
+          channel: @metadata.dig(:metadata, :channel_title),
+          date: @metadata.dig(:metadata, :published_at),
+          thumbnail: @metadata.dig(:metadata, :thumbnails, :high),
+          description: @metadata.dig(:metadata, :description),
+          transcript: @transcript[:transcript_segmented],
+          loading: false,
+          tldr: result[:tldr],
+          takeaways: result[:takeaways],
+          tags: result[:tags],
+          summary: result[:summary]
+        }
+      else
+        @summary = {
+          video_id: @video_id,
+          title: @metadata.dig(:metadata, :title),
+          channel: @metadata.dig(:metadata, :channel_title),
+          date: @metadata.dig(:metadata, :published_at),
+          thumbnail: @metadata.dig(:metadata, :thumbnails, :high),
+          description: @metadata.dig(:metadata, :description),
+          transcript: @transcript[:transcript_segmented],
+          loading: false,
+          tldr: result[:error],
+          takeaways: [],
+          tags: [],
+          summary: ""
+        }
+      end
+    else
+      # Schedule the summary generation
+      Chat::ChatGptService.process_async(@video_id, @transcript[:transcript_full], @metadata)
 
-    # Show loading state
-    @summary = {
-      video_id: @video_id,
-      title: @metadata.dig(:metadata, :title),
-      channel: @metadata.dig(:metadata, :channel_title),
-      date: @metadata.dig(:metadata, :published_at),
-      thumbnail: @metadata.dig(:metadata, :thumbnails, :high),
-      description: @metadata.dig(:metadata, :description),
-      transcript: @transcript[:transcript_segmented],
-      loading: true,
-      tldr: "",
-      takeaways: [],
-      tags: [],
-      summary: ""
-    }
+      # Show loading state
+      @summary = {
+        video_id: @video_id,
+        title: @metadata.dig(:metadata, :title),
+        channel: @metadata.dig(:metadata, :channel_title),
+        date: @metadata.dig(:metadata, :published_at),
+        thumbnail: @metadata.dig(:metadata, :thumbnails, :high),
+        description: @metadata.dig(:metadata, :description),
+        transcript: @transcript[:transcript_segmented],
+        loading: true,
+        tldr: "",
+        takeaways: [],
+        tags: [],
+        summary: ""
+      }
+    end
   end
 
   def index
@@ -66,44 +102,46 @@ class SummariesController < ApplicationController
     Rails.logger.debug "CHECK_STATUS: Starting check for video #{video_id}"
 
     cache_service = Cache::FileCacheService.new(Chat::ChatGptService.cache_namespace)
-    Rails.logger.debug "CHECK_STATUS: Created cache service for '#{Chat::ChatGptService.cache_namespace}' namespace"
-
-    if cache_service.exist?(video_id)
-      Rails.logger.debug "CHECK_STATUS: Cache file exists, attempting to read"
-      result = cache_service.read(video_id)
-      Rails.logger.debug "CHECK_STATUS: Read result from cache: #{result.inspect.first(100)}"
-    else
-      Rails.logger.debug "CHECK_STATUS: Cache file does not exist"
-      result = nil
-    end
+    result = cache_service.exist?(video_id) ? cache_service.read(video_id) : nil
 
     respond_to do |format|
-      # JSON response for status check
       format.json do
-        response_data = if result && result[:success]
-          Rails.logger.debug "CHECK_STATUS: Found successful result in cache"
-          {
-            status: "completed",
-            summary: result
-          }
+        response_data = if result
+          if result[:success]
+            {
+              status: "completed",
+              summary: result
+            }
+          else
+            {
+              status: "failed",
+              error: result[:error]
+            }
+          end
         else
-          Rails.logger.debug "CHECK_STATUS: No successful result in cache yet"
           {
             status: "processing"
           }
         end
 
-        Rails.logger.debug "CHECK_STATUS: Sending JSON response: #{response_data.inspect}"
         render json: response_data
       end
 
-      # Turbo Stream response for section updates
       format.turbo_stream do
-        summary_data = if result && result[:success]
-          Rails.logger.debug "CHECK_STATUS: Preparing successful Turbo Stream response"
-          result.merge(loading: false)
+        summary_data = if result
+          if result[:success]
+            result.merge(loading: false)
+          else
+            {
+              loading: false,
+              error: result[:error],
+              tldr: "Oops! #{result[:error]}",
+              takeaways: [],
+              tags: [],
+              summary: ""
+            }
+          end
         else
-          Rails.logger.debug "CHECK_STATUS: Preparing loading Turbo Stream response"
           {
             loading: true,
             tldr: "",
@@ -113,9 +151,6 @@ class SummariesController < ApplicationController
           }
         end
 
-        Rails.logger.debug "CHECK_STATUS: Frame ID: #{params[:frame_id]}"
-        Rails.logger.debug "CHECK_STATUS: Summary data for Turbo Stream"
-
         partial_name = case params[:frame_id]
         when "summary"
           "summary_detail_section"
@@ -123,7 +158,6 @@ class SummariesController < ApplicationController
           "#{params[:frame_id]}_section"
         end
 
-        Rails.logger.debug "CHECK_STATUS: Rendering Turbo Stream with partial: #{partial_name}"
         render turbo_stream: turbo_stream.update(
           params[:frame_id],
           partial: partial_name,
@@ -137,8 +171,8 @@ class SummariesController < ApplicationController
     video_id = params[:id]
     question = params[:question]
 
-    transcript_result = Youtube::YoutubeTranscriptService.fetch_transcript(video_id)
-    metadata = Youtube::YoutubeMetadataService.fetch_metadata(video_id)
+    transcript_result = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
+    metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
 
     if transcript_result[:success] && metadata[:success]
       result = Chat::ChatGptService.answer_question(video_id, question, transcript_result[:transcript_full], metadata)

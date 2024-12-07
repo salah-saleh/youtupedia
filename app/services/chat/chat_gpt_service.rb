@@ -1,7 +1,7 @@
 module Chat
   class ChatGptService < BaseAsyncService
     def perform(transcript, metadata)
-      return { success: false, error: "Transcript is too short" } if transcript.length < 500
+      return { success: false, error: "Video is too short" } if transcript.length < 100
 
       client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
       response = client.chat(

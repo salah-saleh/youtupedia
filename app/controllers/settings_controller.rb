@@ -1,5 +1,6 @@
 class SettingsController < ApplicationController
-  include AuthenticatedController
+  before_action :authenticate!
+  layout "dashboard"
 
   def index
     if params[:admin_pass] == "pass123"

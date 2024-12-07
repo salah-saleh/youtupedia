@@ -68,8 +68,8 @@ export default class extends Controller {
         const data = await response.json()
         console.log("Status response:", data)
 
-        if (data.status === "completed") {
-          console.log("Summary completed, updating sections...")
+        if (data.status === "completed" || data.status === "failed") {
+          console.log(`Summary ${data.status}, updating sections...`)
           // Update all sections with the new data
           const sections = ["tldr", "takeaways", "tags", "summary"]
 
@@ -86,13 +86,7 @@ export default class extends Controller {
 
             if (updateResponse.ok) {
               const html = await updateResponse.text()
-              console.log(`Received Turbo Stream for ${section}:`, {
-                status: updateResponse.status,
-                headers: Object.fromEntries(updateResponse.headers.entries()),
-                html: html
-              })
-
-              // Process the Turbo Stream response
+              console.log(`Received Turbo Stream for ${section}`)
               Turbo.renderStreamMessage(html)
             } else {
               console.error(`Failed to update ${section}:`, {
@@ -100,6 +94,10 @@ export default class extends Controller {
                 statusText: updateResponse.statusText
               })
             }
+          }
+
+          if (data.status === "failed") {
+            console.error("Summary generation failed:", data.error)
           }
 
           console.log("All sections updated, stopping polling")

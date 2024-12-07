@@ -6,7 +6,7 @@ module UserServices
       data = cache_service.fetch("user_#{user_id}") { default_data }
 
       data[type] ||= []
-      data[type] << item_id unless data[type].include?(item_id)
+      data[type].unshift(item_id) unless data[type].include?(item_id)
 
       cache_service.write("user_#{user_id}", data)
       Rails.logger.debug "UserDataService: Updated data: #{data.inspect}"

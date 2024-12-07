@@ -1,5 +1,6 @@
 class ChannelsController < ApplicationController
-  include AuthenticatedController
+  before_action :authenticate!
+  layout "dashboard"
 
   def index
     @channels = Youtube::YoutubeChannelService.fetch_channels_for_user(Current.user.id)
