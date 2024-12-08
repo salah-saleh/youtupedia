@@ -11,7 +11,11 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :channels, only: [ :index, :show, :create ]
+  resources :channels, only: [ :index, :show ] do
+    collection do
+      get :create_from_url
+    end
+  end
   post "/parse_youtube_url", to: "youtube_urls#parse"
 
   # Authentication routes

@@ -4,8 +4,8 @@
     <h2 class="text-xl lg:text-lg font-semibold mb-4">Add Channel</h2>
 
     <div class="relative">
-      <%= form_with url: channels_path, method: :post, class: "flex" do |f| %>
-        <%= f.text_field :channel_url,
+      <%= form_with url: parse_youtube_url_path, method: :post, class: "flex" do |f| %>
+        <%= f.text_field :url,
             placeholder: "Enter YouTube channel URL here...",
             required: true,
             class: "flex-1 px-4 py-3.5 text-base rounded-full border border-purple-300 focus:outline-none focus:border-purple-500" %>
