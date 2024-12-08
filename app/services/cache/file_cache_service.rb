@@ -9,7 +9,6 @@ module Cache
 
     def fetch(key, &block)
       Rails.logger.debug "CACHE: Attempting to fetch '#{key}' from namespace '#{@namespace}'"
-      path = cache_path(key)
 
       if exist?(key)
         Rails.logger.debug "CACHE: Cache hit for '#{key}' in namespace '#{@namespace}'"

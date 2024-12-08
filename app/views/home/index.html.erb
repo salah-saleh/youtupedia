@@ -16,64 +16,15 @@
     </div>
   </div>
 
-  <!-- Recent Summaries Section -->
+  <!-- Sign In Section -->
   <div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-lg font-semibold mb-4">Recent Summaries</h2>
-    <% if user_signed_in? %>
-      <% video_ids = UserServices::UserDataService.user_items(Current.user.id, :summaries) %>
-      <% summaries = video_ids.map do |video_id|
-          cache_service = Cache::FileCacheService.new(Chat::ChatGptService.cache_namespace)
-          if cache_service.exist?(video_id)
-            result = cache_service.read(video_id)
-            if result[:success]
-              metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
-              if metadata[:success]
-                {
-                  video_id: video_id,
-                  title: metadata[:metadata][:title],
-                  channel: metadata[:metadata][:channel_title],
-                  date: metadata[:metadata][:published_at].present? ? Time.parse(metadata[:metadata][:published_at]) : nil,
-                  thumbnail: metadata[:metadata][:thumbnails][:high]
-                }
-              end
-            end
-          end
-        end.compact %>
-
-      <% if summaries.any? %>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <% summaries.each do |summary| %>
-            <%= link_to summary_path(summary[:video_id]),
-                  class: "border rounded-lg p-4 hover:shadow-md transition-shadow block" do %>
-              <div class="aspect-video mb-3">
-                <% if summary[:thumbnail] %>
-                  <img src="<%= summary[:thumbnail] %>"
-                       alt="<%= summary[:title] %>"
-                       class="w-full h-full object-cover rounded">
-                <% end %>
-              </div>
-              <h3 class="font-medium mb-2 line-clamp-2"><%= summary[:title] %></h3>
-              <div class="text-sm text-gray-500">
-                <p><%= summary[:channel] %></p>
-                <% if summary[:date].present? %>
-                  <p>Published <%= time_ago_in_words(summary[:date]) %> ago</p>
-                <% end %>
-              </div>
-            <% end %>
-          <% end %>
-        </div>
-      <% else %>
-        <p class="text-gray-500 text-center py-8">No summaries yet. Try summarizing a YouTube video above!</p>
-      <% end %>
-    <% else %>
-      <div class="text-center py-8">
-        <p class="text-gray-600 mb-4">Sign in to see your summaries!</p>
-        <div class="space-x-4">
-          <%= link_to "Sign In", new_session_path, class: "text-purple-600 hover:text-purple-800 font-medium" %>
-          <span class="text-gray-400">or</span>
-          <%= link_to "Sign Up", new_registration_path, class: "text-purple-600 hover:text-purple-800 font-medium" %>
-        </div>
+    <div class="text-center py-8">
+      <p class="text-gray-600 mb-4">Sign in to see your summaries!</p>
+      <div class="space-x-4">
+        <%= link_to "Sign In", new_session_path, class: "text-purple-600 hover:text-purple-800 font-medium" %>
+        <span class="text-gray-400">or</span>
+        <%= link_to "Sign Up", new_registration_path, class: "text-purple-600 hover:text-purple-800 font-medium" %>
       </div>
-    <% end %>
+    </div>
   </div>
 </div>

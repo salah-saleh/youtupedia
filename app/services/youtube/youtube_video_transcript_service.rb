@@ -5,7 +5,12 @@ module Youtube
         fetch_from_python(video_id)
       end
 
-      return segmented_result unless segmented_result[:success]
+      unless segmented_result[:success]
+        return {
+          success: false,
+          error: segmented_result[:error].truncate(50)
+        }
+      end
 
       full_result = fetch_cached(video_id, "transcripts/full") do
         create_full_transcript(segmented_result[:transcript])

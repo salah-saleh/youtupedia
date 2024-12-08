@@ -4,8 +4,8 @@
     <h2 class="text-xl lg:text-lg font-semibold mb-4">Quick Summary</h2>
 
     <div class="relative">
-      <%= form_with url: create_from_url_summaries_path, method: :get, class: "flex" do |f| %>
-        <%= f.text_field :youtube_url,
+      <%= form_with url: parse_youtube_url_path, method: :post, class: "flex" do |f| %>
+        <%= f.text_field :url,
             placeholder: "Enter YouTube video link here...",
             required: true,
             class: "flex-1 px-4 py-3.5 text-base rounded-full border border-purple-300 focus:outline-none focus:border-purple-500" %>
@@ -19,8 +19,6 @@
   <!-- Recent Summaries Grid -->
   <div class="bg-white rounded-lg shadow p-4 lg:p-6">
     <h2 class="text-xl lg:text-lg font-semibold mb-4">Recent Summaries</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <%= render "summaries/summary_grid", summaries: @summaries %>
-    </div>
+    <%= render "summaries/summary_grid", summaries: @summaries %>
   </div>
 </div>
