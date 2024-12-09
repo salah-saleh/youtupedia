@@ -2,7 +2,8 @@
 
 <div data-controller="youtube summary-loader"
      data-youtube-video-id-value="<%= @summary[:video_id] %>"
-     data-summary-loader-video-id-value="<%= @summary[:video_id] %>">
+     data-summary-loader-video-id-value="<%= @summary[:video_id] %>"
+     data-summary-loader-loading-value="<%= @summary[:loading] %>">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <%= render "left_column", summary: @summary %>
     <%= render "right_column", summary: @summary %>

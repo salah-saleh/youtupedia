@@ -22,7 +22,7 @@
     <% if @channels.any? %>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <% @channels.each do |channel| %>
-          <%= link_to channel_path(channel[:channel_id]),
+          <%= link_to channel_path(channel[:channel_name]),
                 class: "border rounded-lg p-4 hover:shadow-md transition-shadow block" do %>
             <div class="aspect-video mb-3">
               <%= image_tag channel[:thumbnail_url],

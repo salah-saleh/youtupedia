@@ -7,37 +7,26 @@ class ChannelsController < ApplicationController
   end
 
   def show
-    channel_id = params[:id]
-    @channel = load_channel(channel_id)
+    @channel_name = params[:id]
 
-    unless @channel
-      channel_data = Youtube::YoutubeChannelService.fetch_channel_from_url(params[:channel_url])
-      return redirect_to channels_path, alert: channel_data[:error] unless channel_data[:success]
+    @channel = Youtube::YoutubeChannelService.fetch_channel_metadata(@channel_name)
+    return redirect_to channels_path, alert: @channel[:error] unless @channel[:success]
 
-      # Save channel data
-      cache_service = Cache::FileCacheService.new("channels")
-      cache_service.write(channel_data[:channel_id], channel_data)
-      UserServices::UserDataService.add_item(Current.user.id, :channels, channel_data[:channel_id])
+    response = Youtube::YoutubeChannelService.fetch_channel_videos(@channel[:channel_id])
+    redirect_to channels_path, alert: response[:error] unless response[:success]
+    @videos = response[:videos]
+    UserServices::UserDataService.add_item(Current.user.id, :channels, @channel_name)
 
-      @channel = channel_data
-    end
-
-    @videos = Youtube::YoutubeChannelService.fetch_channel_videos(channel_id)
+    {
+      channel: @channel,
+      videos: @videos
+    }
   end
 
   def create_from_url
-    channel_data = Youtube::YoutubeChannelService.fetch_channel_from_url(params[:channel_url])
-    return redirect_to channels_path, alert: channel_data[:error] unless channel_data[:success]
+    channel_name = Youtube::YoutubeChannelService.extract_channel_name(params[:channel_url])
+    return redirect_to channels_path, alert: "Invalid YouTube URL" unless channel_name
 
-    redirect_to channel_path(channel_data[:channel_id], channel_url: params[:channel_url])
-  end
-
-  private
-
-  def load_channel(channel_id)
-    return nil unless UserServices::UserDataService.has_item?(Current.user.id, :channels, channel_id)
-
-    cache_service = Cache::FileCacheService.new("channels")
-    cache_service.read(channel_id) if cache_service.exist?(channel_id)
+    redirect_to channel_path(channel_name, channel_url: params[:channel_url])
   end
 end

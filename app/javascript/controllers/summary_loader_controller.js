@@ -5,24 +5,23 @@ export default class extends Controller {
   static targets = ["tldr", "takeaways", "tags", "summary"]
   static values = {
     videoId: String,
-    interval: { type: Number, default: 2000 },
-    maxAttempts: { type: Number, default: 30 }
+    loading: Boolean,
+    interval: { type: Number, default: 2500 },
+    maxAttempts: { type: Number, default: 10 }
   }
 
   connect() {
     console.log("SummaryLoader connected", {
       videoId: this.videoIdValue,
+      loading: this.loadingValue,
       interval: this.intervalValue,
-      maxAttempts: this.maxAttemptsValue,
-      targets: {
-        tldr: this.hasTldrTarget,
-        takeaways: this.hasTakeawaysTarget,
-        tags: this.hasTagsTarget,
-        summary: this.hasSummaryTarget
-      }
+      maxAttempts: this.maxAttemptsValue
     })
-    this.attempts = 0
-    this.startPolling()
+
+    if (this.loadingValue) {
+      this.attempts = 0
+      this.startPolling()
+    }
   }
 
   disconnect() {
