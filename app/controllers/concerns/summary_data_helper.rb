@@ -44,7 +44,7 @@ module SummaryDataHelper
   end
 
   def fetch_summary_result(video_id)
-    cache_service = Cache::FileCacheService.new(Chat::ChatGptService.cache_namespace)
+    cache_service = Cache::CacheFactory.build(Chat::ChatGptService.cache_namespace)
     cache_service.exist?(video_id) ? cache_service.read(video_id) : nil
   end
 end

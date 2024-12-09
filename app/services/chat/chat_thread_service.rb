@@ -1,7 +1,7 @@
 module Chat
   class ChatThreadService
     def self.create_or_load_thread(video_id)
-      cache_service = Cache::FileCacheService.new("chat_threads")
+      cache_service = Cache::CacheFactory.build("chat_threads")
       thread_key = thread_key_for(video_id)
 
       thread_data = cache_service.fetch(thread_key) do
@@ -20,7 +20,7 @@ module Chat
     end
 
     def self.save_message(video_id, role, content)
-      cache_service = Cache::FileCacheService.new("chat_threads")
+      cache_service = Cache::CacheFactory.build("chat_threads")
       thread_key = thread_key_for(video_id)
       thread_data = cache_service.fetch(thread_key) || { messages: [] }
 

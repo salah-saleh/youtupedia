@@ -1,6 +1,6 @@
 class BaseService
   def self.cache_service(namespace)
-    Cache::FileCacheService.new(namespace)
+    Cache::CacheFactory.build(namespace)
   end
 
   def self.handle_error(error, prefix = "Error")

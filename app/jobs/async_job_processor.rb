@@ -2,7 +2,8 @@ class AsyncJobProcessor < ApplicationJob
   queue_as :default
 
   def self.schedule(service_class_name, key, *args)
-    cache_service = Cache::FileCacheService.new(service_class_name.demodulize.underscore.pluralize)
+    namespace = service_class_name.demodulize.underscore.pluralize
+    cache_service = Cache::CacheFactory.build(namespace)
     return if cache_service.exist?(key)
 
     Rails.logger.debug "ASYNC_JOB: Scheduling #{service_class_name} for key #{key}"
