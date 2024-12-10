@@ -1,13 +1,18 @@
-development:
+default: &default
   clients:
     default:
-      uri: mongodb://localhost:27017/yt_development
+      uri: <%= ENV["MONGODB_URI"] %>
       options:
         server_selection_timeout: 5
+        max_pool_size: 5
+        min_pool_size: 1
+        wait_queue_timeout: 3
+
+development:
+  <<: *default
+
+test:
+  <<: *default
 
 production:
-  clients:
-    default:
-      uri: <%= ENV['MONGODB_URI'] %>
-      options:
-        server_selection_timeout: 5
+  <<: *default

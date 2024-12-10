@@ -3,10 +3,11 @@ module Cache
     def self.build(namespace, type = default_type)
       case type.to_sym
       when :file
-        Rails.logger.info "Using FileCacheService for namespace: #{namespace}"
+        Rails.logger.debug "[CacheFactory] Using FileCacheService for namespace: #{namespace}"
         FileCacheService.new(namespace)
       when :mongo
-        Rails.logger.info "Using MongoCacheService for namespace: #{namespace}"
+        Rails.logger.debug "[CacheFactory] Using MongoCacheService for namespace: #{namespace}"
+        Rails.logger.debug "[CacheFactory] MongoDB URI: #{ENV['MONGODB_URI'].gsub(/:[^@]*@/, ':***@').first(20)}"
         MongoCacheService.new(namespace)
       else
         raise ArgumentError, "Unknown cache type: #{type}"

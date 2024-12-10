@@ -2,35 +2,36 @@ namespace :cache do
   desc "Migrate data from file cache to MongoDB"
   task migrate_to_mongo: :environment do
     def migrate_namespace(namespace)
-      file_cache = Cache::FileCacheService.new(namespace)
       mongo_cache = Cache::MongoCacheService.new(namespace)
 
-      # Get all files in the cache directory
       cache_dir = Rails.root.join("tmp", "cache", namespace)
 
-      # Skip if directory doesn't exist
       unless Dir.exist?(cache_dir)
         puts "Skipping #{namespace} - directory doesn't exist"
         return
       end
 
-      # Ensure directory exists for file cache
-      FileUtils.mkdir_p(cache_dir)
+      puts "Migrating namespace: #{namespace}"
+      migrated = 0
+      errors = 0
 
       Dir.glob("#{cache_dir}/*.json").each do |file|
         key = File.basename(file, ".json")
         begin
+          puts "  Processing #{key}..."
           data = JSON.parse(File.read(file), symbolize_names: true)
           mongo_cache.write(key, data)
-          puts "Migrated #{namespace}/#{key}"
+          migrated += 1
+          puts "  ✓ Migrated #{key}"
         rescue => e
-          puts "Error migrating #{namespace}/#{key}: #{e.message}"
-          puts e.backtrace.first
+          errors += 1
+          puts "  ✗ Error with #{key}: #{e.message}"
         end
       end
+
+      puts "Completed #{namespace}: #{migrated} migrated, #{errors} errors"
     end
 
-    # List of namespaces to migrate
     namespaces = [
       "channels",
       "channel_videos",
@@ -41,13 +42,7 @@ namespace :cache do
       Chat::ChatGptService.cache_namespace
     ]
 
-    namespaces.each do |namespace|
-      puts "Migrating namespace: #{namespace}"
-      # Ensure parent directories exist for nested namespaces
-      if namespace.include?("/")
-        FileUtils.mkdir_p(Rails.root.join("tmp", "cache", namespace.split("/").first))
-      end
-      migrate_namespace(namespace)
-    end
+    puts "Starting migration to MongoDB (#{ENV['MONGODB_URI'].split('@').last})"
+    namespaces.each { |ns| migrate_namespace(ns) }
   end
 end

@@ -28,7 +28,8 @@ class SummariesController < ApplicationController
     @summaries = video_ids.map do |video_id|
       metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
       published_at = metadata[:metadata][:published_at]
-      published_at = published_at.is_a?(Time) ? published_at : (published_at.present? ? Time.parse(published_at) : nil)
+      published_at = published_at.is_a?(String) ? DateTime.parse(published_at) : published_at
+
       if metadata[:success]
         {
           video_id: video_id,
