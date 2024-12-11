@@ -55,7 +55,9 @@ module Cache
       @collection ||= begin
         Rails.logger.debug "CACHE [MongoDB] Initializing collection for namespace '#{namespace}'"
         client = Mongoid::Clients.default
-        client[namespace]
+        database = client.database
+        Rails.logger.debug "CACHE [MongoDB] Using database: #{database.name}"
+        database[namespace]
       end
     end
 
