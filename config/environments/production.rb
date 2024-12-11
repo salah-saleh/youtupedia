@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require "logger"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -35,7 +36,14 @@ Rails.application.configure do
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
-  config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
+  config.logger = ActiveSupport::TaggedLogging.new(
+    Logger.new(
+      Rails.root.join("log/#{Rails.env}.log"),
+      "daily",    # Rotate logs daily
+      10.megabytes
+    )
+  )
+  config.logger.formatter = Blog::CustomLogFormatter.new(colorize: false)
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!)
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
@@ -86,4 +94,22 @@ Rails.application.configure do
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+  # Configure environment-specific logging
+  config.log_level = :info   # Less verbose in production
+  config.logger = ActiveSupport::Logger.new(Rails.root.join("log/production.log"))
+  config.logger.formatter = proc do |severity, datetime, progname, msg|
+    {
+      timestamp: datetime.iso8601,
+      level: severity,
+      program: progname,
+      message: msg,
+      environment: Rails.env,
+      pid: Process.pid
+    }.to_json + "\n"
+  end
+
+  # Silence MongoDB logs in production
+  Mongoid.logger.level = Logger::WARN
+  Mongo::Logger.logger.level = Logger::ERROR
 end

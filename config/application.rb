@@ -2,6 +2,7 @@ require_relative "boot"
 
 require "rails/all"
 require "mongoid"
+require_relative "../lib/custom_logger"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
