@@ -14,14 +14,36 @@ module Logging
 
     def initialize(colorize: false)
       @colorize = colorize
+      @tags = []
     end
 
     def call(severity, timestamp, progname, msg)
       timestamp_str = format_timestamp(timestamp)
       severity_str = format_severity(severity)
       message_str = format_message(msg)
+      tags_str = @tags.any? ? @tags.join(",") + " " : ""
 
-      "#{timestamp_str} | #{severity_str} | #{message_str}\n"
+      "#{timestamp_str} | #{severity_str} | #{tags_str}#{message_str}\n"
+    end
+
+    # Required by ActiveSupport::TaggedLogging
+    def push_tags(*tags)
+      @tags.concat(tags)
+    end
+
+    # Required by ActiveSupport::TaggedLogging
+    def pop_tags(count = 1)
+      count.times { @tags.pop }
+    end
+
+    # Required by ActiveSupport::TaggedLogging
+    def clear_tags!
+      @tags.clear
+    end
+
+    # Required by ActiveSupport::TaggedLogging
+    def current_tags
+      @tags.dup
     end
 
     private
