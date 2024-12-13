@@ -33,4 +33,6 @@ Rails.application.routes.draw do
   end
 
   get "settings", to: "settings#index"
+
+  resources :search, only: [ :index ]
 end
