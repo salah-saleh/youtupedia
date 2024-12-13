@@ -10,58 +10,70 @@ module Cache
 
     def write(key, data)
       with_retry do
-        Rails.logger.debug "CACHE [MongoDB] Writing data for '#{key}'"
+        log_debug "Writing data for key", key, context: { operation: :write }
         collection.update_one(
           { _id: key },
           { '$set': { data: data } },
           upsert: true
         )
-        Rails.logger.debug "CACHE [MongoDB] Successfully wrote data for '#{key}'"
+        log_debug "Successfully wrote data for key", key, context: { operation: :write }
         data
       end
     rescue => e
-      Rails.logger.error "CACHE [MongoDB] Error writing '#{key}': #{e.message}"
+      log_error "Error writing key", key, context: { error: e.message }
       raise
     end
 
     def read(key)
-      Rails.logger.debug "CACHE [MongoDB] Reading '#{key}'"
+      log_debug "Reading key", key, context: { operation: :read }
       document = collection.find(_id: key).first
       if document
-        Rails.logger.debug "CACHE [MongoDB] Found document for '#{key}'"
+        log_debug "Found document for key", key, context: { operation: :read, found: true }
         document&.dig("data")
       else
-        Rails.logger.debug "CACHE [MongoDB] No document found for '#{key}'"
+        log_debug "No document found for key", key, context: { operation: :read, found: false }
         nil
       end
+    rescue => e
+      log_error "Error reading key", key, context: { error: e.message }
+      raise
     end
 
     def exist?(key)
-      Rails.logger.debug "CACHE [MongoDB] Checking existence of '#{key}'"
+      log_debug "Checking existence of key", key, context: { operation: :exist }
       exists = collection.find(_id: key).count > 0
-      Rails.logger.debug "CACHE [MongoDB] Document '#{key}' exists: #{exists}"
+      log_debug "Key existence result", key, context: { operation: :exist, exists: exists }
       exists
+    rescue => e
+      log_error "Error checking key existence", key, context: { error: e.message }
+      raise
     end
 
     def delete(key)
-      Rails.logger.debug "CACHE [MongoDB] Deleting '#{key}'"
+      log_debug "Deleting key", key, context: { operation: :delete }
       result = collection.delete_one(_id: key)
-      Rails.logger.debug "CACHE [MongoDB] Deleted #{result.deleted_count} document(s) for '#{key}'"
+      log_debug "Deletion result", key, context: { operation: :delete, deleted_count: result.deleted_count }
+    rescue => e
+      log_error "Error deleting key", key, context: { error: e.message }
+      raise
     end
 
     def all_keys
-      Rails.logger.debug "CACHE [MongoDB] Fetching all keys from '#{namespace}'"
+      log_debug "Fetching all keys", context: { operation: :all_keys }
       keys = collection.find({}, { projection: { _id: 1 } }).map { |doc| doc[:_id] }
-      Rails.logger.debug "CACHE [MongoDB] Found #{keys.length} keys"
+      log_debug "Found keys", context: { operation: :all_keys, count: keys.length }
       keys
+    rescue => e
+      log_error "Error fetching all keys", context: { error: e.message }
+      raise
     end
 
     def search_text(query, options = {})
-      Rails.logger.debug "CACHE [MongoDB] Performing text search for '#{query}' in namespace '#{namespace}'"
+      log_debug "Performing text search", query, context: { operation: :search, namespace: namespace }
 
       # Log a sample document to understand the structure
       sample_doc = collection.find.first
-      Rails.logger.debug "CACHE [MongoDB] Sample document structure: #{sample_doc.inspect}"
+      log_debug "Sample document structure", sample_doc, context: { operation: :search }
 
       # Construct a regex search pattern for more flexible matching
       regex_pattern = Regexp.new(Regexp.escape(query), Regexp::IGNORECASE)
@@ -84,7 +96,7 @@ module Cache
         { "data" => regex_pattern }
       end
 
-      Rails.logger.debug "CACHE [MongoDB] Search conditions: #{search_conditions.inspect}"
+      log_debug "Search conditions", search_conditions, context: { operation: :search }
 
       pipeline = [
         { "$match" => search_conditions },
@@ -151,23 +163,27 @@ module Cache
         { "$limit" => options[:limit] || 10 }
       ]
 
-      Rails.logger.debug "CACHE [MongoDB] Executing pipeline: #{pipeline.inspect}"
-
       results = collection.aggregate(pipeline).to_a
-      Rails.logger.debug "CACHE [MongoDB] Found #{results.length} matches"
-      Rails.logger.debug "CACHE [MongoDB] First result (if any): #{results.first.inspect}"
+      log_debug "Search results", context: { operation: :search, count: results.length }
+
+      if results.any?
+        log_debug "First result", results.first, context: { operation: :search }
+      end
 
       results
+    rescue => e
+      log_error "Error performing text search", query, context: { error: e.message }
+      raise
     end
 
     private
 
     def collection
       @collection ||= begin
-        Rails.logger.debug "CACHE [MongoDB] Initializing collection for namespace '#{namespace}'"
+        log_debug "Initializing collection", context: { namespace: namespace }
         client = Mongoid::Clients.default
         database = client.database
-        Rails.logger.debug "CACHE [MongoDB] Using database: #{database.name}"
+        log_debug "Using database", database.name
         database[namespace]
       end
     end
@@ -179,7 +195,11 @@ module Cache
       rescue Mongo::Error => e
         retries += 1
         if retries <= MAX_RETRIES
-          Rails.logger.warn "CACHE [MongoDB] Retry #{retries}/#{MAX_RETRIES} after error: #{e.message}"
+          log_warn "Retry after error", e.message, context: {
+            retries: retries,
+            max_retries: MAX_RETRIES,
+            delay: RETRY_DELAY * retries
+          }
           sleep(RETRY_DELAY * retries)
           retry
         else

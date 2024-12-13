@@ -40,14 +40,18 @@ module Chat
           summary: result["summary"]
         }
       rescue JSON::ParserError => e
-        Rails.logger.error "JSON parsing error: #{e.message}"
-        Rails.logger.error "Full error details: #{e.full_message}"
-        Rails.logger.error "Raw content causing error: #{content}"
+        log_error "JSON parsing error", context: {
+          error: e.message,
+          backtrace: e.full_message,
+          content: content
+        }
         { success: false, error: "Failed to parse summary: #{e.message}" }
       rescue => e
-        Rails.logger.error "Summary Error: #{e.message}"
-        Rails.logger.error "Full error details: #{e.full_message}"
-        Rails.logger.error "Raw content causing error: #{content}"
+        log_error "Summary error", context: {
+          error: e.message,
+          backtrace: e.full_message,
+          content: content
+        }
         { success: false, error: "Failed to generate summary: #{e.message}" }
       end
     end
@@ -104,8 +108,12 @@ module Chat
 
       { success: true, answer: content }
     rescue => e
-      Rails.logger.error "Chat GPT Error: #{e.message}"
-      Rails.logger.error "Full error details: #{e.full_message}"
+      log_error "Chat GPT error", context: {
+        error: e.message,
+        backtrace: e.full_message,
+        video_id: video_id,
+        question: question
+      }
       { success: false, error: "Failed to process question: #{e.message}" }
     end
 

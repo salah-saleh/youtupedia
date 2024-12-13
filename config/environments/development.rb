@@ -73,7 +73,7 @@ Rails.application.configure do
   # Configure logging for development
   config.log_level = :debug
   config.logger = ActiveSupport::Logger.new(STDOUT)
-  config.logger.formatter = Blog::CustomLogFormatter.new(colorize: true)
+  config.logger.formatter = Logging::Formatter.new(colorize: true)
 
   # Only reduce MongoDB noise in development
   Mongoid.logger.level = Logger::INFO

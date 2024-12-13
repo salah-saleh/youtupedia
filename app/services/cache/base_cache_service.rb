@@ -2,21 +2,21 @@ module Cache
   class BaseCacheService
     def initialize(namespace)
       @namespace = namespace
-      Rails.logger.debug "CACHE [#{self.class.name}] Initialized for namespace '#{namespace}'"
+      log_debug "Initialized", context: { namespace: namespace }
     end
 
     def fetch(key, &block)
-      Rails.logger.debug "CACHE [#{self.class.name}] Attempting to fetch '#{key}'"
+      log_debug "Attempting to fetch", key
       if exist?(key)
-        Rails.logger.debug "CACHE [#{self.class.name}] Cache hit for '#{key}'"
+        log_debug "Cache hit", key
         data = read(key)
-        Rails.logger.debug "CACHE [#{self.class.name}] Retrieved data for '#{key}'"
+        log_debug "Retrieved data", key
         data
       elsif block_given?
-        Rails.logger.debug "CACHE [#{self.class.name}] Cache miss for '#{key}', generating data..."
+        log_debug "Cache miss, generating data", key
         data = yield
         write(key, data)
-        Rails.logger.debug "CACHE [#{self.class.name}] Generated and cached data for '#{key}'"
+        log_debug "Generated and cached data", key
         data
       end
     end

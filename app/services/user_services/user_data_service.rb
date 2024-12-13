@@ -1,7 +1,7 @@
 module UserServices
   class UserDataService
     def self.add_item(user_id, type, item_id)
-      Rails.logger.debug "UserDataService: Adding #{item_id} to #{type} for user #{user_id}"
+      log_debug "Adding item", context: { user_id: user_id, type: type, item_id: item_id }
       cache_service = Cache::CacheFactory.build("user_data")
       data = cache_service.fetch("user_#{user_id}") { default_data }
 
@@ -9,26 +9,26 @@ module UserServices
       data[type].unshift(item_id) unless data[type].include?(item_id)
 
       cache_service.write("user_#{user_id}", data)
-      Rails.logger.debug "UserDataService: Updated data: #{data.inspect}"
+      log_debug "Updated data", data
     end
 
     def self.remove_item(user_id, type, item_id)
-      Rails.logger.debug "UserDataService: Removing #{item_id} from #{type} for user #{user_id}"
+      log_debug "Removing item", context: { user_id: user_id, type: type, item_id: item_id }
       cache_service = Cache::CacheFactory.build("user_data")
       data = cache_service.fetch("user_#{user_id}") { default_data }
 
       data[type]&.delete(item_id)
 
       cache_service.write("user_#{user_id}", data)
-      Rails.logger.debug "UserDataService: Updated data: #{data.inspect}"
+      log_debug "Updated data", data
     end
 
     def self.user_items(user_id, type)
-      Rails.logger.debug "UserDataService: Fetching #{type} for user #{user_id}"
+      log_debug "Fetching items", context: { user_id: user_id, type: type }
       cache_service = Cache::CacheFactory.build("user_data")
       data = cache_service.fetch("user_#{user_id}") { default_data }
       items = data[type] || []
-      Rails.logger.debug "UserDataService: Found items: #{items.inspect}"
+      log_debug "Found items", items
       items
     end
 

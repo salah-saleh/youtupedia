@@ -1,13 +1,14 @@
-module Blog
-  class CustomLogFormatter
+module Logging
+  class Formatter
     SEVERITY_COLORS = {
       "DEBUG" => "\e[34m", # Blue
       "INFO"  => "\e[32m", # Green
       "WARN"  => "\e[33m", # Yellow
       "ERROR" => "\e[31m", # Red
       "FATAL" => "\e[35m"  # Magenta
-    }
-    RESET_COLOR = "\e[0m"
+    }.freeze
+
+    RESET_COLOR = "\e[0m".freeze
     COMPONENT_WIDTH = 25
     SEVERITY_WIDTH = 5
 
@@ -42,7 +43,7 @@ module Blog
       when String
         format_string_message(msg)
       else
-        msg.inspect
+        Helper.truncate_for_log(msg)
       end
     end
 

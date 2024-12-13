@@ -6,13 +6,13 @@ module SearchableVideos
   private
 
   def search_videos(query, user_id)
-    Rails.logger.debug "[Search] Starting search for query: #{query}"
+    log_debug "[Search] Starting search for query: #{query}"
 
     # Get user's video IDs
     user_video_ids = UserServices::UserDataService.user_items(user_id, :summaries)
     return [] if user_video_ids.empty?
 
-    Rails.logger.debug "[Search] Found #{user_video_ids.length} videos for user"
+    log_debug "[Search] Found #{user_video_ids.length} videos for user"
 
     # Initialize cache services
     summaries_cache = Cache::CacheFactory.build(Chat::ChatGptService.cache_namespace)
@@ -20,20 +20,20 @@ module SearchableVideos
     metadata_cache = Cache::CacheFactory.build("metadata")
 
     # Search in summaries and transcripts
-    Rails.logger.debug "[Search] Searching in summaries..."
+    log_debug "[Search] Searching in summaries..."
     summary_results = summaries_cache.search_text(query, limit: 20)
-    Rails.logger.debug "[Search] Found #{summary_results.length} summary results"
+    log_debug "[Search] Found #{summary_results.length} summary results"
 
-    Rails.logger.debug "[Search] Searching in transcripts..."
+    log_debug "[Search] Searching in transcripts..."
     transcript_results = transcript_cache.search_text(query, limit: 20)
-    Rails.logger.debug "[Search] Found #{transcript_results.length} transcript results"
+    log_debug "[Search] Found #{transcript_results.length} transcript results"
 
     # Combine and deduplicate results, filtering for user's videos
     all_results = (summary_results + transcript_results)
       .select { |r| user_video_ids.include?(r[:_id]) }
       .uniq { |r| r[:_id] }
 
-    Rails.logger.debug "[Search] Combined unique results for user: #{all_results.length}"
+    log_debug "[Search] Combined unique results for user: #{all_results.length}"
 
     # Sort by score and limit to top 20
     all_results = all_results.sort_by { |r| -r[:score] }.first(20)
@@ -41,11 +41,11 @@ module SearchableVideos
     # Build full result data
     results = all_results.map do |result|
       video_id = result[:_id]
-      Rails.logger.debug "[Search] Processing result for video: #{video_id}"
+      log_debug "[Search] Processing result for video: #{video_id}"
 
       metadata = metadata_cache.read(video_id)
       unless metadata&.dig(:success)
-        Rails.logger.debug "[Search] No metadata found for video: #{video_id}"
+        log_debug "[Search] No metadata found for video: #{video_id}"
         next
       end
 
@@ -53,14 +53,14 @@ module SearchableVideos
       transcript_data = transcript_cache.read(video_id)
 
       unless summary_data&.dig(:success) && transcript_data
-        Rails.logger.debug "[Search] Missing summary or transcript for video: #{video_id}"
+        log_debug "[Search] Missing summary or transcript for video: #{video_id}"
         next
       end
 
       # Build context from all sources
       context = build_context(query, transcript_data, summary_data)
 
-      Rails.logger.debug "[Search] Built context for video: #{video_id}"
+      log_debug "[Search] Built context for video: #{video_id}"
 
       {
         video_id: video_id,
@@ -73,7 +73,7 @@ module SearchableVideos
       }
     end.compact
 
-    Rails.logger.info "[Search] Completed search with #{results.length} final results"
+    log_info "[Search] Completed search with #{results.length} final results"
     results
   end
 

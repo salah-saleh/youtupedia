@@ -2,39 +2,39 @@ module Cache
   class FileCacheService < BaseCacheService
     def write(key, data)
       path = cache_path(key)
-      Rails.logger.debug "CACHE [File] Writing data for '#{key}' to #{path}"
+      log_debug "Writing data", key, context: { path: path }
       ensure_directory_exists
       File.write(path, data.to_json)
-      Rails.logger.debug "CACHE [File] Successfully wrote data to #{path}"
+      log_debug "Successfully wrote data", key, context: { path: path }
       data
     end
 
     def read(key)
       path = cache_path(key)
-      Rails.logger.debug "CACHE [File] Reading '#{key}' from #{path}"
+      log_debug "Reading", key, context: { path: path }
       data = JSON.parse(File.read(path), symbolize_names: true)
-      Rails.logger.debug "CACHE [File] Successfully read data from #{path}"
+      log_debug "Successfully read data", key, context: { path: path }
       data
     rescue JSON::ParserError, Errno::ENOENT => e
-      Rails.logger.error "CACHE [File] Error reading '#{key}': #{e.message}"
+      log_error "Error reading", key, context: { path: path, error: e.message }
       nil
     end
 
     def exist?(key)
       path = cache_path(key)
       exists = File.exist?(path)
-      Rails.logger.debug "CACHE [File] Checking existence of '#{key}': #{exists}"
+      log_debug "Checking existence", key, context: { path: path, exists: exists }
       exists
     end
 
     def delete(key)
       path = cache_path(key)
-      Rails.logger.debug "CACHE [File] Attempting to delete '#{key}'"
+      log_debug "Attempting to delete", key, context: { path: path }
       if File.exist?(path)
         File.delete(path)
-        Rails.logger.debug "CACHE [File] Successfully deleted #{path}"
+        log_debug "Successfully deleted", key, context: { path: path }
       else
-        Rails.logger.debug "CACHE [File] File not found for deletion: #{path}"
+        log_debug "File not found for deletion", key, context: { path: path }
       end
     end
 
@@ -47,7 +47,7 @@ module Cache
     def ensure_directory_exists
       dir = Rails.root.join("tmp", "cache", namespace)
       unless Dir.exist?(dir)
-        Rails.logger.debug "CACHE [File] Creating directory: #{dir}"
+        log_debug "Creating directory", context: { path: dir }
         FileUtils.mkdir_p(dir)
       end
     end

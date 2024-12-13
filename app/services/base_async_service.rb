@@ -7,9 +7,9 @@ class BaseAsyncService
     cache_service = Cache::CacheFactory.build(cache_namespace)
 
     cache_service.fetch(key) do
-      Rails.logger.debug "#{self.name}: Processing #{key}"
+      log_debug "Processing", key
       result = new.perform(*args)
-      Rails.logger.debug "#{self.name}: Completed processing #{key}"
+      log_debug "Completed processing", key
       result
     end
   end

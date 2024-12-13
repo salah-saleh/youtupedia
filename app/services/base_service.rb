@@ -4,8 +4,8 @@ class BaseService
   end
 
   def self.handle_error(error, prefix = "Error")
-    Rails.logger.error "#{prefix}: #{error.message}"
-    Rails.logger.error "Full error details: #{error.full_message}"
+    log_error "#{prefix}: #{error.message}"
+    log_error "Full error details", error.full_message
     { success: false, error: "#{prefix}: #{error.message}" }
   end
 
