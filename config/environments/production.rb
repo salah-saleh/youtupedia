@@ -39,16 +39,14 @@ Rails.application.configure do
   config.log_tags = [ :request_id ]
 
   # Set up main application logger
-  config.logger = ActiveSupport::TaggedLogging.logger(STDOUT)
-
-  # config.logger = ActiveSupport::TaggedLogging.new(
+  logger = Logger.new(STDOUT)
   #   Logger.new(
   #     Rails.root.join("log/production.log"),
   #     "daily",
   #     10.megabytes
   #   )
-  # )
-  config.logger.formatter = Logging::Formatter.new(colorize: false)
+  logger.formatter = Logging::Formatter.new(colorize: false)
+  config.logger = ActiveSupport::TaggedLogging.new(logger)
 
   # Prevent health checks from clogging up the logs
   config.silence_healthcheck_path = "/up"

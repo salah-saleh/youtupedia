@@ -28,7 +28,7 @@ module Logging
 
     # Required by ActiveSupport::TaggedLogging
     def push_tags(*tags)
-      @tags.concat(tags)
+      @tags.concat(tags.flatten)
     end
 
     # Required by ActiveSupport::TaggedLogging
@@ -44,6 +44,19 @@ module Logging
     # Required by ActiveSupport::TaggedLogging
     def current_tags
       @tags.dup
+    end
+
+    # Required by ActiveSupport::TaggedLogging
+    def tagged(*new_tags)
+      new_tags = new_tags.flatten
+      if new_tags.any?
+        push_tags(new_tags)
+        yield self
+      else
+        yield self
+      end
+    ensure
+      pop_tags(new_tags.size)
     end
 
     private
