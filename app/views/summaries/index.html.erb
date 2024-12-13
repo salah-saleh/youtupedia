@@ -1,24 +1,19 @@
 <div class="space-y-6">
   <!-- Quick Summary Section -->
-  <div class="bg-white rounded-lg shadow p-4 lg:p-6">
-    <h2 class="text-xl lg:text-lg font-semibold mb-4">Quick Summary</h2>
-
-    <div class="relative">
-      <%= form_with url: parse_youtube_url_path, method: :post, class: "flex" do |f| %>
-        <%= f.text_field :url,
-            placeholder: "Enter YouTube video link here...",
-            required: true,
-            class: "flex-1 px-4 py-3.5 text-base rounded-full border border-purple-300 focus:outline-none focus:border-purple-500" %>
-
-        <%= f.submit "Summarize",
-            class: "absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2.5 text-base bg-purple-500 text-white rounded-full hover:bg-purple-600" %>
-      <% end %>
-    </div>
-  </div>
+  <%= render "shared/search_form", form_config: {
+    title: "Quick Summary",
+    url: parse_youtube_url_path,
+    method: :post,
+    field_name: :url,
+    placeholder: "Enter YouTube video link here...",
+    button_text: "Summarize"
+  } %>
 
   <!-- Recent Summaries Grid -->
   <div class="bg-white rounded-lg shadow p-4 lg:p-6">
     <h2 class="text-xl lg:text-lg font-semibold mb-4">Recent Summaries</h2>
-    <%= render "summaries/summary_grid", summaries: @summaries %>
+    <%= render "shared/video_grid",
+          videos: @summaries,
+          empty_message: "No summaries available yet. Try summarizing a video above!" %>
   </div>
 </div>
