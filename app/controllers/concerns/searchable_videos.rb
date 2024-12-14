@@ -1,145 +1,180 @@
 # frozen_string_literal: true
 
+# SearchableVideos provides full-text search functionality across video summaries and transcripts.
+# It combines results from multiple sources (summaries, transcripts) and provides context-aware
+# search results with highlighted matches and relevant excerpts.
 module SearchableVideos
   extend ActiveSupport::Concern
 
-  private
+  # Main search method that finds relevant videos based on a text query.
+  # Searches across both summaries and transcripts, combines results,
+  # and returns processed results with metadata and context.
+  #
+  # @param query [String] The search query text
+  # @return [Array<Hash>] Array of processed search results with video metadata and context
+  def search_videos(query)
+    return [] if query.blank?
 
-  def search_videos(query, user_id)
     log_debug "[Search] Starting search for query: #{query}"
 
-    # Get user's video IDs
-    user_video_ids = UserServices::UserDataService.user_items(user_id, :summaries)
-    return [] if user_video_ids.empty?
+    # Get user's video IDs for filtering results
+    user_videos = UserServices::UserDataService.user_items(Current.user.id, :summaries)
+    return [] if user_videos.empty?
 
-    log_debug "[Search] Found #{user_video_ids.length} videos for user"
+    log_debug "[Search] Found #{user_videos.size} videos for user"
 
-    # Initialize cache services
-    summaries_cache = Cache::CacheFactory.build(Chat::ChatGptService.cache_namespace)
-    transcript_cache = Cache::CacheFactory.build("transcripts/full")
+    # Search in summaries (GPT-generated content)
+    log_debug "[Search] Searching in summaries..."
+    summary_results = search_in_collection(query, Chat::ChatGptService.cache_namespace, user_videos)
+    log_debug "[Search] Found #{summary_results.size} summary results"
+
+    # Process results to add metadata and context
+    processed_results = process_search_results(summary_results, query)
+    log_info "[Search] Completed search with #{processed_results.size} final results"
+    processed_results
+  end
+
+  private
+
+  # Performs a search in a specific MongoDB collection using the cache service.
+  # Includes a filter for user's videos to optimize the search.
+  #
+  # @param query [String] The search query
+  # @param namespace [String] The cache namespace/collection to search in
+  # @param user_videos [Array<String>] List of video IDs belonging to the user
+  # @return [Array<Hash>] Raw search results with keys and scores
+  def search_in_collection(query, namespace, user_videos)
+    cache_service = Cache::CacheFactory.build(namespace)
+    cache_service.search_text(query, filter: { "_id" => { "$in" => user_videos } })
+  end
+
+  # Processes raw search results to add metadata and context.
+  # For each result, fetches:
+  # - Video metadata (title, channel, etc.)
+  # - Summary data (GPT-generated content)
+  #
+  # @param results [Array<Hash>] Raw search results to process
+  # @param query [String] Original search query for context highlighting
+  # @return [Array<Hash>] Processed results with full metadata and context
+  def process_search_results(results, query)
     metadata_cache = Cache::CacheFactory.build("metadata")
 
-    # Search in summaries and transcripts
-    log_debug "[Search] Searching in summaries..."
-    summary_results = summaries_cache.search_text(query, limit: 20)
-    log_debug "[Search] Found #{summary_results.length} summary results"
-
-    log_debug "[Search] Searching in transcripts..."
-    transcript_results = transcript_cache.search_text(query, limit: 20)
-    log_debug "[Search] Found #{transcript_results.length} transcript results"
-
-    # Combine and deduplicate results, filtering for user's videos
-    all_results = (summary_results + transcript_results)
-      .select { |r| user_video_ids.include?(r[:_id]) }
-      .uniq { |r| r[:_id] }
-
-    log_debug "[Search] Combined unique results for user: #{all_results.length}"
-
-    # Sort by score and limit to top 20
-    all_results = all_results.sort_by { |r| -r[:score] }.first(20)
-
-    # Build full result data
-    results = all_results.map do |result|
-      video_id = result[:_id]
+    results.map do |result|
+      video_id = result["key"]
       log_debug "[Search] Processing result for video: #{video_id}"
 
+      # Step 1: Get video metadata
       metadata = metadata_cache.read(video_id)
-      unless metadata&.dig(:success)
+      unless metadata&.dig("success")
         log_debug "[Search] No metadata found for video: #{video_id}"
         next
       end
 
-      summary_data = summaries_cache.read(video_id)
-      transcript_data = transcript_cache.read(video_id)
-
-      unless summary_data&.dig(:success) && transcript_data
-        log_debug "[Search] Missing summary or transcript for video: #{video_id}"
-        next
-      end
-
-      # Build context from all sources
-      context = build_context(query, transcript_data, summary_data)
+      # Step 2: Build search context with highlighted matches
+      context = build_context(query, result["matched_fields"])
 
       log_debug "[Search] Built context for video: #{video_id}"
 
+      # Step 3: Construct final result with all metadata
       {
         video_id: video_id,
-        title: metadata.dig(:metadata, :title),
-        channel: metadata.dig(:metadata, :channel_title),
-        published_at: metadata.dig(:metadata, :published_at),
-        thumbnail: metadata.dig(:metadata, :thumbnails, :high),
-        score: result[:score],
+        title: metadata.dig("metadata", "title"),
+        channel: metadata.dig("metadata", "channel_title"),
+        published_at: metadata.dig("metadata", "published_at"),
+        thumbnail: metadata.dig("metadata", "thumbnails", "high"),
+        score: result["score"] || 0,
         match_context: context
       }
     end.compact
-
-    log_info "[Search] Completed search with #{results.length} final results"
-    results
   end
 
-  def build_context(query, transcript_data, summary_data)
-    contexts = []
+  # Builds a context string showing where the search query matches in the content.
+  # Only includes matches from the summary text.
+  #
+  # @param query [String] The search query to highlight
+  # @param matched_fields [String] The matched fields from the search
+  # @return [String] Context with summary matches
+  def build_context(query, matched_fields)
+    return "" unless matched_fields
 
-    # Add transcript context if found
-    if transcript_context = extract_context(transcript_data[:transcript], query)
-      contexts << transcript_context
+    # Look for matches in summary
+    if summary_context = extract_context(matched_fields, query)
+      "#{summary_context}"
+    else
+      ""
     end
-
-    # Add summary context if found
-    if summary_context = extract_context(summary_data[:summary], query)
-      contexts << "Summary: #{summary_context}"
-    end
-
-    # Add matching takeaways
-    if summary_data[:takeaways].is_a?(Array)
-      matching_takeaways = summary_data[:takeaways].select do |takeaway|
-        takeaway[:content].to_s.downcase.include?(query.downcase)
-      end
-
-      if matching_takeaways.any?
-        takeaway_texts = matching_takeaways.map do |takeaway|
-          "#{takeaway[:content]} (#{takeaway[:timestamp]})"
-        end
-        contexts << "Takeaways:\n#{takeaway_texts.join("\n")}"
-      end
-    end
-
-    # Add matching TLDR if found
-    if summary_data[:tldr].to_s.downcase.include?(query.downcase)
-      contexts << "TLDR: #{summary_data[:tldr]}"
-    end
-
-    # Join all contexts with separators
-    contexts.join("\n\n")
   end
 
+  # Extracts context around search query matches in text.
+  # Shows ~100 characters before and after each match.
+  # Handles multi-word queries by finding matches for each word.
+  #
+  # @param text [String] The text to search in
+  # @param query [String] The search query to find
+  # @return [String] Combined context snippets with ellipsis
   def extract_context(text, query)
     return "" unless text.present? && text.is_a?(String)
 
-    # Find all occurrences of the query
+    # Split query into words and remove empty strings
+    query_words = query.downcase.split(/\s+/).reject(&:empty?)
+    return "" if query_words.empty?
+
+    # Find positions for all query words
     positions = []
-    current_pos = 0
-    while (pos = text.downcase.index(query.downcase, current_pos))
-      positions << pos
-      current_pos = pos + 1
+    query_words.each do |word|
+      current_pos = 0
+      while (pos = text.downcase.index(word, current_pos))
+        positions << {
+          start: pos,
+          length: word.length,
+          word: word
+        }
+        current_pos = pos + 1
+      end
     end
 
     return "" if positions.empty?
 
-    # Extract context around each occurrence
-    contexts = positions.map do |position|
-      start_pos = [ position - 100, 0 ].max
-      end_pos = [ position + query.length + 100, text.length ].min
+    # Sort positions by their location in text
+    positions.sort_by! { |pos| pos[:start] }
 
-      # Extract the context and add ellipsis if needed
-      context = text[start_pos...end_pos]
-      context = "..." + context if start_pos > 0
-      context = context + "..." if end_pos < text.length
+    # Merge overlapping or close contexts
+    contexts = []
+    current_context = nil
 
-      context
+    positions.each do |position|
+      if current_context.nil? ||
+         position[:start] > current_context[:end_pos] + 100 # Start new context if too far from previous
+
+        # Add previous context if it exists
+        if current_context
+          contexts << extract_snippet(text, current_context[:start_pos], current_context[:end_pos])
+        end
+
+        # Start new context
+        current_context = {
+          start_pos: [ position[:start] - 100, 0 ].max,
+          end_pos: [ position[:start] + position[:length] + 100, text.length ].min
+        }
+      else
+        # Extend current context
+        current_context[:end_pos] = [ position[:start] + position[:length] + 100, text.length ].min
+      end
     end
 
-    # Join all contexts
-    contexts.join("\n")
+    # Add final context
+    contexts << extract_snippet(text, current_context[:start_pos], current_context[:end_pos]) if current_context
+
+    # Join all contexts with newlines
+    contexts.join("\n...\n")
+  end
+
+  private
+
+  def extract_snippet(text, start_pos, end_pos)
+    context = text[start_pos...end_pos]
+    context = "..." + context if start_pos > 0
+    context = context + "..." if end_pos < text.length
+    context
   end
 end

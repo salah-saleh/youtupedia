@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SearchController < ApplicationController
   include SearchableVideos
   include RequestLockable
@@ -8,14 +10,8 @@ class SearchController < ApplicationController
 
   def index
     @query = params[:q]
-
-    if @query.present?
-      @videos = search_videos(@query, Current.user.id)
-      @search_terms = @query.split(/\s+/)
-    else
-      @videos = []
-      @search_terms = []
-    end
+    @search_terms = @query.present? ? @query.split(/\s+/) : []
+    @videos = @query.present? ? search_videos(@query) : []
 
     respond_to do |format|
       format.html

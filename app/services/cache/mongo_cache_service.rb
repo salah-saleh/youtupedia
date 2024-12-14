@@ -3,6 +3,11 @@ module Cache
   # against temporary connection issues and network hiccups that are common with
   # distributed databases.
   class MongoCacheService < BaseCacheService
+    # Include IndexableConcern first
+    include IndexableConcern
+    # Then include SearchableConcern which depends on it
+    include SearchableConcern
+
     # Maximum number of retry attempts for MongoDB operations
     MAX_RETRIES = 3
     # Delay between retries with exponential backoff (seconds)
@@ -65,114 +70,6 @@ module Cache
       keys
     rescue => e
       log_error "Error fetching all keys", context: { error: e.message }
-      raise
-    end
-
-    def search_text(query, options = {})
-      log_debug "Performing text search", query, context: { operation: :search, namespace: namespace }
-
-      # Log a sample document to understand the structure
-      sample_doc = collection.find.first
-      log_debug "Sample document structure", sample_doc, context: { operation: :search }
-
-      # Construct a regex search pattern for more flexible matching
-      regex_pattern = Regexp.new(Regexp.escape(query), Regexp::IGNORECASE)
-
-      # Build the search conditions based on the collection
-      search_conditions = case namespace
-      when "transcripts/full"
-        { "data.transcript" => regex_pattern }
-      when Chat::ChatGptService.cache_namespace
-        {
-          "data.success" => true,
-          "$or" => [
-            { "data.summary" => regex_pattern },
-            { "data.tldr" => regex_pattern },
-            { "data.takeaways.content" => regex_pattern },
-            { "data.tags.tag" => regex_pattern }
-          ]
-        }
-      else
-        { "data" => regex_pattern }
-      end
-
-      log_debug "Search conditions", search_conditions, context: { operation: :search }
-
-      pipeline = [
-        { "$match" => search_conditions },
-        { "$addFields" => {
-          "key" => "$_id",
-          "score" => { "$add" => [
-            { "$cond" => [
-              { "$regexMatch" => {
-                "input" => { "$ifNull" => [ "$data.tldr", "" ] },
-                "regex" => regex_pattern
-              } },
-              3,  # score for TLDR matches
-              0
-            ] },
-            { "$cond" => [
-              { "$regexMatch" => {
-                "input" => { "$ifNull" => [ "$data.summary", "" ] },
-                "regex" => regex_pattern
-              } },
-              3,  # score for summary matches
-              0
-            ] },
-            { "$cond" => [
-              { "$gt" => [
-                { "$size" => {
-                  "$filter" => {
-                    "input" => { "$ifNull" => [ "$data.takeaways", [] ] },
-                    "as" => "takeaway",
-                    "cond" => {
-                      "$regexMatch" => {
-                        "input" => "$$takeaway.content",
-                        "regex" => regex_pattern
-                      }
-                    }
-                  }
-                } },
-                0
-              ] },
-              3,  # Score for takeaway matches
-              0
-            ] },
-            { "$cond" => [
-              { "$gt" => [
-                { "$size" => {
-                  "$filter" => {
-                    "input" => { "$ifNull" => [ "$data.tags", [] ] },
-                    "as" => "tag",
-                    "cond" => {
-                      "$regexMatch" => {
-                        "input" => "$$tag.tag",
-                        "regex" => regex_pattern
-                      }
-                    }
-                  }
-                } },
-                0
-              ] },
-              3,  # Score for tag matches
-              0
-            ] }
-          ] }
-        } },
-        { "$sort" => { "score" => -1 } },
-        { "$limit" => options[:limit] || 10 }
-      ]
-
-      results = collection.aggregate(pipeline).to_a
-      log_debug "Search results", context: { operation: :search, count: results.length }
-
-      if results.any?
-        log_debug "First result", results.first, context: { operation: :search }
-      end
-
-      results
-    rescue => e
-      log_error "Error performing text search", query, context: { error: e.message }
       raise
     end
 
