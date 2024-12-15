@@ -12,7 +12,7 @@ class ChannelsController < ApplicationController
     @channel = Youtube::YoutubeChannelService.fetch_channel_metadata(@channel_name)
     return redirect_to channels_path, alert: @channel[:error] unless @channel[:success]
 
-    response = Youtube::YoutubeChannelService.fetch_channel_videos(@channel[:channel_id])
+    response = Youtube::YoutubeChannelService.fetch_channel_videos(@channel_name, @channel[:channel_id])
     redirect_to channels_path, alert: response[:error] unless response[:success]
     @videos = response[:videos]
     UserServices::UserDataService.add_item(Current.user.id, :channels, @channel_name)

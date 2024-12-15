@@ -1,7 +1,7 @@
 module Youtube
   class YoutubeVideoMetadataService < YoutubeBaseService
     def self.fetch_metadata(video_id)
-      fetch_cached(video_id, "metadata") do
+      fetch_cached(video_id) do
         fetch_from_api(video_id)
       end
     end

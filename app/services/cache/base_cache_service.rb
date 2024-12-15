@@ -5,20 +5,57 @@ module Cache
       log_debug "Initialized", context: { namespace: namespace }
     end
 
+    # Fetches data from cache or generates it using the provided block
+    # Only caches successful results (where result[:success] is true)
+    # Automatically clears failed results from cache
+    #
+    # @param key [String] Cache key
+    # @yield Block to generate data if not in cache
+    # @return [Hash] The cached or generated data
     def fetch(key, &block)
       log_debug "Attempting to fetch", key
+
+      # Try to get from cache first
       if exist?(key)
         log_debug "Cache hit", key
-        data = read(key)
-        log_debug "Retrieved data", key
-        data
-      elsif block_given?
-        log_debug "Cache miss, generating data", key
-        data = yield
-        write(key, data)
-        log_debug "Generated and cached data", key
-        data
+        cached_data = read(key)
+
+        # If cached data represents a failure, clear it and try again
+        if cached_data.is_a?(Hash) && cached_data[:success] == false
+          log_debug "Found failed result in cache, clearing", context: {
+            key: key,
+            error: cached_data[:error]
+          }
+          delete(key)
+        else
+          log_debug "Retrieved data", key
+          return cached_data
+        end
       end
+
+      return unless block_given?
+
+      # Execute the block to get fresh data
+      log_debug "Cache miss", key
+      result = yield
+
+      # Only cache successful results
+      if result.is_a?(Hash) && result[:success]
+        log_debug "Caching successful result", context: { key: key }
+        write(key, result)
+      elsif result.is_a?(Hash) && result[:error]
+        log_debug "Not caching failed result", context: {
+          key: key,
+          error: result[:error]
+        }
+      else
+        log_debug "Nothing to cache", context: {
+          key: key,
+          result: result
+        }
+      end
+
+      result
     end
 
     def write(key, data)

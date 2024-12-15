@@ -14,11 +14,13 @@ class SummariesController < ApplicationController
 
   def show
     UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id)
-    result = fetch_summary_result(@video_id)
 
-    if result.nil?
-      Chat::ChatGptService.process_async(@video_id, @transcript[:transcript_full], @metadata)
-    end
+    # Fetch or start async processing summary
+    result = Chat::ChatGptService.fetch_summary(
+      @video_id,
+      @transcript[:transcript_full],
+      @metadata
+    )
 
     @summary = build_summary_data(@video_id, @metadata, @transcript, result)
   end
@@ -44,7 +46,7 @@ class SummariesController < ApplicationController
 
   def check_status
     video_id = params[:id]
-    result = fetch_summary_result(video_id)
+    result = Chat::ChatGptService.fetch_result(video_id)
 
     respond_to do |format|
       format.json { render json: build_status_response(result) }
@@ -68,10 +70,16 @@ class SummariesController < ApplicationController
   def load_video_data
     @video_id = params[:id]
     @metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(@video_id)
-    return redirect_to root_path, alert: @metadata[:error] unless @metadata[:success]
+    return redirect_to root_path, alert: "This video is not possible to summarize. #{@metadata[:error].first(100)}" unless @metadata[:success]
 
     @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id)
-    redirect_to root_path, alert: @transcript[:error] unless @transcript[:success]
+    unless @transcript[:success]
+      log_error "Failed to fetch transcript", context: {
+        video_id: @video_id,
+        error: @transcript[:error]
+      }
+      redirect_to root_path, alert: "No transcript available for this video. #{@transcript[:error].first(100)}"
+    end
   end
 
   def build_status_response(result)

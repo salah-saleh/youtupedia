@@ -32,15 +32,19 @@ namespace :cache do
       puts "Completed #{namespace}: #{migrated} migrated, #{errors} errors"
     end
 
-    namespaces = [
-      "channels",
-      "channel_videos",
-      "transcripts/segmented",
-      "transcripts/full",
-      "chat_threads",
-      "user_data",
-      Chat::ChatGptService.cache_namespace
+    SERVICES = [
+      Youtube::YoutubeChannelService,
+      Youtube::YoutubeVideoMetadataService,
+      Youtube::YoutubeVideoTranscriptService + "_full",
+      Youtube::YoutubeVideoTranscriptService + "_segmented",
+      Chat::ChatGptService,
+      Chat::ChatThreadService,
+      UserServices::UserDataService
     ]
+
+    namespaces = SERVICES.map { |service|
+      service.name.demodulize.underscore.pluralize
+    }
 
     puts "Starting migration to MongoDB (#{ENV['MONGODB_URI'].split('@').last})"
     namespaces.each { |ns| migrate_namespace(ns) }

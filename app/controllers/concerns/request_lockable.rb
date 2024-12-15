@@ -1,7 +1,7 @@
 # RequestLockable is a Rails concern that provides request locking functionality
 # to prevent concurrent actions from the same user.
 #
-# This concern specifically uses BLOCKING locks (RequestLockService.acquire_lock)
+# This concern specifically uses BLOCKING locks (Lock::RequestLockService.acquire_lock)
 # because it's designed for controller actions where you want to show feedback
 # to users when concurrent requests occur.
 #
@@ -40,10 +40,10 @@
 #    - This prevents permanent locks if a process crashes
 #
 # Note: If you need non-blocking behavior, don't use this concern.
-# Instead, use RequestLockService.with_lock directly in your controller:
+# Instead, use Lock::RequestLockService.with_lock directly in your controller:
 #
 #   def my_action
-#     result = RequestLockService.with_lock(Current.user.id, :my_action, timeout: 1.minute) do
+#     result = Lock::RequestLockService.with_lock(Current.user.id, :my_action, timeout: 1.minute) do
 #       # your action code here
 #     end
 #     if result[:success]
@@ -62,8 +62,8 @@ module RequestLockable
       before_action only: action_name do
         lock_action = lock_name || action_name
         begin
-          RequestLockService.acquire_lock(Current.user.id, lock_action, timeout: timeout)
-        rescue RequestLockService::ConcurrentRequestError => e
+          Lock::RequestLockService.acquire_lock(Current.user.id, lock_action, timeout: timeout)
+        rescue Lock::RequestLockService::ConcurrentRequestError => e
           # Handle concurrent request error based on the request format
           respond_to do |format|
             # For HTML requests:
@@ -96,7 +96,7 @@ module RequestLockable
       # This runs even if the action raises an error
       after_action only: action_name do
         lock_action = lock_name || action_name
-        RequestLockService.release_lock(Current.user.id, lock_action)
+        Lock::RequestLockService.release_lock(Current.user.id, lock_action)
       end
     end
   end

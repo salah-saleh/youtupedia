@@ -25,7 +25,7 @@ module SearchableVideos
 
     # Search in summaries (GPT-generated content)
     log_debug "[Search] Searching in summaries..."
-    summary_results = search_in_collection(query, Chat::ChatGptService.cache_namespace, user_videos)
+    summary_results = search_in_collection(query, Chat::ChatGptService, user_videos)
     log_debug "[Search] Found #{summary_results.size} summary results"
 
     # Process results to add metadata and context
@@ -40,10 +40,11 @@ module SearchableVideos
   # Includes a filter for user's videos to optimize the search.
   #
   # @param query [String] The search query
-  # @param namespace [String] The cache namespace/collection to search in
+  # @param service_class [Class] The service class to search in
   # @param user_videos [Array<String>] List of video IDs belonging to the user
   # @return [Array<Hash>] Raw search results with keys and scores
-  def search_in_collection(query, namespace, user_videos)
+  def search_in_collection(query, service_class, user_videos)
+    namespace = service_class.name.demodulize.underscore.pluralize
     cache_service = Cache::CacheFactory.build(namespace)
     cache_service.search_text(query, filter: { "_id" => { "$in" => user_videos } })
   end
@@ -57,7 +58,8 @@ module SearchableVideos
   # @param query [String] Original search query for context highlighting
   # @return [Array<Hash>] Processed results with full metadata and context
   def process_search_results(results, query)
-    metadata_cache = Cache::CacheFactory.build("metadata")
+    metadata_namespace = Youtube::YoutubeVideoMetadataService.name.demodulize.underscore.pluralize
+    metadata_cache = Cache::CacheFactory.build(metadata_namespace)
 
     results.map do |result|
       video_id = result["key"]

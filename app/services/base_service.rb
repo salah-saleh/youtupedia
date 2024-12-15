@@ -1,24 +1,20 @@
+# Base class for all services providing common logging functionality
 class BaseService
-  def self.cache_service(namespace)
-    Cache::CacheFactory.build(namespace)
-  end
+  class << self
+    protected
 
-  def self.handle_error(error, prefix = "Error")
-    log_error "#{prefix}: #{error.message}"
-    log_error "Full error details", error.full_message
-    { success: false, error: "#{prefix}: #{error.message}" }
-  end
+    # Generic error handler for service operations
+    # @param error [Exception] The error to handle
+    # @param prefix [String] Optional prefix for the error message
+    # @return [Hash] Standardized error response
+    def handle_error(error, prefix = "Error")
+      log_error "#{prefix}: #{error.message}"
+      log_error "Full error details", error.full_message
+      { success: false, error: "#{prefix}: #{error.message}" }
+    end
 
-  def self.fetch_cached(key, namespace = nil)
-    cache = cache_service(namespace || default_cache_namespace)
-    cache.fetch(key) { yield if block_given? }
-  rescue => e
-    handle_error(e)
-  end
-
-  private
-
-  def self.default_cache_namespace
-    name.demodulize.underscore.pluralize
+    def default_cache_namespace
+      name.demodulize.underscore.pluralize
+    end
   end
 end

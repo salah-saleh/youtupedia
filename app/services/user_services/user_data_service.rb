@@ -1,49 +1,96 @@
+# require_relative "../concerns/cacheable"
+
 module UserServices
-  class UserDataService
-    def self.add_item(user_id, type, item_id)
-      log_debug "Adding item", context: { user_id: user_id, type: type, item_id: item_id }
-      cache_service = Cache::CacheFactory.build("user_data")
-      data = cache_service.fetch("user_#{user_id}") { default_data }
+  # Manages user-specific data storage and retrieval using caching
+  # Handles user's video summaries, channel subscriptions, and chat threads
+  #
+  # Data Structure:
+  # {
+  #   summaries: ["video_id1", "video_id2", ...],     # Recently viewed video summaries
+  #   channels: ["channel_id1", "channel_id2", ...],  # Subscribed channels
+  #   chat_threads: ["thread_id1", "thread_id2", ...] # Active chat threads
+  # }
+  class UserDataService < BaseService
+    include Cacheable
 
-      data[type] ||= []
-      data[type].unshift(item_id) unless data[type].include?(item_id)
+    class << self
+      # Adds an item to the specified collection for a user
+      # New items are added to the beginning of the list
+      #
+      # @param user_id [Integer] The user's ID
+      # @param type [Symbol] The type of item (:summaries, :channels, :chat_threads)
+      # @param item_id [String] The ID of the item to add
+      # @return [Hash] The updated user data
+      def add_item(user_id, type, item_id)
+        log_debug "Adding item", context: { user_id: user_id, type: type, item_id: item_id }
 
-      cache_service.write("user_#{user_id}", data)
-      log_debug "Updated data", data
-    end
+        data = fetch_cached("user_#{user_id}") do
+          default_data
+        end
+        data[type] ||= []
 
-    def self.remove_item(user_id, type, item_id)
-      log_debug "Removing item", context: { user_id: user_id, type: type, item_id: item_id }
-      cache_service = Cache::CacheFactory.build("user_data")
-      data = cache_service.fetch("user_#{user_id}") { default_data }
+        if data[type].include?(item_id)
+          log_debug "Item already exists", context: {
+            user_id: user_id,
+            type: type,
+            item_id: item_id,
+            items: data[type]
+          }
+          return data
+        end
 
-      data[type]&.delete(item_id)
+        data[type].unshift(item_id)
+        cache_service.write("user_#{user_id}", data)
 
-      cache_service.write("user_#{user_id}", data)
-      log_debug "Updated data", data
-    end
+        log_debug "Added new item", context: {
+          user_id: user_id,
+          type: type,
+          item_id: item_id,
+          items: data[type]
+        }
 
-    def self.user_items(user_id, type)
-      log_debug "Fetching items", context: { user_id: user_id, type: type }
-      cache_service = Cache::CacheFactory.build("user_data")
-      data = cache_service.fetch("user_#{user_id}") { default_data }
-      items = data[type] || []
-      log_debug "Found items", items
-      items
-    end
+        data
+      end
 
-    def self.has_item?(user_id, type, item_id)
-      user_items(user_id, type).include?(item_id)
-    end
+      def remove_item(user_id, type, item_id)
+        log_debug "Removing item", context: { user_id: user_id, type: type, item_id: item_id }
 
-    private
+        data = fetch_cached("user_#{user_id}") do
+          default_data
+        end
 
-    def self.default_data
-      {
-        summaries: [],
-        channels: [],
-        chat_threads: []
-      }
+        data[type]&.delete(item_id)
+
+        cache_service.write("user_#{user_id}", data)
+        log_debug "Updated data", data
+      end
+
+      def user_items(user_id, type)
+        log_debug "Fetching items", context: { user_id: user_id, type: type }
+
+        data = fetch_cached("user_#{user_id}") do
+          default_data
+        end
+        items = data[type] || []
+
+        log_debug "Found items", items
+        items
+      end
+
+      def has_item?(user_id, type, item_id)
+        user_items(user_id, type).include?(item_id)
+      end
+
+      private
+
+      def default_data
+        {
+          success: true,  # Add success flag for Cacheable
+          summaries: [],
+          channels: [],
+          chat_threads: []
+        }
+      end
     end
   end
 end

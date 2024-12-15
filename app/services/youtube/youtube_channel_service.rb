@@ -1,18 +1,19 @@
 module Youtube
   class YoutubeChannelService < YoutubeBaseService
     def self.fetch_channels_for_user(user_id)
+      # TODO fetch all channels for user in one go
       channel_names = UserServices::UserDataService.user_items(user_id, :channels)
-      channel_names.map { |name| fetch_cached(name, "channels") }.compact
+      channel_names.map { |name| fetch_cached(name, default_cache_namespace + "_channel_metadata") }.compact
     end
 
     def self.fetch_channel_metadata(channel_name)
-      fetch_cached(channel_name, "channels") do
+      fetch_cached(channel_name, default_cache_namespace + "_channel_metadata") do
         fetch_channel_data(channel_name)
       end
     end
 
-    def self.fetch_channel_videos(channel_id)
-      fetch_cached("videos_#{channel_id}", "channel_videos") do
+    def self.fetch_channel_videos(channel_name, channel_id)
+      fetch_cached(channel_name, default_cache_namespace + "_channel_videos") do
         fetch_videos_from_api(channel_id)
       end
     end

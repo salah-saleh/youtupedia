@@ -1,18 +1,18 @@
 module Youtube
   class YoutubeVideoTranscriptService < YoutubeBaseService
     def self.fetch_transcript(video_id)
-      segmented_result = fetch_cached(video_id, "transcripts/segmented") do
+      segmented_result = fetch_cached(video_id, default_cache_namespace + "_segmented") do
         fetch_from_python(video_id)
       end
 
       unless segmented_result[:success]
         return {
           success: false,
-          error: segmented_result[:error].truncate(50)
+          error: segmented_result[:error]
         }
       end
 
-      full_result = fetch_cached(video_id, "transcripts/full") do
+      full_result = fetch_cached(video_id, default_cache_namespace + "_full") do
         create_full_transcript(segmented_result[:transcript])
       end
 
