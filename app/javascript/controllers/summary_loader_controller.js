@@ -7,7 +7,7 @@ export default class extends Controller {
     videoId: String,
     loading: Boolean,
     interval: { type: Number, default: 2500 },
-    maxAttempts: { type: Number, default: 10 }
+    maxAttempts: { type: Number, default: 15 }
   }
 
   connect() {

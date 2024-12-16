@@ -1,24 +1,34 @@
 <div class="space-y-6">
   <!-- Add Channel Section -->
   <div class="bg-white rounded-lg shadow p-4 lg:p-6">
-    <h2 class="text-xl lg:text-lg font-semibold mb-4">Add Channel</h2>
+    <h2 class="text-xl lg:text-2xl font-semibold mb-4">Add Channel</h2>
 
     <div class="relative">
-      <%= form_with url: parse_youtube_url_path, method: :post, class: "flex" do |f| %>
-        <%= f.text_field :url,
-            placeholder: "Enter YouTube channel URL here...",
-            required: true,
-            class: "flex-1 px-4 py-3.5 text-base rounded-full border border-purple-300 focus:outline-none focus:border-purple-500" %>
+      <%= form_with url: parse_youtube_url_path, method: :post, class: "flex gap-3" do |f| %>
+        <div class="flex-1">
+          <%= f.text_field :url,
+              placeholder: "Enter YouTube channel URL here...",
+              required: true,
+              class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" %>
+        </div>
 
         <%= f.submit "Add Channel",
-            class: "absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2.5 text-base bg-purple-500 text-white rounded-full hover:bg-purple-600" %>
+            class: "px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors" %>
       <% end %>
     </div>
   </div>
 
   <!-- Channels Grid -->
   <div class="bg-white rounded-lg shadow p-4 lg:p-6">
-    <h2 class="text-xl lg:text-lg font-semibold mb-4">Your Channels</h2>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl lg:text-lg font-semibold">Your Channels</h2>
+      <% if @channels&.any? %>
+        <span class="text-sm text-gray-600">
+          <%= pluralize(@channels.length, 'channel') %>
+        </span>
+      <% end %>
+    </div>
+
     <% if @channels.any? %>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <% @channels.each do |channel| %>
@@ -38,7 +48,7 @@
         <% end %>
       </div>
     <% else %>
-      <p class="text-base text-gray-500 text-center py-8">No channels added yet. Add your first channel above!</p>
+      <p class="text-gray-500 text-center py-8">No channels added yet. Add your first channel above!</p>
     <% end %>
   </div>
 </div>
