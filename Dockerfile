@@ -5,8 +5,6 @@
 # docker build -t blog .
 # docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name blog blog
 
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
-
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.3.4
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
@@ -16,8 +14,17 @@ WORKDIR /rails
 
 # Install base packages
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips sqlite3 && \
+    apt-get install --no-install-recommends -y \
+    curl \
+    libjemalloc2 \
+    libvips \
+    sqlite3 \
+    python3 \
+    python3-pip && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Install Python dependencies
+RUN pip3 install youtube-transcript-api requests
 
 # Set production environment
 ENV RAILS_ENV="production" \
