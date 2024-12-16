@@ -1,11 +1,39 @@
 <% content_for :container_width do %>max-w-6xl py-8<% end %>
 
-<div data-controller="youtube summary-loader"
+<div class="space-y-8"
+     data-controller="youtube summary-loader"
      data-youtube-video-id-value="<%= @summary[:video_id] %>"
      data-summary-loader-video-id-value="<%= @summary[:video_id] %>"
      data-summary-loader-loading-value="<%= @summary[:loading] %>">
+
+  <!-- Video Header -->
+  <%= render "video_header", summary: @summary %>
+
+  <!-- Main Content -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <%= render "left_column", summary: @summary %>
-    <%= render "right_column", summary: @summary %>
+    <!-- Left Column -->
+    <div class="space-y-6">
+      <%= render "rating_section", summary: @summary %>
+      <div data-summary-loader-target="tldr">
+        <%= render "tldr_section", summary: @summary %>
+      </div>
+      <div data-summary-loader-target="takeaways">
+        <%= render "takeaways_section", summary: @summary %>
+      </div>
+      <div data-summary-loader-target="summary">
+        <%= render "summary_detail_section", summary: @summary %>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="space-y-6">
+      <%= render "player_section" %>
+      <%= render "navigation_buttons" %>
+      <%= render "transcript_section", transcript: @summary[:transcript] %>
+      <div data-summary-loader-target="tags">
+        <%= render "tags_section", summary: @summary %>
+      </div>
+      <%= render "chat_section", summary: @summary %>
+    </div>
   </div>
 </div>

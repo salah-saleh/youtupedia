@@ -1,0 +1,24 @@
+<%# Loading Context Component
+    Provides loading state context for a section of content
+
+    Parameters:
+    - loading: Boolean - Whether content is loading
+    - type: Symbol - Type of loading state (:skeleton, :spinner)
+    - skeleton_type: Symbol (optional) - Type of skeleton to show (:video, :channel)
+%>
+
+<div data-controller="loading"
+     data-loading-state-value="<%= loading ? 'loading' : 'idle' %>">
+  <% if loading %>
+    <% if type == :skeleton %>
+      <%= render "shared/grid_skeleton",
+            type: local_assigns[:skeleton_type] || :video %>
+    <% else %>
+      <div class="flex justify-center py-8">
+        <%= render "shared/spinner", size: :lg %>
+      </div>
+    <% end %>
+  <% else %>
+    <%= yield %>
+  <% end %>
+</div>

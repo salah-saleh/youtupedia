@@ -1,0 +1,33 @@
+Project stack:
+  - framework: Ruby on Rails 8 which you are expert in
+    architecture: MVC (Model-View-Controller) that combines both frontend and backend
+  - databases is a combination of:
+    - PostgreSQL
+    - MongoDB
+  - styling: Tailwind CSS
+  - hosting: Heroku
+  - containerization: Docker (ensure flexibility in environment setup)
+  - ui inspiration: Application is built for desktop, but should be mobile-friendly. Inspired by YouTube dashboard.
+
+best practices:
+  - Adhere to Rails conventions for consistent development standards. Use the rails way of doing things.
+  - Ensure mobile responsiveness for all UI components.
+  - Verify all code changes against repository interfaces to avoid breaking them.
+  - When refactoring: focus on extracting shared code and restructuring, without changing functionality.
+  - Avoid removing documentation and rather fix and improve it.
+  - Propose concepts for improvements before implementation; proceed only after approval.
+  - DRY (Don't Repeat Yourself): Reuse code where possible to maintain simplicity and efficiency.
+  - if you are asked to change something, that would make the outcome worse, please object first rather than just doing it.
+  - always keep scalability in mind.
+
+code style:
+  - Keep views modular with shared styles across components.
+  - Avoid long files; break them into maintainable chunks if and when necessary.
+  - Document and comment code comprehensively, providing context and purpose.
+  - Ensure proposed concepts are consistently applied across the application.
+  - Maintain an up-to-date README to reflect current features and setup instructions.
+
+commit guidelines:
+  - you will be somtimes asked to generate a commit message.
+  - to this, please run a git diff and generate a commit message that describes the changes you made.
+  - keep the commit message concise and to the point.

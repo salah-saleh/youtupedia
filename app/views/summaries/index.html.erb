@@ -1,19 +1,30 @@
+<%# Summaries Index %>
 <div class="space-y-6">
-  <!-- Quick Summary Section -->
-  <%= render "shared/search_form", form_config: {
-    title: "Quick Summary",
-    url: parse_youtube_url_path,
-    method: :post,
-    field_name: :url,
-    placeholder: "Enter YouTube video link here...",
-    button_text: "Summarize"
-  } %>
+  <%# Quick Summary Section %>
+  <%= render "shared/form_section",
+        title: "Quick Summary",
+        url: parse_youtube_url_path,
+        method: :post do |f| %>
+    <%= render "shared/form_components/url_input",
+          form: f,
+          field: :url,
+          placeholder: "Enter YouTube video link...",
+          required: true %>
 
-  <!-- Recent Summaries Grid -->
-  <div class="bg-white rounded-lg shadow p-4 lg:p-6">
-    <h2 class="text-xl lg:text-lg font-semibold mb-4">Recent Summaries</h2>
-    <%= render "shared/video_grid",
-          videos: @summaries,
-          empty_message: "No summaries available yet. Try summarizing a video above!" %>
-  </div>
+    <%= render "shared/form_components/button",
+          text: "Summarize",
+          type: "submit",
+          variant: :primary,
+          size: :lg %>
+  <% end %>
+
+  <%# Recent Summaries Grid %>
+  <%= render "shared/page_header",
+        title: "Recent Summaries",
+        count: @summaries&.length,
+        count_text: "summary" %>
+
+  <%= render "shared/video_grid",
+        videos: @summaries,
+        empty_message: "No summaries available yet. Try summarizing a video above!" %>
 </div>

@@ -1,0 +1,24 @@
+<%# Grid Container Component
+    Provides consistent grid layout with responsive columns
+
+    Parameters:
+    - cols: Hash (optional) - Custom column configuration { sm: 1, md: 2, lg: 3 }
+    - gap: String (optional) - Custom gap classes
+    - classes: String (optional) - Additional CSS classes
+%>
+
+<%
+  default_cols = { sm: 1, lg: 3 }
+  cols = local_assigns.fetch(:cols, default_cols)
+
+  grid_classes = "grid max-w-screen-xl mx-auto"
+  grid_classes += " grid-cols-#{cols[:sm]}" if cols[:sm]
+  grid_classes += " md:grid-cols-#{cols[:md]}" if cols[:md]
+  grid_classes += " lg:grid-cols-#{cols[:lg]}" if cols[:lg]
+  grid_classes += " #{local_assigns[:gap] || 'gap-4'}"
+  grid_classes += " #{local_assigns[:classes]}"
+%>
+
+<div class="<%= grid_classes %>">
+  <%= yield %>
+</div>

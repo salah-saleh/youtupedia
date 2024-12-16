@@ -13,3 +13,8 @@ TODO BEFORE LAUNCH:
 TODO AFTER LAUNCH:
 
 - [ ] mobile screen correction
+
+
+I want you to go over my views folder and improve things to ensure we have a consistent design across the app and to ensure that the app is mobile friendly.
+
+can you tell me the concept you want to implement and change before you start doing them?

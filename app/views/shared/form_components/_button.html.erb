@@ -1,0 +1,54 @@
+<%# Button Component
+    Provides consistent button styling with loading state support
+
+    Parameters:
+    - text: String - Button text
+    - type: String (optional) - Button type (default: 'button')
+    - variant: Symbol (optional) - Button style (:primary, :secondary, :outline) (default: :primary)
+    - size: Symbol (optional) - Button size (:sm, :md, :lg) (default: :md)
+    - loading: Boolean (optional) - Show loading state (default: false)
+    - disabled: Boolean (optional) - Disable button (default: false)
+    - classes: String (optional) - Additional CSS classes
+%>
+
+<%
+  variant_classes = {
+    primary: "bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500",
+    secondary: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500",
+    outline: "bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-purple-500"
+  }
+
+  size_classes = {
+    sm: "px-3 py-1.5 text-sm",
+    md: "px-4 py-2",
+    lg: "px-6 py-3 text-lg min-w-[140px]"
+  }
+
+  variant = local_assigns.fetch(:variant, :primary)
+  size = local_assigns.fetch(:size, :md)
+  type = local_assigns.fetch(:type, "button")
+  loading = local_assigns.fetch(:loading, false)
+  disabled = local_assigns.fetch(:disabled, false) || loading
+
+  base_classes = "inline-flex items-center justify-center font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors whitespace-nowrap"
+  classes = [
+    base_classes,
+    variant_classes[variant],
+    size_classes[size],
+    disabled ? "opacity-50 cursor-not-allowed" : "",
+    local_assigns[:classes]
+  ].join(" ")
+%>
+
+<button type="<%= type %>"
+        class="<%= classes %>"
+        data-loading-target="button"
+        <%= "disabled" if disabled %>>
+  <% if loading %>
+    <%= render "shared/spinner",
+          size: size == :lg ? :md : :sm,
+          color: variant == :outline ? :primary : :white,
+          classes: "mr-2" %>
+  <% end %>
+  <%= text %>
+</button>

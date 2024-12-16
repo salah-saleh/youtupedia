@@ -1,0 +1,14 @@
+<%# Usage: render "shared/form_components/search_input", form: form, field: :q,
+           placeholder: "Search...", value: @query %>
+
+<div class="flex-1" data-loading-target="content">
+  <%= form.search_field field,
+        class: "w-full h-12 pl-4 pr-10 bg-white border border-gray-200 rounded-lg text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+        placeholder: placeholder,
+        value: local_assigns[:value],
+        required: local_assigns[:required] %>
+
+  <div class="absolute right-4 inset-y-0 flex items-center pointer-events-none text-gray-400">
+    <%= render_icon :search %>
+  </div>
+</div>

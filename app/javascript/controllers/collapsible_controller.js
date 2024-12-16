@@ -18,8 +18,9 @@ export default class extends Controller {
 
   // Define values that can be configured via data attributes
   static values = {
-    maxHeight: Number, // Maximum height (in px) when collapsed
-    increment: { type: Number, default: 60 }  // Default increment of 60px
+    maxHeight: Number,  // Maximum height (in px) when collapsed
+    increment: { type: Number, default: 60 },  // Height increment for each click
+    expanded: { type: Boolean, default: false }  // Track expanded state
   }
 
   /**
@@ -28,6 +29,7 @@ export default class extends Controller {
    */
   connect() {
     // Set initial state
+    this.currentHeight = this.maxHeightValue
     this.checkOverflow()
   }
 
@@ -36,19 +38,14 @@ export default class extends Controller {
    * This determines whether we need the expand/collapse functionality
    */
   checkOverflow() {
-    const contentHeight = this.contentTarget.scrollHeight
-    const maxHeight = this.maxHeightValue
+    const content = this.contentTarget
+    const isOverflowing = content.scrollHeight > this.maxHeightValue
 
-    if (contentHeight > maxHeight) {
-      // Content is taller than maxHeight, show collapse UI
-      this.contentTarget.style.maxHeight = `${maxHeight}px`
+    if (isOverflowing) {
+      // Content is taller than max height, show collapse UI
+      content.style.maxHeight = `${this.currentHeight}px`
       this.footerTarget.classList.remove("hidden")
       this.gradientTarget.classList.remove("hidden")
-    } else {
-      // Content fits within maxHeight, hide collapse UI
-      this.contentTarget.style.maxHeight = null
-      this.footerTarget.classList.add("hidden")
-      this.gradientTarget.classList.add("hidden")
     }
   }
 
@@ -57,26 +54,37 @@ export default class extends Controller {
    * This handles the show more/less button click
    */
   toggle(event) {
-    event.preventDefault()
-    const currentHeight = parseInt(this.contentTarget.style.maxHeight) || this.maxHeightValue
-    const fullHeight = this.contentTarget.scrollHeight
-    const isExpanded = currentHeight >= fullHeight
+    // Prevent event from bubbling up to parent links
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
 
-    if (isExpanded) {
-      // Collapse back to initial height
-      this.contentTarget.style.maxHeight = `${this.maxHeightValue}px`
+    const content = this.contentTarget
+    const fullHeight = content.scrollHeight
+
+    if (this.expandedValue) {
+      // Collapse
+      this.currentHeight = this.maxHeightValue
+      content.style.maxHeight = `${this.currentHeight}px`
       this.buttonTextTarget.textContent = "Show more"
       this.iconTarget.classList.remove("rotate-180")
       this.gradientTarget.classList.remove("hidden")
+      this.expandedValue = false
     } else {
-      // Expand by increment, but don't exceed full height
-      const newHeight = Math.min(currentHeight + this.incrementValue, fullHeight)
-      this.contentTarget.style.maxHeight = `${newHeight}px`
+      // Expand incrementally
+      this.currentHeight = Math.min(
+        this.currentHeight + this.incrementValue,
+        fullHeight
+      )
+      content.style.maxHeight = `${this.currentHeight}px`
 
-      if (newHeight >= fullHeight) {
+      // Check if we've reached full height
+      if (this.currentHeight >= fullHeight) {
         this.buttonTextTarget.textContent = "Show less"
         this.iconTarget.classList.add("rotate-180")
         this.gradientTarget.classList.add("hidden")
+        this.expandedValue = true
       }
     }
   }

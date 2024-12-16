@@ -1,0 +1,50 @@
+<%# Usage: render "shared/form_components/input", form: form, field: :email,
+           label: "Email Address", type: "email", required: true,
+           placeholder: "Enter your email...", error: @user.errors[:email] %>
+
+<% input_id = local_assigns.fetch(:id, "#{form.object_name}_#{field}") %>
+<% input_type = local_assigns.fetch(:type, "text") %>
+<% required = local_assigns.fetch(:required, false) %>
+<% error_messages = local_assigns[:error] %>
+<% has_error = error_messages&.any? %>
+
+<div class="space-y-1">
+  <% if local_assigns[:label].present? %>
+    <%= form.label field, local_assigns[:label],
+        class: "block text-sm font-medium text-gray-700",
+        for: input_id %>
+  <% end %>
+
+  <div class="relative">
+    <%= form.send(
+          input_type == "text" ? "text_field" : "#{input_type}_field",
+          field,
+          id: input_id,
+          required: required,
+          placeholder: local_assigns[:placeholder],
+          class: "w-full h-12 px-4 text-base border #{has_error ? 'border-red-300' : 'border-gray-300'}
+                 rounded-lg focus:ring-2 #{has_error ? 'focus:ring-red-500' : 'focus:ring-purple-500'}
+                 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500
+                 #{local_assigns[:input_class]}",
+          **local_assigns.fetch(:input_html, {})
+        ) %>
+
+    <% if has_error %>
+      <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+        <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+    <% end %>
+  </div>
+
+  <% if has_error %>
+    <p class="mt-1 text-sm text-red-600" id="<%= input_id %>-error">
+      <%= error_messages.to_sentence %>
+    </p>
+  <% elsif local_assigns[:hint].present? %>
+    <p class="mt-1 text-sm text-gray-500" id="<%= input_id %>-description">
+      <%= local_assigns[:hint] %>
+    </p>
+  <% end %>
+</div>

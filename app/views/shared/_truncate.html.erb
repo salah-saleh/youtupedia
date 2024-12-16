@@ -1,0 +1,58 @@
+<%# Usage: render "shared/truncate", text: long_text, lines: 2,
+           expandable: true, size: "base" %>
+
+<%
+  text_sizes = {
+    xs: "text-xs",
+    sm: "text-sm",
+    base: "text-base",
+    lg: "text-lg",
+    xl: "text-xl"
+  }
+
+  size = local_assigns.fetch(:size, "base")
+  lines = local_assigns.fetch(:lines, 2)
+  expandable = local_assigns.fetch(:expandable, false)
+%>
+
+<% if expandable %>
+  <div data-controller="collapsible"
+       data-collapsible-max-height-value="<%= lines * 24 %>"
+       data-collapsible-increment-value="<%= lines * 24 %>">
+    <div class="relative">
+      <%# Content container %>
+      <div class="prose prose-sm max-w-none overflow-hidden transition-[max-height] duration-300 ease-in-out
+                  <%= text_sizes[size.to_sym] %>"
+           data-collapsible-target="content">
+        <%= text %>
+      </div>
+
+      <%# Gradient overlay %>
+      <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white pointer-events-none hidden"
+           data-collapsible-target="gradient"></div>
+    </div>
+
+    <%# Show more/less button %>
+    <div class="relative z-10 text-center mt-2 hidden"
+         data-collapsible-target="footer">
+      <button type="button"
+              data-action="click->collapsible#toggle"
+              class="inline-flex items-center px-3 py-1.5 text-sm text-purple-600 hover:text-purple-900 bg-white rounded-full hover:bg-purple-50 border border-purple-200 shadow-sm transition-colors">
+        <span data-collapsible-target="buttonText">Show more</span>
+        <svg class="ml-1 w-4 h-4 transition-transform duration-200"
+             data-collapsible-target="icon"
+             xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 20 20"
+             fill="currentColor">
+          <path fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  </div>
+<% else %>
+  <div class="<%= text_sizes[size.to_sym] %> line-clamp-<%= lines %>">
+    <%= text %>
+  </div>
+<% end %>

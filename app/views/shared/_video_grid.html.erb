@@ -1,6 +1,36 @@
 <%# Usage: render "shared/video_grid", videos: @videos, highlight_terms: @search_terms %>
+
 <% videos_to_display = videos || [] %>
-<% if videos_to_display.any? %>
+
+<% if local_assigns[:loading] %>
+  <%# Loading state %>
+  <% if local_assigns[:highlight_terms].present? %>
+    <%# List layout loading state %>
+    <div class="space-y-4">
+      <% 3.times do %>
+        <div class="bg-white border rounded-lg p-6">
+          <div class="flex gap-8">
+            <%= render "shared/skeleton", variant: "image", class: "w-64 flex-shrink-0" %>
+            <div class="flex-1 space-y-4">
+              <%= render "shared/skeleton", variant: "title" %>
+              <%= render "shared/skeleton", variant: "text", lines: 2 %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <%# Grid layout loading state %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <% 6.times do %>
+        <div class="bg-white border rounded-lg p-4">
+          <%= render "shared/skeleton", variant: "card" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+<% elsif videos_to_display.any? %>
   <%# Use list layout for search results, grid layout for regular display %>
   <% if local_assigns[:highlight_terms].present? %>
     <div class="space-y-4">
@@ -10,23 +40,23 @@
             <div class="flex gap-8">
               <%# Thumbnail %>
               <div class="flex-shrink-0 w-64">
-                <div class="aspect-video">
-                  <%= image_tag video[:thumbnail],
-                        class: "w-full h-full object-cover rounded",
-                        alt: video[:title] %>
-                </div>
+                <%= render "shared/image",
+                      src: video[:thumbnail],
+                      alt: video[:title],
+                      aspect: "video",
+                      size: "full" %>
               </div>
 
               <%# Content %>
               <div class="flex-1 min-w-0">
-                <%# Title and metadata %>
-                <h3 class="text-lg font-medium mb-2 group-hover:text-purple-600">
-                  <% if local_assigns[:highlight_terms].present? %>
-                    <%= highlight(video[:title], highlight_terms, highlighter: '<mark class="bg-yellow-200">\1</mark>') %>
-                  <% else %>
-                    <%= video[:title] %>
-                  <% end %>
-                </h3>
+                <%= render "shared/truncate",
+                      text: local_assigns[:highlight_terms].present? ?
+                           highlight(video[:title], highlight_terms, highlighter: '<mark class="bg-yellow-200">\1</mark>') :
+                           video[:title],
+                      lines: 2,
+                      size: "lg",
+                      class: "font-medium mb-2 group-hover:text-purple-600" %>
+
                 <div class="flex items-center text-sm text-gray-600">
                   <span class="mr-2"><%= video[:channel] %></span>
                   <span class="text-gray-400">•</span>
@@ -36,41 +66,14 @@
             </div>
           <% end %>
 
-          <%# Search context with collapsible content %>
+          <%# Search context %>
           <% if video[:match_context].present? %>
-            <div class="relative mt-3 border-t pt-3"
-                 data-controller="collapsible"
-                 data-collapsible-max-height-value="60"
-                 data-collapsible-increment-value="60">
-              <%# Content container %>
-              <div class="prose prose-sm max-w-none text-gray-600 overflow-hidden transition-[max-height] duration-300 ease-in-out"
-                   data-collapsible-target="content">
-                <%= highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200">\1</mark>') %>
-              </div>
-
-              <%# Gradient overlay - only show when content is collapsed %>
-              <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white pointer-events-none hidden"
-                   data-collapsible-target="gradient"></div>
-
-              <%# Show more/less button - center in the card %>
-              <div class="relative z-10 text-center -mt-3"
-                   data-collapsible-target="footer">
-                <button type="button"
-                        data-action="click->collapsible#toggle"
-                        class="inline-flex items-center px-3 py-1.5 text-sm text-purple-600 hover:text-purple-900 bg-white rounded-full hover:bg-purple-50 border border-purple-200 shadow-sm"
-                        onclick="event.preventDefault(); event.stopPropagation();">
-                  <span data-collapsible-target="buttonText">Show more</span>
-                  <svg class="ml-1 w-4 h-4 transition-transform duration-200"
-                       data-collapsible-target="icon"
-                       xmlns="http://www.w3.org/2000/svg"
-                       viewBox="0 0 20 20"
-                       fill="currentColor">
-                    <path fill-rule="evenodd"
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          clip-rule="evenodd" />
-                  </svg>
-                </button>
-              </div>
+            <div class="mt-3 border-t pt-3">
+              <%= render "shared/truncate",
+                    text: highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200">\1</mark>'),
+                    lines: 3,
+                    expandable: true,
+                    size: "sm" %>
             </div>
           <% end %>
         </div>
@@ -78,24 +81,14 @@
     </div>
   <% else %>
     <%# Regular grid layout for non-search displays %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <% videos_to_display.each do |video| %>
-        <%= link_to summary_path(video[:video_id]), data: { turbo_frame: "_top" }, class: "border rounded-lg p-4 hover:shadow-md transition-shadow block" do %>
-          <div class="aspect-video mb-3">
-            <%= image_tag video[:thumbnail],
-                  class: "w-full h-full object-cover rounded",
-                  alt: video[:title] %>
-          </div>
-          <h3 class="font-medium mb-2 line-clamp-2"><%= video[:title] %></h3>
-          <p class="text-sm text-gray-600 mb-2"><%= video[:channel] %></p>
-          <div class="flex justify-between text-sm text-gray-500">
-            <span>Published</span>
-            <span><%= time_ago_in_words(video[:published_at]) %> ago</span>
-          </div>
-        <% end %>
+        <%= render "shared/video_card", video: video %>
       <% end %>
     </div>
   <% end %>
 <% else %>
-  <p class="text-gray-500 text-center py-8"><%= local_assigns[:empty_message] || "No videos available." %></p>
+  <%= render "shared/empty_state",
+        message: local_assigns[:empty_message] || "No videos available.",
+        icon: :video %>
 <% end %>

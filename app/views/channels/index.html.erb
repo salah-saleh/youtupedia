@@ -1,54 +1,38 @@
+<%# Channels Index %>
 <div class="space-y-6">
-  <!-- Add Channel Section -->
-  <div class="bg-white rounded-lg shadow p-4 lg:p-6">
-    <h2 class="text-xl lg:text-2xl font-semibold mb-4">Add Channel</h2>
+  <%# Add Channel Section %>
+  <%= render "shared/form_section",
+        title: "Add Channel",
+        url: parse_youtube_url_path,
+        method: :post do |f| %>
+    <%= render "shared/form_components/url_input",
+          form: f,
+          field: :url,
+          placeholder: "Enter YouTube channel URL...",
+          required: true %>
 
-    <div class="relative">
-      <%= form_with url: parse_youtube_url_path, method: :post, class: "flex gap-3" do |f| %>
-        <div class="flex-1">
-          <%= f.text_field :url,
-              placeholder: "Enter YouTube channel URL here...",
-              required: true,
-              class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" %>
-        </div>
+    <%= render "shared/form_components/button",
+          text: "Add Channel",
+          type: "submit",
+          variant: :primary,
+          size: :lg %>
+  <% end %>
 
-        <%= f.submit "Add Channel",
-            class: "px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors" %>
+  <%# Channels Grid %>
+  <%= render "shared/page_header",
+        title: "Your Channels",
+        count: @channels&.length,
+        count_text: "channel" %>
+
+  <% if @channels.any? %>
+    <%= render "shared/grid" do %>
+      <% @channels.each do |channel| %>
+        <%= render "shared/channel_card", channel: channel %>
       <% end %>
-    </div>
-  </div>
-
-  <!-- Channels Grid -->
-  <div class="bg-white rounded-lg shadow p-4 lg:p-6">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl lg:text-lg font-semibold">Your Channels</h2>
-      <% if @channels&.any? %>
-        <span class="text-sm text-gray-600">
-          <%= pluralize(@channels.length, 'channel') %>
-        </span>
-      <% end %>
-    </div>
-
-    <% if @channels.any? %>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <% @channels.each do |channel| %>
-          <%= link_to channel_path(channel[:channel_name]),
-                class: "border rounded-lg p-4 hover:shadow-md transition-shadow block" do %>
-            <div class="aspect-video mb-3">
-              <%= image_tag channel[:thumbnail_url],
-                    class: "w-full h-full object-cover rounded",
-                    alt: channel[:title] %>
-            </div>
-            <h3 class="text-base lg:text-sm font-medium mb-2 line-clamp-2"><%= channel[:title] %></h3>
-            <div class="flex justify-between text-base lg:text-sm text-gray-500">
-              <span>Subscribers</span>
-              <span><%= number_with_delimiter(channel[:subscriber_count]) %></span>
-            </div>
-          <% end %>
-        <% end %>
-      </div>
-    <% else %>
-      <p class="text-gray-500 text-center py-8">No channels added yet. Add your first channel above!</p>
     <% end %>
-  </div>
+  <% else %>
+    <%= render "shared/empty_state",
+          message: "No channels added yet. Add your first channel above!",
+          icon: :channel %>
+  <% end %>
 </div>

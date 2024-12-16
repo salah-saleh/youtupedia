@@ -1,0 +1,32 @@
+<%# Usage: render "shared/page_header", title: "Page Title",
+           back_path: root_path, # optional
+           count: @items&.length, # optional
+           count_text: "items", # optional
+           actions: -> { render "path/to/actions" } # optional block for action buttons %>
+
+<div class="mb-6">
+  <% if local_assigns[:loading] %>
+    <div class="animate-pulse space-y-2">
+      <div class="h-8 w-48 bg-gray-200 rounded"></div>
+      <% if local_assigns[:subtitle] || local_assigns[:count] %>
+        <div class="h-5 w-32 bg-gray-200 rounded"></div>
+      <% end %>
+    </div>
+  <% else %>
+    <h1 class="text-2xl font-bold text-gray-900">
+      <%= title %>
+    </h1>
+
+    <% if local_assigns[:subtitle].present? %>
+      <p class="mt-2 text-sm text-gray-600">
+        <%= subtitle %>
+      </p>
+    <% end %>
+
+    <% if local_assigns[:count].present? %>
+      <p class="mt-2 text-sm text-gray-600">
+        <%= pluralize(count, count_text) %>
+      </p>
+    <% end %>
+  <% end %>
+</div>

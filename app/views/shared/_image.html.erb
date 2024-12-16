@@ -1,0 +1,42 @@
+<%# Usage: render "shared/image", src: image_url, alt: "Image description",
+           aspect: "video", size: "lg", loading: true %>
+
+<%
+  aspect_ratios = {
+    video: "aspect-video",  # 16:9
+    square: "aspect-square", # 1:1
+    portrait: "aspect-[3/4]" # 3:4
+  }
+
+  size_classes = {
+    sm: "max-h-32",
+    md: "max-h-48",
+    lg: "max-h-64",
+    xl: "max-h-96",
+    full: "h-full"
+  }
+
+  aspect = local_assigns.fetch(:aspect, "video")
+  size = local_assigns.fetch(:size, "md")
+%>
+
+<div class="relative overflow-hidden <%= aspect_ratios[aspect.to_sym] %> w-full bg-gray-100 rounded">
+  <% if local_assigns[:loading] %>
+    <%# Loading skeleton %>
+    <div class="absolute inset-0 animate-pulse bg-gray-200"></div>
+  <% else %>
+    <%= image_tag src,
+          alt: local_assigns[:alt],
+          class: "w-full h-full object-cover #{size_classes[size.to_sym]} #{local_assigns[:class]}",
+          loading: "lazy" %>
+
+    <%# Optional overlay %>
+    <% if local_assigns[:overlay].present? %>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent">
+        <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
+          <%= overlay %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -1,0 +1,22 @@
+<%# Section Container Component
+    Provides consistent styling for main content sections
+
+    Parameters:
+    - title: String (optional) - Section title
+    - subtitle: String (optional) - Additional context below title
+    - padding: String (optional) - Custom padding classes
+    - classes: String (optional) - Additional CSS classes
+%>
+
+<section class="bg-white rounded-lg shadow border border-gray-100 <%= local_assigns[:padding] || 'p-4 lg:p-6' %> <%= local_assigns[:classes] %>">
+  <% if local_assigns[:title].present? %>
+    <div class="mb-4">
+      <h2 class="text-lg lg:text-xl font-semibold"><%= title %></h2>
+      <% if local_assigns[:subtitle].present? %>
+        <p class="text-sm text-gray-600 mt-1"><%= subtitle %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%= yield %>
+</section>

@@ -1,36 +1,34 @@
+<%# Search Index %>
 <div class="space-y-6">
-  <!-- Search Form -->
-  <%= render "shared/search_form", form_config: {
-    title: "Search Your Videos",
-    url: search_index_path,
-    method: :get,
-    field_name: :q,
-    value: @query,
-    placeholder: "Search in your video summaries...",
-    button_text: "Search",
-    data: {
-      turbo: false # Disable Turbo to allow normal form submission
-    }
-  } %>
+  <%# Search Form %>
+  <%= render "shared/form_section",
+        title: "Search",
+        url: search_index_path,
+        method: :get do |f| %>
+    <%= render "shared/form_components/search_input",
+          form: f,
+          field: :q,
+          value: @query,
+          placeholder: "Search summaries...",
+          required: true %>
 
-  <!-- Search Results -->
+    <%= render "shared/form_components/button",
+          text: "Search",
+          type: "submit",
+          variant: :primary,
+          size: :lg %>
+  <% end %>
+
+  <%# Search Results %>
   <% if @query.present? %>
-    <div class="bg-white rounded-lg shadow p-4 lg:p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl lg:text-lg font-semibold">
-          Search Results for "<%= @query %>"
-        </h2>
-        <% if @videos&.any? %>
-          <span class="text-sm text-gray-600">
-            Found <%= @videos.length %> <%= 'result'.pluralize(@videos.length) %>
-          </span>
-        <% end %>
-      </div>
+    <%= render "shared/page_header",
+          title: "Search Results",
+          count: @videos&.length,
+          count_text: "result" %>
 
-      <%= render "shared/video_grid",
-            videos: @videos,
-            highlight_terms: @search_terms,
-            empty_message: "No videos found matching your search." %>
-    </div>
+    <%= render "shared/video_grid",
+          videos: @videos,
+          highlight_terms: @search_terms,
+          empty_message: "No videos found matching your search." %>
   <% end %>
 </div>

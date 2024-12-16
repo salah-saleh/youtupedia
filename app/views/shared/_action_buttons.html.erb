@@ -1,0 +1,41 @@
+<%# Usage: render "shared/action_buttons", actions: [
+           { text: "Add New", path: new_path, variant: "primary" },
+           { text: "Cancel", path: back_path, variant: "secondary" }
+         ] %>
+
+<div class="flex flex-col sm:flex-row gap-3">
+  <% actions.each do |action| %>
+    <% if action[:method].present? %>
+      <%= button_to action[:path],
+            method: action[:method],
+            class: class_names(
+              "inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors",
+              {
+                "bg-purple-600 text-white hover:bg-purple-700": action[:variant] == "primary",
+                "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50": action[:variant] == "secondary",
+                "bg-red-600 text-white hover:bg-red-700": action[:variant] == "danger"
+              }
+            ) do %>
+        <% if action[:icon].present? %>
+          <span class="mr-2"><%= action[:icon] %></span>
+        <% end %>
+        <%= action[:text] %>
+      <% end %>
+    <% else %>
+      <%= link_to action[:path],
+            class: class_names(
+              "inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors",
+              {
+                "bg-purple-600 text-white hover:bg-purple-700": action[:variant] == "primary",
+                "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50": action[:variant] == "secondary",
+                "bg-red-600 text-white hover:bg-red-700": action[:variant] == "danger"
+              }
+            ) do %>
+        <% if action[:icon].present? %>
+          <span class="mr-2"><%= action[:icon] %></span>
+        <% end %>
+        <%= action[:text] %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
