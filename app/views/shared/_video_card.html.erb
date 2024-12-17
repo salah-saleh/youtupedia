@@ -1,53 +1,53 @@
 <%# Usage: render "shared/video_card", video: video, highlight_terms: highlight_terms %>
 
 <% if local_assigns[:loading] %>
-  <div class="block bg-white border border-gray-100 rounded-lg">
-    <div class="relative pb-[56.25%] bg-gray-200 rounded-t-lg animate-pulse"></div>
-
-    <div class="p-4 animate-pulse">
-      <%# Title skeleton %>
-      <div class="h-5 w-3/4 bg-gray-200 rounded mb-2"></div>
-      <div class="h-5 w-1/2 bg-gray-200 rounded mb-4"></div>
-
-      <%# Metadata skeleton %>
-      <div class="flex gap-2">
-        <div class="h-4 w-24 bg-gray-200 rounded"></div>
-        <div class="hidden sm:block h-4 w-4 bg-gray-200 rounded"></div>
-        <div class="h-4 w-32 bg-gray-200 rounded"></div>
+  <div class="block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+    <div class="aspect-w-16 aspect-h-9 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+    <div class="p-4">
+      <div class="space-y-3">
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+        <div class="flex items-center space-x-2">
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3"></div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+        </div>
       </div>
     </div>
   </div>
 <% else %>
-  <%= link_to summary_path(video[:video_id]),
-        data: { turbo_frame: "_top" },
-        class: "group block bg-white border border-gray-100 rounded-lg hover:shadow-md transition-shadow" do %>
-    <div class="relative pb-[56.25%]">
-      <img src="<%= video[:thumbnail] %>"
-           alt="<%= video[:title] %>"
-           class="absolute inset-0 w-full h-full object-cover rounded-t-lg" />
-    </div>
+  <%= link_to summary_path(video[:video_id]), class: "group block", data: { turbo_frame: "_top" } do %>
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200">
+      <%# Thumbnail %>
+      <%= render "shared/image",
+            src: video[:thumbnail],
+            alt: video[:title],
+            aspect: "video",
+            size: "full" %>
 
-    <div class="p-4">
-      <h3 class="text-base lg:text-lg font-medium mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
-        <%= video[:title] %>
-      </h3>
+      <%# Content %>
+      <div class="p-4">
+        <h3 class="font-medium text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200 line-clamp-2 mb-2">
+          <%= video[:title] %>
+        </h3>
 
-      <div class="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-600">
-        <span><%= video[:channel] %></span>
-        <span class="hidden sm:inline mx-2">•</span>
-        <span><%= time_ago_in_words(video[:published_at]) %> ago</span>
-      </div>
-
-      <%# Optional search context %>
-      <% if video[:match_context].present? && local_assigns[:highlight_terms].present? %>
-        <div class="mt-3 pt-3 border-t">
-          <%= render "shared/truncate",
-                text: highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200">\1</mark>'),
-                lines: 3,
-                expandable: true,
-                size: "sm" %>
+        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-2">
+          <span class="truncate"><%= video[:channel] %></span>
+          <span class="text-gray-400 dark:text-gray-600">•</span>
+          <span class="shrink-0"><%= time_ago_in_words(video[:published_at]) %> ago</span>
         </div>
-      <% end %>
+
+        <%# Optional search context %>
+        <% if video[:match_context].present? && local_assigns[:highlight_terms].present? %>
+          <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <%= render "shared/truncate",
+                  text: highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200 dark:bg-yellow-900">\1</mark>'),
+                  lines: 2,
+                  size: "sm",
+                  class: "text-gray-600 dark:text-gray-400" %>
+          </div>
+        <% end %>
+      </div>
     </div>
   <% end %>
 <% end %>

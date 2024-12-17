@@ -2,29 +2,29 @@
   max-w-6xl py-8
 <% end %>
 
-<div data-controller="youtube">
+<div data-controller="youtube" class="relative">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Left Column -->
     <div class="space-y-6">
       <!-- Channel Header -->
       <div>
-        <h1 class="text-2xl font-bold mb-3">
+        <h1 class="text-2xl font-bold mb-3 text-gray-900 dark:text-white">
           <%= @channel[:title] %>
         </h1>
 
-        <div class="flex items-center text-gray-600 text-sm space-x-4 mb-6">
+        <div class="flex items-center text-gray-600 dark:text-gray-400 text-sm space-x-4 mb-6">
           <span><%= number_with_delimiter(@channel[:subscriber_count]) %> subscribers</span>
-          <span>•</span>
+          <span class="text-gray-400 dark:text-gray-600">•</span>
           <span><%= pluralize(@channel[:video_count], 'video') %></span>
         </div>
       </div>
 
       <!-- Channel Description -->
-      <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6">
         <div class="mb-4">
-          <h3 class="text-gray-500 text-sm font-medium uppercase">About Channel</h3>
+          <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">About Channel</h3>
         </div>
-        <p class="text-gray-800 leading-relaxed">
+        <p class="text-gray-800 dark:text-gray-200 leading-relaxed">
           <%= @channel[:description] %>
         </p>
       </div>
@@ -34,14 +34,24 @@
     <div class="space-y-6">
       <!-- Navigation Buttons -->
       <div class="flex items-center space-x-4">
-        <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
+        <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
           </svg>
           <span>Follow</span>
         </button>
 
-        <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
+        <div data-controller="copy">
+          <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                  data-action="click->copy#copy"
+                  data-copy-target="button"
+                  data-copy-text-value="<%= channel_url(@channel[:channel_name]) %>">
+            <%= render_icon :link, class: "w-5 h-5" %>
+            <span>Copy Link</span>
+          </button>
+        </div>
+
+        <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
           </svg>
@@ -50,18 +60,18 @@
       </div>
 
       <!-- Videos Grid -->
-      <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
-        <h3 class="text-lg font-medium mb-4">Latest Videos</h3>
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+        <h3 class="text-lg font-medium mb-4 text-gray-900 dark:text-white">Latest Videos</h3>
         <div class="space-y-4">
           <% @videos.each do |video| %>
             <%= link_to summary_path(video[:video_id]),
-                  class: "flex gap-4 p-2 hover:bg-gray-50 rounded-lg transition-colors" do %>
+                  class: "flex gap-4 p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors" do %>
               <div class="w-48 aspect-video flex-shrink-0">
                 <%= image_tag video[:thumbnail], class: "w-full h-full object-cover rounded" %>
               </div>
               <div class="flex-1 min-w-0">
-                <h4 class="font-medium mb-1 line-clamp-2"><%= video[:title] %></h4>
-                <p class="text-sm text-gray-600">
+                <h4 class="font-medium mb-1 line-clamp-2 text-gray-900 dark:text-white"><%= video[:title] %></h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
                   Published <%= time_ago_in_words(video[:published_at]) %> ago
                 </p>
               </div>

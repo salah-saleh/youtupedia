@@ -8,7 +8,7 @@
     <%# List layout loading state %>
     <div class="space-y-4">
       <% 3.times do %>
-        <div class="bg-white border rounded-lg p-6">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <div class="flex gap-8">
             <%= render "shared/skeleton", variant: "image", class: "w-64 flex-shrink-0" %>
             <div class="flex-1 space-y-4">
@@ -21,9 +21,9 @@
     </div>
   <% else %>
     <%# Grid layout loading state %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <% 6.times do %>
-        <div class="bg-white border rounded-lg p-4">
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
           <%= render "shared/skeleton", variant: "card" %>
         </div>
       <% end %>
@@ -35,7 +35,7 @@
   <% if local_assigns[:highlight_terms].present? %>
     <div class="space-y-4">
       <% videos_to_display.each do |video| %>
-        <div class="group block bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
+        <div class="group block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow">
           <%= link_to summary_path(video[:video_id]), data: { turbo_frame: "_top" } do %>
             <div class="flex gap-8">
               <%# Thumbnail %>
@@ -51,13 +51,13 @@
               <div class="flex-1 min-w-0">
                 <%= render "shared/truncate",
                       text: local_assigns[:highlight_terms].present? ?
-                           highlight(video[:title], highlight_terms, highlighter: '<mark class="bg-yellow-200">\1</mark>') :
+                           highlight(video[:title], highlight_terms, highlighter: '<mark class="bg-yellow-200 dark:bg-yellow-900">\1</mark>') :
                            video[:title],
                       lines: 2,
                       size: "lg",
-                      class: "font-medium mb-2 group-hover:text-purple-600" %>
+                      class: "font-medium mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400" %>
 
-                <div class="flex items-center text-sm text-gray-600">
+                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
                   <span class="mr-2"><%= video[:channel] %></span>
                   <span class="text-gray-400">•</span>
                   <span class="ml-2"><%= time_ago_in_words(video[:published_at]) %> ago</span>
@@ -68,9 +68,9 @@
 
           <%# Search context %>
           <% if video[:match_context].present? %>
-            <div class="mt-3 border-t pt-3">
+            <div class="mt-3 border-t border-gray-200 dark:border-gray-700 pt-3">
               <%= render "shared/truncate",
-                    text: highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200">\1</mark>'),
+                    text: highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200 dark:bg-yellow-900">\1</mark>'),
                     lines: 3,
                     expandable: true,
                     size: "sm" %>
@@ -81,7 +81,7 @@
     </div>
   <% else %>
     <%# Regular grid layout for non-search displays %>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <% videos_to_display.each do |video| %>
         <%= render "shared/video_card", video: video %>
       <% end %>
@@ -89,6 +89,6 @@
   <% end %>
 <% else %>
   <%= render "shared/empty_state",
-        message: local_assigns[:empty_message] || "No videos available.",
-        icon: :video %>
+        icon: :video,
+        message: local_assigns[:empty_message] || "No videos available." %>
 <% end %>

@@ -4,10 +4,11 @@
   <%= render "shared/form_section",
         title: "Add Channel",
         url: parse_youtube_url_path,
-        method: :post do |f| %>
+        method: :post,
+        form_classes: "flex-col sm:flex-row items-start gap-3" do |f| %>
     <%= render "shared/form_components/url_input",
           form: f,
-          field: :url,
+          field: :channel_url,
           placeholder: "Enter YouTube channel URL...",
           required: true %>
 
@@ -21,18 +22,17 @@
   <%# Channels Grid %>
   <%= render "shared/page_header",
         title: "Your Channels",
-        count: @channels&.length,
-        count_text: "channel" %>
-
-  <% if @channels.any? %>
-    <%= render "shared/grid" do %>
-      <% @channels.each do |channel| %>
-        <%= render "shared/channel_card", channel: channel %>
+        subtitle: pluralize(@channels&.length, "channel") do %>
+    <% if @channels.any? %>
+      <%= render "shared/grid" do %>
+        <% @channels.each do |channel| %>
+          <%= render "shared/channel_card", channel: channel %>
+        <% end %>
       <% end %>
+    <% else %>
+      <%= render "shared/empty_state",
+            message: "No channels added yet. Add your first channel above!",
+            icon: :channel %>
     <% end %>
-  <% else %>
-    <%= render "shared/empty_state",
-          message: "No channels added yet. Add your first channel above!",
-          icon: :channel %>
   <% end %>
 </div>

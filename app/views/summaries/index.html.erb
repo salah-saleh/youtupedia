@@ -4,7 +4,8 @@
   <%= render "shared/form_section",
         title: "Quick Summary",
         url: parse_youtube_url_path,
-        method: :post do |f| %>
+        method: :post,
+        form_classes: "flex-col sm:flex-row items-start gap-3" do |f| %>
     <%= render "shared/form_components/url_input",
           form: f,
           field: :url,
@@ -18,13 +19,20 @@
           size: :lg %>
   <% end %>
 
-  <%# Recent Summaries Grid %>
+  <%# Summaries Grid %>
   <%= render "shared/page_header",
-        title: "Recent Summaries",
-        count: @summaries&.length,
-        count_text: "summary" %>
-
-  <%= render "shared/video_grid",
-        videos: @summaries,
-        empty_message: "No summaries available yet. Try summarizing a video above!" %>
+        title: "Your Summaries",
+        subtitle: pluralize(@summaries&.length, "summary") do %>
+    <% if @summaries.any? %>
+      <%= render "shared/grid" do %>
+        <% @summaries.each do |summary| %>
+          <%= render "shared/video_card", video: summary %>
+        <% end %>
+      <% end %>
+    <% else %>
+      <%= render "shared/empty_state",
+            message: "No summaries yet. Add your first video above!",
+            icon: :video %>
+    <% end %>
+  <% end %>
 </div>

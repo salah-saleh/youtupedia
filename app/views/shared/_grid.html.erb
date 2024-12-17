@@ -1,24 +1,23 @@
 <%# Grid Container Component
     Provides consistent grid layout with responsive columns
 
+    Usage:
+    render "shared/grid", columns: 3, gap: 4 do
+      Content goes here
+    end
+
     Parameters:
-    - cols: Hash (optional) - Custom column configuration { sm: 1, md: 2, lg: 3 }
-    - gap: String (optional) - Custom gap classes
+    - columns: Integer (optional) - Number of columns on desktop (default: 3)
+    - gap: Integer (optional) - Gap size between items (default: 4)
     - classes: String (optional) - Additional CSS classes
 %>
 
 <%
-  default_cols = { sm: 1, lg: 3 }
-  cols = local_assigns.fetch(:cols, default_cols)
-
-  grid_classes = "grid max-w-screen-xl mx-auto"
-  grid_classes += " grid-cols-#{cols[:sm]}" if cols[:sm]
-  grid_classes += " md:grid-cols-#{cols[:md]}" if cols[:md]
-  grid_classes += " lg:grid-cols-#{cols[:lg]}" if cols[:lg]
-  grid_classes += " #{local_assigns[:gap] || 'gap-4'}"
-  grid_classes += " #{local_assigns[:classes]}"
+  columns = local_assigns[:columns] || 3
+  gap = local_assigns[:gap] || 4
+  grid_classes = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-#{columns} gap-#{gap} #{local_assigns[:classes]}"
 %>
 
 <div class="<%= grid_classes %>">
-  <%= yield %>
+  <%= yield if block_given? %>
 </div>

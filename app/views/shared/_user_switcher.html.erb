@@ -1,27 +1,27 @@
 <div class="overflow-x-auto">
-  <table class="min-w-full divide-y divide-gray-200">
+  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
     <thead>
       <tr>
-        <th class="px-4 sm:px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Email</th>
-        <th class="hidden sm:table-cell px-4 sm:px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-        <th class="px-4 sm:px-6 py-3 text-right text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        <th class="px-4 sm:px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+        <th class="hidden sm:table-cell px-4 sm:px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created At</th>
+        <th class="px-4 sm:px-6 py-3 text-right text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
       </tr>
     </thead>
-    <tbody class="bg-white divide-y divide-gray-200">
+    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
       <% users.each do |user| %>
         <tr>
-          <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-base text-gray-900">
+          <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-base text-gray-900 dark:text-white">
             <%= user.email_address %>
-            <div class="sm:hidden text-sm text-gray-500 mt-1">
+            <div class="sm:hidden text-sm text-gray-500 dark:text-gray-400 mt-1">
               <%= user.created_at.strftime("%B %d, %Y") %>
             </div>
           </td>
-          <td class="hidden sm:table-cell px-4 sm:px-6 py-4 whitespace-nowrap text-base text-gray-500">
+          <td class="hidden sm:table-cell px-4 sm:px-6 py-4 whitespace-nowrap text-base text-gray-500 dark:text-gray-400">
             <%= user.created_at.strftime("%B %d, %Y") %>
           </td>
           <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right">
             <%= button_to "Switch to User", switch_dev_user_path(user), method: :post,
-                class: "inline-flex items-center justify-center h-10 px-4 text-base text-purple-600 hover:text-purple-800 transition-colors" %>
+                class: "inline-flex items-center justify-center h-10 px-4 text-base text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors" %>
           </td>
         </tr>
       <% end %>

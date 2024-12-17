@@ -7,16 +7,33 @@
     - form_classes: String (optional) - Additional CSS classes for the form element
 %>
 
-<%= render "shared/section", title: local_assigns[:title], subtitle: local_assigns[:subtitle] do %>
-  <div data-controller="loading"
-       data-action="turbo:submit-start->loading#startLoading
-                   turbo:submit-end->loading#stopLoading
-                   turbo:before-fetch-request->loading#startLoading
-                   turbo:before-fetch-response->loading#stopLoading">
-    <%= form_with(**local_assigns.except(:title, :subtitle, :form_classes),
-                  class: "flex flex-col sm:flex-row items-start gap-3 #{local_assigns[:form_classes]}",
-                  data: { loading_target: "form" }) do |f| %>
-      <%= yield(f) %>
+<section class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
+  <div class="px-4 py-5 sm:p-6">
+    <% if local_assigns[:title].present? %>
+      <div class="mb-4">
+        <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+          <%= local_assigns[:title] %>
+        </h3>
+        <% if local_assigns[:subtitle].present? %>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <%= local_assigns[:subtitle] %>
+          </p>
+        <% end %>
+      </div>
     <% end %>
+
+    <div class="text-gray-900 dark:text-white">
+      <div data-controller="loading"
+           data-action="turbo:submit-start->loading#startLoading
+                       turbo:submit-end->loading#stopLoading
+                       turbo:before-fetch-request->loading#startLoading
+                       turbo:before-fetch-response->loading#stopLoading">
+        <%= form_with(**local_assigns.except(:title, :subtitle, :form_classes),
+                      class: "flex flex-col sm:flex-row items-start gap-3 #{local_assigns[:form_classes]}",
+                      data: { loading_target: "form" }) do |f| %>
+          <%= yield(f) %>
+        <% end %>
+      </div>
+    </div>
   </div>
-<% end %>
+</section>

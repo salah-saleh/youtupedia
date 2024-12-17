@@ -1,14 +1,31 @@
-<%# Usage: render "shared/form_components/search_input", form: form, field: :q,
-           placeholder: "Search...", value: @query %>
+<%# Search Input Component
+    Provides a styled search input with icon and clear button
 
-<div class="flex-1" data-loading-target="content">
+    Parameters:
+    - form: FormBuilder - The form object
+    - field: Symbol - The form field name
+    - value: String (optional) - Current input value
+    - placeholder: String (optional) - Input placeholder text
+    - required: Boolean (optional) - Whether the field is required
+    - container_class: String (optional) - Additional classes for the container
+%>
+
+<div class="flex-1 relative" data-loading-target="content">
   <%= form.search_field field,
-        class: "w-full h-12 pl-4 pr-10 bg-white border border-gray-200 rounded-lg text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
-        placeholder: placeholder,
+        class: "w-full h-12 pl-10 pr-10 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent",
+        placeholder: local_assigns[:placeholder],
+        required: local_assigns[:required],
         value: local_assigns[:value],
-        required: local_assigns[:required] %>
+        data: local_assigns[:data] %>
 
-  <div class="absolute right-4 inset-y-0 flex items-center pointer-events-none text-gray-400">
-    <%= render_icon :search %>
+  <div class="pointer-events-none absolute left-4 inset-y-0 flex items-center text-gray-400 dark:text-gray-500">
+    <%= render_icon :magnifying_glass %>
   </div>
+
+  <% if local_assigns[:value].present? %>
+    <%= link_to search_index_path,
+          class: "absolute right-4 inset-y-0 flex items-center text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400" do %>
+      <%= render_icon :x_mark %>
+    <% end %>
+  <% end %>
 </div>

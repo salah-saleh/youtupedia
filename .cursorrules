@@ -11,10 +11,11 @@ Project stack:
 
 best practices:
   - Adhere to Rails conventions for consistent development standards. Use the rails way of doing things.
-  - For context, please refer to the PRODUCT.md and README.md files.
+  - For context, please refer to the controllers.md and views.md files.
   - Ensure mobile responsiveness for all UI components.
+  - Ensure light and dark mode is supported and consistent across all UI components.
   - Verify all code changes against repository interfaces to avoid breaking them.
-  - When refactoring: focus on extracting shared code and restructuring, without changing functionality.
+  - When refactoring: focus on extracting shared code and restructuring. Avoid changing behavior with big refactoring changes.
   - Avoid removing documentation and rather fix and improve it.
   - Propose concepts for improvements before implementation; proceed only after approval.
   - DRY (Don't Repeat Yourself): Reuse code where possible to maintain simplicity and efficiency.
@@ -26,9 +27,5 @@ code style:
   - Avoid long files; break them into maintainable chunks if and when necessary.
   - Document and comment code comprehensively, providing context and purpose.
   - Ensure proposed concepts are consistently applied across the application.
-  - Maintain an up-to-date README.md and PRODUCT.md to reflect current features and setup instructions.
+  - Maintain an up-to-date README.md and views.md and controllers.md to reflect current features and setup instructions.
 
-commit guidelines:
-  - you will be somtimes asked to generate a commit message.
-  - to this, please run a git diff and generate a commit message that describes the changes you made.
-  - keep the commit message concise and to the point.

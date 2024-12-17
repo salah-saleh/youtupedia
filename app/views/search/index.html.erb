@@ -21,14 +21,13 @@
 
   <%# Search Results %>
   <% if @query.present? %>
-    <%= render "shared/page_header",
+    <%= render "shared/section",
           title: "Search Results",
-          count: @videos&.length,
-          count_text: "result" %>
-
-    <%= render "shared/video_grid",
-          videos: @videos,
-          highlight_terms: @search_terms,
-          empty_message: "No videos found matching your search." %>
+          subtitle: pluralize(@videos&.length || 0, "result") do %>
+      <%= render "shared/video_grid",
+            videos: @videos,
+            highlight_terms: @search_terms,
+            empty_message: "No videos found matching your search." %>
+    <% end %>
   <% end %>
 </div>

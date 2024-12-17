@@ -2,29 +2,38 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["source", "button"]
+  static values = { text: String }
 
   copy() {
-    const element = this.sourceTarget;
+    let text;
 
-    // Create a temporary element
-    const temp = document.createElement('div');
-    temp.innerHTML = element.innerHTML;
+    if (this.hasTextValue) {
+      // Use the text value if provided
+      text = this.textValue;
+    } else if (this.hasSourceTarget) {
+      // Otherwise use the source target's content
+      const element = this.sourceTarget;
+      const temp = document.createElement('div');
+      temp.innerHTML = element.innerHTML;
 
-    // Remove all button elements
-    temp.querySelectorAll('button').forEach(btn => btn.remove());
+      // Remove all button elements
+      temp.querySelectorAll('button').forEach(btn => btn.remove());
 
-    // Get the text content and clean it up
-    let text = temp.textContent
-      .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
-      .replace(/\n\s*/g, '\n')  // Clean up newlines
-      .trim();
+      // Get the text content and clean it up
+      text = temp.textContent
+        .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
+        .replace(/\n\s*/g, '\n')  // Clean up newlines
+        .trim();
 
-    // For takeaways, format as numbered list
-    if (element.classList.contains('space-y-3')) {
-      text = text.split(/\d+/).filter(Boolean)  // Split by numbers and remove empty strings
-        .map((item, index) => `${index + 1}. ${item.trim()}`)  // Add numbers back
-        .join('\n');
+      // For takeaways, format as numbered list
+      if (element.classList.contains('space-y-3')) {
+        text = text.split(/\d+/).filter(Boolean)  // Split by numbers and remove empty strings
+          .map((item, index) => `${index + 1}. ${item.trim()}`)  // Add numbers back
+          .join('\n');
+      }
     }
+
+    if (!text) return;
 
     // Copy to clipboard
     navigator.clipboard.writeText(text).then(() => {

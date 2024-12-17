@@ -1,6 +1,11 @@
 <%# Section Container Component
     Provides consistent styling for main content sections
 
+    Usage:
+    render "shared/section", title: "My Section" do
+      Content goes here
+    end
+
     Parameters:
     - title: String (optional) - Section title
     - subtitle: String (optional) - Additional context below title
@@ -8,15 +13,23 @@
     - classes: String (optional) - Additional CSS classes
 %>
 
-<section class="bg-white rounded-lg shadow border border-gray-100 <%= local_assigns[:padding] || 'p-4 lg:p-6' %> <%= local_assigns[:classes] %>">
-  <% if local_assigns[:title].present? %>
-    <div class="mb-4">
-      <h2 class="text-lg lg:text-xl font-semibold"><%= title %></h2>
-      <% if local_assigns[:subtitle].present? %>
-        <p class="text-sm text-gray-600 mt-1"><%= subtitle %></p>
-      <% end %>
-    </div>
-  <% end %>
+<section class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 <%= local_assigns[:classes] %>">
+  <div class="<%= local_assigns[:padding] || 'px-4 py-5 sm:p-6' %>">
+    <% if local_assigns[:title].present? %>
+      <div class="mb-4">
+        <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+          <%= local_assigns[:title] %>
+        </h3>
+        <% if local_assigns[:subtitle].present? %>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <%= local_assigns[:subtitle] %>
+          </p>
+        <% end %>
+      </div>
+    <% end %>
 
-  <%= yield %>
+    <div class="text-gray-900 dark:text-white">
+      <%= yield if block_given? %>
+    </div>
+  </div>
 </section>
