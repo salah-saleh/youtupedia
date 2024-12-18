@@ -1,5 +1,26 @@
-<%# Usage: render "shared/truncate", text: long_text, lines: 2,
-           expandable: true, size: "base" %>
+<%# Truncate Component
+    Provides collapsible text content with "Show more/less" functionality.
+
+    Dependencies:
+    - Stimulus (collapsible_controller.js)
+    - Tailwind CSS (for styling)
+    - Dark mode support
+    - Icon helper (for expand/collapse icon)
+
+    Parameters:
+    - text: String - The text content to truncate
+    - lines: Integer (default: 2) - Number of lines to show initially
+    - expandable: Boolean (default: false) - Whether the text can be expanded
+    - size: String (default: "base") - Text size (xs, sm, base, lg, xl)
+
+    Features:
+    - Configurable initial line count
+    - Smooth height transitions
+    - Dark mode support
+    - Accessible button controls
+    - Responsive design
+    - Gradient fade effect
+%>
 
 <%
   text_sizes = {
@@ -27,17 +48,17 @@
         <%= text %>
       </div>
 
-      <%# Gradient overlay %>
-      <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white pointer-events-none hidden"
+      <%# Gradient overlay - updated with dark mode support %>
+      <div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-gray-800 pointer-events-none hidden"
            data-collapsible-target="gradient"></div>
     </div>
 
-    <%# Show more/less button %>
+    <%# Show more/less button - updated with dark mode support %>
     <div class="relative z-10 text-center mt-2 hidden"
          data-collapsible-target="footer">
       <button type="button"
               data-action="click->collapsible#toggle"
-              class="inline-flex items-center px-3 py-1.5 text-sm text-purple-600 hover:text-purple-900 bg-white rounded-full hover:bg-purple-50 border border-purple-200 shadow-sm transition-colors">
+              class="inline-flex items-center px-3 py-1.5 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 bg-white dark:bg-gray-800 rounded-full hover:bg-purple-50 dark:hover:bg-gray-700 border border-purple-200 dark:border-purple-900 shadow-sm transition-colors">
         <span data-collapsible-target="buttonText">Show more</span>
         <svg class="ml-1 w-4 h-4 transition-transform duration-200"
              data-collapsible-target="icon"

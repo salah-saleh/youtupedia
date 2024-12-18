@@ -9,9 +9,14 @@ Project stack:
   - containerization: Docker (ensure flexibility in environment setup)
   - ui inspiration: Application is built for desktop, but should be mobile-friendly. Inspired by YouTube dashboard.
 
-best practices:
+Before every change:
+  - Please refer to the controllers.md and views.md files for context.
+
+After every change:
+  - You have to update the controllers.md and views.md files to be accurate.
+
+Coding guidelines:
   - Adhere to Rails conventions for consistent development standards. Use the rails way of doing things.
-  - For context, please refer to the controllers.md and views.md files.
   - Ensure mobile responsiveness for all UI components.
   - Ensure light and dark mode is supported and consistent across all UI components.
   - Verify all code changes against repository interfaces to avoid breaking them.
@@ -27,5 +32,4 @@ code style:
   - Avoid long files; break them into maintainable chunks if and when necessary.
   - Document and comment code comprehensively, providing context and purpose.
   - Ensure proposed concepts are consistently applied across the application.
-  - Maintain an up-to-date README.md and views.md and controllers.md to reflect current features and setup instructions.
 

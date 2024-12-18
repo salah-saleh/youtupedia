@@ -41,7 +41,7 @@
         <% if video[:match_context].present? && local_assigns[:highlight_terms].present? %>
           <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
             <%= render "shared/truncate",
-                  text: highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200 dark:bg-yellow-900">\1</mark>'),
+                  text: highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200 dark:bg-yellow-600">\1</mark>'),
                   lines: 2,
                   size: "sm",
                   class: "text-gray-600 dark:text-gray-400" %>

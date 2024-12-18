@@ -2,8 +2,6 @@ class SummariesController < ApplicationController
   include YoutubeUrlHelper
   include SummaryDataHelper
 
-  before_action :authenticate!
-  layout "dashboard"
   before_action :load_video_data, only: [ :show, :ask_gpt ]
 
   def create_from_url

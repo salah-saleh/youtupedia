@@ -20,8 +20,8 @@ Rails.application.routes.draw do
 
   # Authentication routes
   resource :session
+  resource :registration, only: [ :new, :create ]
   resources :passwords, param: :token
-  resources :registrations, only: [ :new, :create ]
 
   # Dev/Admin routes - available in all environments when accessed through settings
   namespace :dev do
@@ -32,7 +32,10 @@ Rails.application.routes.draw do
     end
   end
 
-  get "settings", to: "settings#index"
+  # Settings routes
+  resource :settings, only: [ :show, :create ], controller: "settings" do
+    get :index, on: :collection
+  end
 
   resources :search, only: [ :index ]
 end

@@ -1,0 +1,115 @@
+<%# Sidebar Component
+    Provides main navigation links for authenticated users.
+
+    Dependencies:
+    - Authentication helpers
+    - Tailwind CSS
+    - Dark mode support
+    - Icon helper (video_camera, channel, magnifying_glass, cog icons)
+
+    Features:
+    - Responsive design (desktop sidebar and mobile navigation)
+    - Dark mode support
+    - Active link states
+    - Section grouping
+    - Accessible navigation
+%>
+
+<%# Desktop Sidebar %>
+<div class="hidden lg:block w-64 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 space-y-2">
+  <%# Main Navigation %>
+  <nav class="space-y-1">
+    <%= link_to summaries_path,
+        class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                #{current_page?(summaries_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+      <div class="flex items-center">
+        <%= render_icon :video_camera, class: "w-5 h-5 mr-3" %>
+        <span>Summaries</span>
+      </div>
+    <% end %>
+
+    <%= link_to channels_path,
+        class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                #{current_page?(channels_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+      <div class="flex items-center">
+        <%= render_icon :channel, class: "w-5 h-5 mr-3" %>
+        <span>Channels</span>
+      </div>
+    <% end %>
+
+    <%= link_to search_index_path,
+        class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                #{current_page?(search_index_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+      <div class="flex items-center">
+        <%= render_icon :magnifying_glass, class: "w-5 h-5 mr-3" %>
+        <span>Search</span>
+      </div>
+    <% end %>
+  </nav>
+
+  <%# Divider %>
+  <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+
+  <%# Settings %>
+  <nav class="space-y-1">
+    <%= link_to settings_path,
+        class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                #{current_page?(settings_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+      <div class="flex items-center">
+        <%= render_icon :cog, class: "w-5 h-5 mr-3" %>
+        <span>Settings</span>
+      </div>
+    <% end %>
+  </nav>
+</div>
+
+<%# Mobile Navigation %>
+<div class="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+  <div class="relative">
+    <div class="flex justify-start sm:justify-center space-x-4 p-4 overflow-x-auto scrollbar-hide px-6">
+      <%= link_to summaries_path,
+          class: "flex-shrink-0 whitespace-nowrap px-4 py-2.5 text-base text-gray-700 dark:text-gray-300
+                  hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                  #{current_page?(summaries_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+        <div class="flex items-center">
+          <%= render_icon :video_camera, class: "w-5 h-5 mr-2" %>
+          <span>Summaries</span>
+        </div>
+      <% end %>
+
+      <%= link_to channels_path,
+          class: "flex-shrink-0 whitespace-nowrap px-4 py-2.5 text-base text-gray-700 dark:text-gray-300
+                  hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                  #{current_page?(channels_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+        <div class="flex items-center">
+          <%= render_icon :channel, class: "w-5 h-5 mr-2" %>
+          <span>Channels</span>
+        </div>
+      <% end %>
+
+      <%= link_to search_index_path,
+          class: "flex-shrink-0 whitespace-nowrap px-4 py-2.5 text-base text-gray-700 dark:text-gray-300
+                  hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                  #{current_page?(search_index_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+        <div class="flex items-center">
+          <%= render_icon :magnifying_glass, class: "w-5 h-5 mr-2" %>
+          <span>Search</span>
+        </div>
+      <% end %>
+
+      <%= link_to settings_path,
+          class: "flex-shrink-0 whitespace-nowrap px-4 py-2.5 text-base text-gray-700 dark:text-gray-300
+                  hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                  #{current_page?(settings_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+        <div class="flex items-center">
+          <%= render_icon :cog, class: "w-5 h-5 mr-2" %>
+          <span>Settings</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

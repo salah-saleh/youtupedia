@@ -1,7 +1,5 @@
 class YoutubeUrlsController < ApplicationController
   include YoutubeUrlHelper
-  before_action :authenticate!
-  layout "dashboard"
 
   def parse
     url = params[:url]

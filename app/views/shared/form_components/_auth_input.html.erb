@@ -1,0 +1,39 @@
+<%# Authentication Input Component
+    Provides consistent styling for authentication form inputs with dark mode support.
+
+    Dependencies:
+    - Tailwind CSS (for styling)
+    - Dark mode support (via dark: classes)
+    - Form builder (Rails form helpers)
+
+    Parameters:
+    - form: FormBuilder - The form object
+    - field: Symbol - The form field name
+    - type: String - Input type (text, email, password)
+    - label: String - Label text
+    - placeholder: String (optional) - Input placeholder text
+    - required: Boolean (optional) - Whether the field is required
+
+    Features:
+    - Consistent styling across auth forms
+    - Dark mode support
+    - Accessible labels
+    - Focus states
+    - Required field support
+    - Placeholder text
+    - Input validation states
+%>
+
+<div>
+  <%= form.label field, label,
+      class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+  <%= form.send(type, field,
+      class: "w-full h-12 px-4 text-base border border-gray-300 dark:border-gray-600 rounded-lg
+              bg-white dark:bg-gray-900 dark:!bg-gray-900 text-gray-900 dark:text-white
+              focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent
+              placeholder-gray-500 dark:placeholder-gray-400
+              [&:not(:placeholder-shown)]:bg-white dark:[&:not(:placeholder-shown)]:!bg-gray-900",
+      style: "background-color: #fff; .dark & { background-color: rgb(17 24 39) !important; }",
+      placeholder: local_assigns[:placeholder],
+      required: local_assigns[:required]) %>
+</div>
