@@ -61,10 +61,10 @@ export default class extends Controller {
     messageDiv.className = `p-3 rounded-lg mb-4 ${this.getMessageClasses(role)}`
     messageDiv.innerHTML = `
       <div class="flex items-start gap-2">
-        <span class="font-medium ${role === 'user' ? 'text-purple-700' : 'text-gray-700'}">
+        <span class="font-medium ${role === 'user' ? 'text-purple-700 dark:text-purple-400' : 'text-gray-700 dark:text-gray-300'}">
           ${role === 'user' ? 'You' : 'Assistant'}:
         </span>
-        <div class="flex-1 prose prose-sm max-w-none">
+        <div class="flex-1 prose prose-sm dark:prose-invert max-w-none">
           ${role === 'user' ? content : marked.parse(content)}
         </div>
       </div>
@@ -76,13 +76,13 @@ export default class extends Controller {
   getMessageClasses(role) {
     switch (role) {
       case 'user':
-        return 'bg-purple-50'
+        return 'bg-purple-50 dark:bg-purple-900/50'
       case 'assistant':
-        return 'bg-gray-50'
+        return 'bg-gray-50 dark:bg-gray-700/50'
       case 'error':
-        return 'bg-red-50 text-red-700'
+        return 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
       default:
-        return 'bg-gray-50'
+        return 'bg-gray-50 dark:bg-gray-700/50'
     }
   }
 }
