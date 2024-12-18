@@ -56,11 +56,9 @@
 │       └── shared/_video_grid
 │
 ├── 🏠 home/
-│   ├── _landing_page.html.erb
-│   │   └── No shared partials
 │   │
 │   └── index.html.erb
-│       └── No shared partials
+│       └── No shared partials. Redirects to summaries index page for signed in users. Otherwise, redirects to new_session_path.
 │
 ├── ⚙️ settings/index.html.erb
 │   └── Partials:

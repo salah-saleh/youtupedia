@@ -19,7 +19,7 @@ Rails.application.routes.draw do
   post "/parse_youtube_url", to: "youtube_urls#parse"
 
   # Authentication routes
-  resource :session
+  resource :session, only: [ :new, :create, :destroy ]
   resource :registration, only: [ :new, :create ]
   resources :passwords, param: :token
 
