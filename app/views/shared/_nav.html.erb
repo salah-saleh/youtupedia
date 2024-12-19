@@ -7,32 +7,42 @@
     - Dark mode support
     - Theme controller (Stimulus)
     - Dropdown controller (Stimulus)
-    - Icon helper (sun, moon, magnifying_glass icons)
+    - Search toggle controller (Stimulus)
+    - Nav toggle controller (Stimulus)
+    - Icon helper (sun, moon, magnifying_glass, bars_3 icons)
 
     Features:
     - Responsive design
     - Dark mode toggle
     - User authentication state
     - Search bar (desktop and mobile)
+    - Mobile navigation toggle
     - User dropdown menu
     - Accessible controls
 %>
 
-<nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-  <div class="max-w-full mx-auto px-4" data-controller="search-toggle">
+<nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" data-controller="search-toggle nav-toggle">
+  <div class="max-w-full mx-auto px-4">
     <div class="flex h-14 items-center justify-between">
       <!-- Left side -->
       <div class="flex items-center">
         <!-- Logo -->
-        <div class="<%= local_assigns[:dashboard] ? 'lg:w-64' : '' %> flex items-center">
+        <div class="<%= local_assigns[:dashboard] ? 'lg:w-64' : '' %> flex items-center space-x-2">
           <%= link_to root_path, class: "text-xl font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-2" do %>
             Yt
           <% end %>
 
           <% if local_assigns[:dashboard] %>
+            <!-- Mobile nav toggle -->
+            <button type="button"
+                    class="lg:hidden p-2 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                    data-action="nav-toggle#toggle">
+              <%= render_icon :bars_3, class: "w-5 h-5" %>
+            </button>
+
             <!-- Mobile search toggle -->
             <button type="button"
-                    class="sm:hidden ml-2 p-2 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                    class="sm:hidden p-2 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
                     data-action="search-toggle#toggle">
               <%= render_icon :magnifying_glass, class: "w-5 h-5" %>
             </button>
@@ -125,6 +135,47 @@
             <%= render_icon :magnifying_glass, class: "w-5 h-5 text-gray-400 dark:text-gray-500" %>
           </button>
         <% end %>
+      </div>
+
+      <!-- Mobile navigation -->
+      <div class="lg:hidden py-2 hidden border-t border-gray-200 dark:border-gray-700" data-nav-toggle-target="menu">
+        <nav class="flex flex-col space-y-1">
+          <%= link_to summaries_path,
+              class: "px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                      #{current_page?(summaries_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+            <div class="flex items-center">
+              <%= render_icon :video_camera, class: "w-5 h-5 mr-3" %>
+              <span>Summaries</span>
+            </div>
+          <% end %>
+
+          <%= link_to channels_path,
+              class: "px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                      #{current_page?(channels_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+            <div class="flex items-center">
+              <%= render_icon :channel, class: "w-5 h-5 mr-3" %>
+              <span>Channels</span>
+            </div>
+          <% end %>
+
+          <%= link_to search_index_path,
+              class: "px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                      #{current_page?(search_index_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+            <div class="flex items-center">
+              <%= render_icon :magnifying_glass, class: "w-5 h-5 mr-3" %>
+              <span>Search</span>
+            </div>
+          <% end %>
+
+          <%= link_to settings_path,
+              class: "px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+                      #{current_page?(settings_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+            <div class="flex items-center">
+              <%= render_icon :cog, class: "w-5 h-5 mr-3" %>
+              <span>Settings</span>
+            </div>
+          <% end %>
+        </nav>
       </div>
     <% end %>
   </div>
