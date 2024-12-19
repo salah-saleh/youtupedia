@@ -9,10 +9,10 @@ class SearchController < ApplicationController
     @query = params[:q]
     @search_terms = @query.present? ? @query.split(/\s+/) : []
     @videos = @query.present? ? search_videos(@query) : []
+  end
 
-    respond_to do |format|
-      format.html
-      format.turbo_stream
-    end
+  def create_from_url
+    @query = params[:q]
+    redirect_to search_index_path(q: @query)
   end
 end

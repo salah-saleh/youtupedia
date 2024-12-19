@@ -19,4 +19,8 @@ module YoutubeUrlHelper
     url.include?("/user/") ||
     url.include?("/@")
   end
+
+  def video_url?(url)
+    url.include?("/watch?v=")
+  end
 end

@@ -1,7 +1,9 @@
 import "@hotwired/turbo-rails"
 import { Application } from "@hotwired/stimulus"
 
-// Disable Turbo prefetching globally
+// Disable Turbo prefetching globally, excessive requests to server with
+// every user mouse movement. Prefetching is even happenening for same
+// asset if the hover over it multiple times.
 document.documentElement.setAttribute('data-turbo-prefetch', 'false')
 
 const application = Application.start()

@@ -37,5 +37,9 @@ Rails.application.routes.draw do
     get :index, on: :collection
   end
 
-  resources :search, only: [ :index ]
+  resources :search, only: [ :index ] do
+    collection do
+      get :create_from_url
+    end
+  end
 end
