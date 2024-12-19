@@ -1,5 +1,11 @@
-<%# Transcript Segment %>
-<div class="group flex items-start gap-4 p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+<%# Transcript Segment Component
+    Displays a single segment of the video transcript with timestamp and text.
+
+    Parameters:
+    - transcript_segment: Hash - Contains start_time, duration, and text
+%>
+
+<div class="group flex items-start gap-4 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
      data-youtube-target="segment"
      data-start="<%= transcript_segment[:start] %>"
      data-duration="<%= transcript_segment[:duration] %>">

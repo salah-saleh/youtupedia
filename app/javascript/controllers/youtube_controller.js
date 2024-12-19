@@ -91,11 +91,21 @@ export default class extends Controller {
       const duration = parseFloat(segment.dataset.duration)
       const end = start + duration
 
-      segment.classList.remove('bg-purple-50', 'border-l-4', 'border-purple-500')
+      segment.classList.remove(
+        'bg-purple-50',
+        'dark:bg-purple-900/50',
+        'border-l-4',
+        'border-purple-500'
+      )
 
       if (currentTime >= start && currentTime < end) {
         activeSegment = segment
-        segment.classList.add('bg-purple-50', 'border-l-4', 'border-purple-500')
+        segment.classList.add(
+          'bg-purple-50',
+          'dark:bg-purple-900/50',
+          'border-l-4',
+          'border-purple-500'
+        )
       }
     })
 
