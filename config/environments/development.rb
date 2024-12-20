@@ -78,4 +78,11 @@ Rails.application.configure do
   # Only reduce MongoDB noise in development
   Mongoid.logger.level = Logger::INFO
   Mongo::Logger.logger.level = Logger::WARN
+
+  # Disable Google API client logging completely
+  Google::Apis.logger.level = Logger::Severity::WARN
+
+  # Configure ActiveJob logging to be less verbose
+  ActiveJob::Base.logger = Logger.new(STDOUT)
+  ActiveJob::Base.logger.level = Logger::INFO
 end

@@ -1,3 +1,4 @@
+import os
 from youtube_transcript_api import YouTubeTranscriptApi
 import sys
 import json
@@ -12,8 +13,19 @@ def get_transcript_with_retry(video_id, max_retries=3, initial_delay=1):
 
     for attempt in range(max_retries):
         try:
+            # Get proxy from environment variable
+            proxy = os.environ.get('YOUTUBE_TRANSCRIPT_API_PROXY')
+            if not proxy:
+                print(json.dumps({
+                    'success': False,
+                    'error': 'YOUTUBE_TRANSCRIPT_API_PROXY environment variable is not set'
+                }), file=sys.stderr)
+                return {
+                    'success': False,
+                    'error': 'YOUTUBE_TRANSCRIPT_API_PROXY environment variable is not set'
+                }
+
             # Get transcript list with proxy
-            proxy = "http://ytp-country-us-sid-kvjkicd0y0biie0cpa-ttl-5m-filter-medium:kidxhmat9@gate.nodemaven.com:8080/"
             transcript_list = YouTubeTranscriptApi.get_transcript(
                 video_id,
                 proxies={
