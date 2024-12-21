@@ -1,0 +1,6 @@
+brew install imagemagick
+
+# Generate different sizes
+convert app/assets/images/y2si.png -resize 16x16 app/assets/images/favicon-16x16.png
+convert app/assets/images/y2si.png -resize 32x32 app/assets/images/favicon-32x32.png
+convert app/assets/images/y2si.png -resize 180x180 app/assets/images/apple-touch-icon.png
