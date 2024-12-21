@@ -1,4 +1,5 @@
 module ApplicationHelper
+  # used in determining the page title in the browser tab
   def page_title
     base_title = "Y2SI"
 
@@ -19,5 +20,32 @@ module ApplicationHelper
     end
 
     current_title.present? ? "#{current_title.titleize} - #{base_title}" : base_title
+  end
+
+  # used in determining the aspect ratio of the image to reserve space for it
+  def aspect_class(aspect)
+    case aspect&.to_s
+    when "square"
+      "aspect-w-1 aspect-h-1"
+    when "video"
+      "aspect-w-16 aspect-h-9"
+    else
+      "aspect-w-16 aspect-h-9" # default to video aspect ratio
+    end
+  end
+
+  def size_class(size)
+    case size&.to_s
+    when "sm"
+      "w-32"  # 128px
+    when "md"
+      "w-48"  # 192px
+    when "lg"
+      "w-64"  # 256px
+    when "full"
+      "w-full"
+    else
+      "w-48"  # default to medium size
+    end
   end
 end

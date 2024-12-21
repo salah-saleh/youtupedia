@@ -1,13 +1,13 @@
-<div class="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg overflow-hidden relative">
+<div class="aspect-w-16 aspect-h-9 bg-gray-100 dark:bg-black rounded-lg overflow-hidden relative">
   <div id="youtube-player"
        data-youtube-target="player"
        class="w-full h-full">
   </div>
 
   <div data-youtube-target="loadingIndicator"
-       class="absolute inset-0 flex items-center justify-center bg-gray-100"
+       class="absolute inset-0 flex items-center justify-center bg-gray-100/90 dark:bg-black/50 backdrop-blur-sm z-10"
        style="display: flex;">
-    <div class="animate-pulse text-gray-400">
+    <div class="animate-pulse text-gray-600 dark:text-gray-200">
       Loading video...
     </div>
   </div>

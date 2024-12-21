@@ -66,8 +66,10 @@
           <% @videos.each do |video| %>
             <%= link_to summary_path(video[:video_id]),
                   class: "flex gap-4 p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors" do %>
-              <div class="w-48 aspect-video flex-shrink-0">
-                <%= image_tag video[:thumbnail], class: "w-full h-full object-cover rounded" %>
+              <div class="w-48 relative" style="aspect-ratio: 16/9;">
+                <%= image_tag video[:thumbnail],
+                      class: "absolute inset-0 w-full h-full object-cover rounded",
+                      loading: "lazy" %>
               </div>
               <div class="flex-1 min-w-0">
                 <h4 class="font-medium mb-1 line-clamp-2 text-gray-900 dark:text-white"><%= video[:title] %></h4>

@@ -104,12 +104,14 @@
               </button>
 
               <!-- Dropdown menu -->
-              <div class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 hidden
+              <div class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 hidden
                           transform opacity-0 scale-95 transition-all duration-200 ease-in-out
                           origin-top-right z-50"
                    data-dropdown-target="menu">
                 <div class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                  <%= Current.user.email_address %>
+                  <div class="truncate" title="<%= Current.user.email_address %>">
+                    <%= Current.user.email_address %>
+                  </div>
                 </div>
                 <%= button_to "Sign Out", session_path, method: :delete,
                     class: "w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" %>
