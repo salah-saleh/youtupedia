@@ -41,3 +41,6 @@ gpt-config.txt
 .env
 .env.development
 .env.test
+
+# Ignore macOS files
+.DS_Store

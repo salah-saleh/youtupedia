@@ -2,8 +2,8 @@
 # check=error=true
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t blog .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name blog blog
+# docker build -t y2si .
+# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name y2si y2si
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.3.4

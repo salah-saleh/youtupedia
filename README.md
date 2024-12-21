@@ -32,7 +32,6 @@ For more details about the product structure, see the [product.md](product.md) f
 ## Prerequisites
 
 - Ruby 3.x
-- Node.js 16+
 - Docker & Docker Compose
 - PostgreSQL
 - MongoDB

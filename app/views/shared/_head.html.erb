@@ -1,5 +1,5 @@
 <head>
-  <title><%= content_for?(:title) ? yield(:title) : "Yt" %></title>
+  <title><%= content_for?(:title) ? yield(:title) : "Y2si" %></title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <%= csrf_meta_tags %>
@@ -8,6 +8,7 @@
   <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   <%= javascript_importmap_tags %>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico" rel="stylesheet">
     <script>
       // On page load or when changing themes, best to add inline in `head` to avoid FOUC
       if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {

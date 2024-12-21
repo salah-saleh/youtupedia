@@ -28,8 +28,13 @@
       <div class="flex items-center">
         <!-- Logo -->
         <div class="<%= local_assigns[:dashboard] ? 'lg:w-64' : '' %> flex items-center space-x-2">
-          <%= link_to root_path, class: "text-xl font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-2" do %>
-            Yt
+          <%= link_to root_path, class: "text-xl px-2 flex items-center group" do %>
+            <div class="relative flex items-center">
+              <span class="text-purple-600 dark:text-purple-400 text-4xl leading-none font-normal transform hover:scale-105 transition-all duration-300 font-['Pacifico']">Y</span>
+              <div class="flex items-center space-x-1 -ml-1">
+                <span class="text-purple-500 dark:text-purple-300 text-sm font-['Pacifico'] transform translate-y-1 rotate-3">.2si</span>
+              </div>
+            </div>
           <% end %>
 
           <% if local_assigns[:dashboard] %>

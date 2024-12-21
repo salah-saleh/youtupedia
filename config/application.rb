@@ -8,7 +8,7 @@ require_relative "../lib/logging"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-module Blog
+module Y2si
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
@@ -27,5 +27,12 @@ module Blog
     # config.eager_load_paths << Rails.root.join("extras")
     # config.autoload_paths += %W[#{config.root}/app/services/concerns]
     # config.autoload_paths += %W[#{config.root}/app/services]
+
+    # Enable Tailwind CSS processing
+    # By default, Rails uses a CSS compressor in production to minify CSS
+    # However, this can interfere with Tailwind's own CSS processing
+    # Setting it to nil ensures that Tailwind's JIT (Just-In-Time) compiler works correctly
+    # Without this, you might get CSS compilation errors in production or missing styles
+    config.assets.css_compressor = nil
   end
 end
