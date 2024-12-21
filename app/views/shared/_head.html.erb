@@ -2,6 +2,13 @@
   <title><%= content_for?(:title) ? yield(:title) : "Y2si" %></title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <%# Favicon settings %>
+  <%= favicon_link_tag 'y2si.png' %>
+  <link rel="apple-touch-icon" sizes="180x180" href="<%= asset_path 'y2si.png' %>">
+  <link rel="icon" type="image/png" sizes="32x32" href="<%= asset_path 'y2si.png' %>">
+  <link rel="icon" type="image/png" sizes="16x16" href="<%= asset_path 'y2si.png' %>">
+
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
   <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
