@@ -38,21 +38,22 @@ Rails.application.configure do
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
   config.log_tags = [ :request_id ]
 
-  # Set up main application logger
-  logger = Logger.new(STDOUT)
-  #   Logger.new(
-  #     Rails.root.join("log/production.log"),
-  #     "daily",
-  #     10.megabytes
-  #   )
-  logger.formatter = Logging::Formatter.new(colorize: false)
-  config.logger = ActiveSupport::TaggedLogging.new(logger)
+  config.logger = ActiveSupport::TaggedLogging.new(STDOUT)
+  config.logger.formatter = Logging::Formatter.new(colorize: true)
+
+  # Service-specific log levels
+  Mongoid.logger.level = Logger::WARN
+  Mongo::Logger.logger.level = Logger::ERROR
+  Google::Apis.logger.level = Logger::Severity::WARN
+  # Configure ActiveJob logging to be less verbose
+  ActiveJob::Base.logger = Logger.new(STDOUT)
+  ActiveJob::Base.logger.level = Logger::INFO
 
   # Prevent health checks from clogging up the logs
   config.silence_healthcheck_path = "/up"
 
-  # Don't log any deprecations.
-  config.active_support.report_deprecations = false
+    # Don't log any deprecations.
+    config.active_support.report_deprecations = false
 
   # MemCachier configuration for production (multi-server setup)
   config.cache_store = :mem_cache_store,
@@ -109,15 +110,4 @@ Rails.application.configure do
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
-
-  # Silence MongoDB logs in production
-  Mongoid.logger.level = Logger::WARN
-  Mongo::Logger.logger.level = Logger::ERROR
-
-  # Disable Google API client logging completely
-  Google::Apis.logger.level = Logger::Severity::WARN
-
-  # Configure ActiveJob logging to be less verbose
-  ActiveJob::Base.logger = Logger.new(STDOUT)
-  ActiveJob::Base.logger.level = Logger::INFO
 end
