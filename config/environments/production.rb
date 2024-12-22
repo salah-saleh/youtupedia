@@ -38,7 +38,7 @@ Rails.application.configure do
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
   config.log_tags = [ :request_id ]
 
-  config.logger = ActiveSupport::TaggedLogging.new(STDOUT)
+  config.logger = ActiveSupport::Logger.new(STDOUT)
   config.logger.formatter = Logging::Formatter.new(colorize: true)
 
   # Service-specific log levels
