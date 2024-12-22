@@ -35,16 +35,18 @@ Rails.application.configure do
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
   # Configure logging for production
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "debug")
+  config.log_level =  ENV.fetch("RAILS_LOG_LEVEL", "debug")
   config.log_tags = [ :request_id ]
 
+  # Set up main application logger
   config.logger = ActiveSupport::Logger.new(STDOUT)
-  config.logger.formatter = Logging::Formatter.new(colorize: true)
+  config.logger.formatter = Logging::Formatter.new(colorize: false)  # No colors for clean logs
 
   # Service-specific log levels
   Mongoid.logger.level = Logger::WARN
   Mongo::Logger.logger.level = Logger::ERROR
   Google::Apis.logger.level = Logger::Severity::WARN
+
   # Configure ActiveJob logging to be less verbose
   ActiveJob::Base.logger = Logger.new(STDOUT)
   ActiveJob::Base.logger.level = Logger::INFO

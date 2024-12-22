@@ -13,13 +13,11 @@ module Logging
     SEVERITY_WIDTH = 5
 
     def initialize(colorize: true)
-      puts "Initializing Logging::Formatter with colorize=#{colorize}"  # Debug line
       @colorize = colorize
       @tags = []
     end
 
     def call(severity, timestamp, progname, msg)
-      puts "Formatter#call called with: #{severity}, #{msg}"  # Debug line
       timestamp_str = format_timestamp(timestamp)
       severity_str = format_severity(severity)
       message_str = format_message(msg)
