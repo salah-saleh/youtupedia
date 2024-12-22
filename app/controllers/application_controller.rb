@@ -7,4 +7,17 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
   include Authentication
+
+  before_action :debug_logging
+
+  private
+
+  def debug_logging
+    log_debug "Request started", context: {
+      controller: controller_name,
+      action: action_name,
+      params: params.to_unsafe_h,
+      method: request.method
+    }
+  end
 end
