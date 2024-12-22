@@ -34,5 +34,15 @@ module Y2si
     # Setting it to nil ensures that Tailwind's JIT (Just-In-Time) compiler works correctly
     # Without this, you might get CSS compilation errors in production or missing styles
     config.assets.css_compressor = nil
+
+    # Force logger setup early
+    config.before_initialize do
+      puts "Setting up logger..."
+      logger = ActiveSupport::Logger.new(STDOUT)
+      logger.formatter = Logging::Formatter.new(colorize: true)
+      logger.level = :debug
+      config.logger = logger
+      Rails.logger = logger
+    end
   end
 end

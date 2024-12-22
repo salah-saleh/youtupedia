@@ -1,5 +1,5 @@
 module Logging
-  class Formatter
+  class Formatter < Logger::Formatter
     SEVERITY_COLORS = {
       "DEBUG" => "\e[34m", # Blue
       "INFO"  => "\e[32m", # Green
@@ -12,12 +12,14 @@ module Logging
     COMPONENT_WIDTH = 25
     SEVERITY_WIDTH = 5
 
-    def initialize(colorize: false)
+    def initialize(colorize: true)
+      puts "Initializing Logging::Formatter with colorize=#{colorize}"  # Debug line
       @colorize = colorize
       @tags = []
     end
 
     def call(severity, timestamp, progname, msg)
+      puts "Formatter#call called with: #{severity}, #{msg}"  # Debug line
       timestamp_str = format_timestamp(timestamp)
       severity_str = format_severity(severity)
       message_str = format_message(msg)
