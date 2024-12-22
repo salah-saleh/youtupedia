@@ -7,20 +7,25 @@ services:
       - "3000:3000"
     volumes:
       - .:/app
-      - bundle_cache:/usr/local/bundle
-      - node_modules:/app/node_modules
+      - bundle:/usr/local/bundle
+    env_file:
+      - .env
+    # override env_file with environment variables from docker-compose.yml
     environment:
+      - PYTHON_PATH=/usr/bin/python3
       - RAILS_ENV=development
       - POSTGRES_HOST=postgres
-      - MONGODB_URI=mongodb://mongodb:27017/yt_development
+      - MONGO_URL=mongodb://mongo:27017/yt_development
+      - MEMCACHED_URL=memcached:11211
     depends_on:
       - postgres
-      - mongodb
+      - mongo
+      - memcached
     networks:
       - app-network
 
   postgres:
-    image: postgres:14
+    image: postgres:latest
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -28,20 +33,24 @@ services:
     networks:
       - app-network
 
-  mongodb:
+  mongo:
     image: mongo:latest
     ports:
       - "27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - mongo_data:/data/db
     networks:
       - app-network
 
+  memcached:
+    image: memcached:latest
+    ports:
+      - "11211:11211"
+
 volumes:
   postgres_data:
-  mongodb_data:
-  bundle_cache:
-  node_modules:
+  mongo_data:
+  bundle:
 
 networks:
   app-network:

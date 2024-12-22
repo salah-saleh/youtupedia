@@ -64,10 +64,17 @@ group :test do
   gem "selenium-webdriver"
 end
 
+# Tailwind
 gem "tailwindcss-rails", "~> 3.0"
+# OpenAI
 gem "ruby-openai"
-gem "dotenv-rails", groups: [ :development, :test ]
+# Google API
 gem "google-apis-youtube_v3"
+# Markdown
 gem "redcarpet"
+# Postgres
 gem "pg"
-gem "mongoid"  # MongoDB ODM for Rails
+# MongoDB
+gem "mongoid"
+# Memcached
+gem "dalli"

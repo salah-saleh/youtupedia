@@ -14,7 +14,7 @@ module ApplicationHelper
     when @channel_name.present?
       @channel_name
     when params[:q].present? && current_page?(search_index_path)
-        params[:q]
+        "Search: #{params[:q]}"
     else
         controller_name
     end

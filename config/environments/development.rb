@@ -26,7 +26,17 @@ Rails.application.configure do
   end
 
   # Change to :null_store to avoid any caching.
-  config.cache_store = :memory_store
+  # config.cache_store = :memory_store
+  config.cache_store = :mem_cache_store,
+    ENV["MEMCACHED_URL"],
+    {
+      namespace: "y2si_dev",    # Prefix to avoid key collisions
+      compress: true,           # Compress data to save memory
+      failover: true,          # Try other servers if one fails
+      socket_timeout: 3.0,     # Time to wait for response
+      pool_size: 5,            # Number of connections to keep
+      expires_in: 1.day        # Default TTL for all keys
+    }
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local

@@ -67,7 +67,7 @@ module SearchableVideos
 
       # Step 1: Get video metadata
       metadata = metadata_cache.read(video_id)
-      unless metadata&.dig("success")
+      unless metadata&.dig(:success)
         log_debug "[Search] No metadata found for video: #{video_id}"
         next
       end
@@ -80,10 +80,10 @@ module SearchableVideos
       # Step 3: Construct final result with all metadata
       {
         video_id: video_id,
-        title: metadata.dig("metadata", "title"),
-        channel: metadata.dig("metadata", "channel_title"),
-        published_at: metadata.dig("metadata", "published_at"),
-        thumbnail: metadata.dig("metadata", "thumbnails", "high"),
+        title: metadata.dig(:metadata, :title),
+        channel: metadata.dig(:metadata, :channel_title),
+        published_at: metadata.dig(:metadata, :published_at),
+        thumbnail: metadata.dig(:metadata, :thumbnails, :high),
         score: result["score"] || 0,
         match_context: context
       }

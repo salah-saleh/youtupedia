@@ -54,8 +54,23 @@ Rails.application.configure do
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 
-  # Replace the default in-process memory cache store with a durable alternative.
-  # config.cache_store = :mem_cache_store
+  # MemCachier configuration for production (multi-server setup)
+  config.cache_store = :mem_cache_store,
+    ENV["MEMCACHIER_SERVERS"].split(","),  # Array of server addresses for distributed caching
+    {
+      # Authentication (required for MemCachier)
+      username: ENV["MEMCACHIER_USERNAME"],  # MemCachier credential
+      password: ENV["MEMCACHIER_PASSWORD"],  # MemCachier credential
+
+      # High Availability Settings
+      failover: true,              # If a server is down, try the next one
+      socket_timeout: 3.0,         # Seconds to wait for socket operations
+      socket_failure_delay: 0.2,   # Seconds to wait before retrying a failed connection
+      down_retry_delay: 60,        # Seconds to wait before retrying a down server
+
+      # Connection Management
+      pool_size: 5                 # Number of connections to maintain in the pool
+    }
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
   # config.active_job.queue_adapter = :resque

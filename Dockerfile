@@ -20,8 +20,10 @@ RUN apt-get update -qq && \
     libvips \
     sqlite3 \
     python3 \
-    python3-pip && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+    python3-pip \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install Python dependencies
 RUN pip3 install youtube-transcript-api requests

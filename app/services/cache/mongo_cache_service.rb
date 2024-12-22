@@ -1,18 +1,21 @@
 module Cache
-  # MongoDB implementation of the cache service with retry mechanism for resilience
-  # against temporary connection issues and network hiccups that are common with
-  # distributed databases.
+  # MongoDB-based cache implementation with retry mechanism
+  # Handles BSON document conversion and provides resilient caching operations
   class MongoCacheService < BaseCacheService
     # Include IndexableConcern first
     include IndexableConcern
     # Then include SearchableConcern which depends on it
     include SearchableConcern
 
-    # Maximum number of retry attempts for MongoDB operations
+    # Maximum retry attempts for MongoDB operations
     MAX_RETRIES = 3
-    # Delay between retries with exponential backoff (seconds)
+    # Delay between retries (seconds)
     RETRY_DELAY = 0.5
 
+    # Writes data to MongoDB cache
+    # @param key [String] Cache key
+    # @param data [Hash] Data to cache
+    # @return [Hash] Cached data
     def write(key, data)
       with_retry do
         log_debug "Writing data for key", key, context: { operation: :write }
@@ -29,12 +32,31 @@ module Cache
       raise
     end
 
+    # Reads data from MongoDB cache
+    # @param key [String] Cache key
+    # @return [Hash, nil] Cached data or nil if not found
     def read(key)
       log_debug "Reading key", key, context: { operation: :read }
       document = collection.find(_id: key).first
       if document
         log_debug "Found document for key", key, context: { operation: :read, found: true }
-        document&.dig("data")
+        data = document&.dig("data")
+        return nil unless data
+
+        begin
+          case data
+          when BSON::Document
+            data.to_h.deep_symbolize_keys
+          when Hash
+            data.symbolize_keys
+          else
+            log_warn "Unexpected data type", context: { type: data.class.name }
+            data
+          end
+        rescue => e
+          log_error "Data conversion error", context: { error: e.message }
+          nil
+        end
       else
         log_debug "No document found for key", key, context: { operation: :read, found: false }
         nil
@@ -44,6 +66,9 @@ module Cache
       raise
     end
 
+    # Checks if key exists in cache
+    # @param key [String] Cache key
+    # @return [Boolean] True if key exists
     def exist?(key)
       log_debug "Checking existence of key", key, context: { operation: :exist }
       exists = collection.find(_id: key).count > 0
@@ -75,6 +100,9 @@ module Cache
 
     private
 
+    # Gets or initializes MongoDB collection for caching
+    # Ensures collection exists and is properly configured
+    # @return [Mongo::Collection] MongoDB collection for caching
     def collection
       @collection ||= begin
         log_debug "Initializing collection", context: { namespace: namespace }
@@ -85,6 +113,11 @@ module Cache
       end
     end
 
+    # Executes block with retry mechanism for MongoDB operations
+    # Implements exponential backoff for retries
+    # @yield Block to execute with retry
+    # @raise [Mongo::Error] If max retries exceeded
+    # @return [Object] Result of the block
     def with_retry
       retries = 0
       begin

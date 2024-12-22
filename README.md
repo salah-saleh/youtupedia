@@ -100,6 +100,84 @@ docker-compose exec web rspec
 - Indexed search functionality
 - Efficient data retrieval system
 
+## Cache Setup
+
+The application uses Memcached for:
+- Job deduplication
+- Request rate limiting
+- Fragment caching
+- Session storage
+
+### Local Development
+
+#### Using Docker (Recommended)
+Memcached is automatically configured when using Docker:
+```bash
+docker-compose up
+```
+
+#### Manual Setup
+1. Install Memcached:
+```bash
+# macOS
+brew install memcached
+brew services start memcached
+
+# Ubuntu/Debian
+sudo apt-get install memcached
+sudo systemctl start memcached
+```
+
+2. Verify installation:
+```bash
+telnet localhost 11211
+```
+
+### Production Setup
+
+The app expects these environment variables:
+- `MEMCACHIER_SERVERS`: Comma-separated list of Memcached servers
+- `MEMCACHIER_USERNAME`: (Optional) Authentication username
+- `MEMCACHIER_PASSWORD`: (Optional) Authentication password
+
+#### Heroku Setup
+```bash
+heroku addons:create memcachier:dev
+```
+
+### Cache Configuration
+
+Development:
+```ruby
+# config/environments/development.rb
+config.cache_store = :mem_cache_store,
+  "localhost:11211",
+  {
+    namespace: "y2si_dev",
+    compress: true,
+    failover: true,
+    socket_timeout: 3.0,
+    pool_size: 5,
+    expires_in: 1.day
+  }
+```
+
+Production:
+```ruby
+# config/environments/production.rb
+config.cache_store = :mem_cache_store,
+  ENV["MEMCACHIER_SERVERS"].split(","),
+  {
+    username: ENV["MEMCACHIER_USERNAME"],
+    password: ENV["MEMCACHIER_PASSWORD"],
+    failover: true,
+    socket_timeout: 3.0,
+    socket_failure_delay: 0.2,
+    down_retry_delay: 60,
+    pool_size: 5
+  }
+```
+
 ## Contributing
 
 1. Fork the repository

@@ -47,11 +47,15 @@ module Cache
     # @param options [Hash] Additional search options
     # @return [Array<Hash>] Formatted search results
     def perform_text_search(query, options)
-      text_search = { "$text" => { "$search" => query } }
       projection = build_projection
+      # Combine text search with any additional filters
+      search_criteria = {
+        "$text" => { "$search" => query }
+      }
+      search_criteria.merge!(options[:filter]) if options[:filter]
 
       results = collection.find(
-        text_search,
+        search_criteria,
         {
           projection: projection
         }
@@ -61,7 +65,8 @@ module Cache
 
       log_debug "Text search results", context: {
         count: results.length,
-        scores: results.map { |r| r["score"] }
+        scores: results.map { |r| r["score"] },
+        criteria: search_criteria  # Log the full search criteria
       }
 
       format_search_results(results)
