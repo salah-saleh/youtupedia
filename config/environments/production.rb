@@ -35,7 +35,7 @@ Rails.application.configure do
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
   # Configure logging for production
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "debug")
   config.log_tags = [ :request_id ]
 
   config.logger = ActiveSupport::Logger.new(STDOUT)
