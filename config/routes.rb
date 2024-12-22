@@ -42,6 +42,4 @@ Rails.application.routes.draw do
       get :create_from_url
     end
   end
-
-  get "test/debug", to: "test#debug"
 end

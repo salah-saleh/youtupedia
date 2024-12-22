@@ -35,12 +35,11 @@ Rails.application.configure do
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
   # Configure logging for production
-  config.log_level = :debug  # Force debug level temporarily
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "debug")
   config.log_tags = [ :request_id ]
 
-  config.logger = ActiveSupport::Logger.new(STDOUT)
+  config.logger = ActiveSupport::TaggedLogging.new(STDOUT)
   config.logger.formatter = Logging::Formatter.new(colorize: true)
-  config.logger.level = :debug  # Explicitly set it again
 
   # Service-specific log levels
   Mongoid.logger.level = Logger::WARN
