@@ -78,3 +78,5 @@ gem "pg"
 gem "mongoid"
 # Memcached
 gem "dalli"
+# Load environment variables from .env file
+gem "dotenv-rails", groups: [ :development, :test ]
