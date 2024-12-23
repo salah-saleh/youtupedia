@@ -1,0 +1,11 @@
+<%# Base card component for consistent layout across the app
+    Usage:
+    render "shared/card", href: path, classes: "optional-extra-classes" do |card|
+      card.image { render "shared/image", ... }
+      card.content { content_here }
+    end
+%>
+
+<%= link_to href, class: "group block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow #{local_assigns[:classes]}" do %>
+  <%= yield if block_given? %>
+<% end %>

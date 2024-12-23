@@ -1,17 +1,8 @@
-<%# Usage: render "shared/image", src: image_url, alt: alt_text, aspect: "video|square", size: "sm|md|lg|full" %>
+<%# Usage: render "shared/image", src: image_url, alt: alt_text %>
 
-<%
-  # Get classes from helper methods using local_assigns
-  aspect_ratio_class = aspect_class(local_assigns[:aspect])
-  width_class = size_class(local_assigns[:size])
-%>
-
-<div class="<%= width_class %> bg-gray-100 dark:bg-gray-900 rounded">
-  <%# Use the modern aspect-ratio classes from Tailwind %>
-  <div class="relative w-full <%= aspect_ratio_class %>">
-    <%= image_tag src,
-          alt: local_assigns[:alt],
-          class: "absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-200",
-          loading: "lazy" %>
-  </div>
+<div class="relative pb-[56.25%] overflow-hidden">
+  <%= image_tag src,
+        alt: local_assigns[:alt],
+        class: "absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-200",
+        loading: "lazy" %>
 </div>

@@ -1,57 +1,21 @@
-<%# Usage: render "shared/video_card", video: video, highlight_terms: highlight_terms %>
-<%# used in search results page %>
+<%# Usage: render "shared/video_card", video: video %>
+<%# For regular video listings without search context %>
 
 <% if local_assigns[:loading] %>
-  <div class="block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-    <div class="aspect-w-16 aspect-h-9 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-    <div class="p-4">
-      <div class="space-y-3">
-        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-        <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-        <div class="flex items-center space-x-2">
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3"></div>
-          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <%= render "shared/card_skeleton" %>
 <% else %>
-  <%= link_to summary_path(video[:video_id]), class: "group block h-full", data: { turbo_frame: "_top" } do %>
-    <div class="flex flex-col h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200">
-      <%# Thumbnail %>
-      <div class="flex-shrink-0">
-        <%= render "shared/image",
-              src: video[:thumbnail],
-              alt: video[:title],
-              aspect: "video",
-              size: "full" %>
-      </div>
+  <%= render "shared/card", href: summary_path(video[:video_id]) do %>
+    <%= render "shared/image", src: video[:thumbnail], alt: video[:title] %>
 
-      <%# Content - Remove fixed height, use min-height instead %>
-      <div class="flex flex-col flex-grow p-4 min-h-[5.5rem]">
-        <%# Title - Keep line clamp but remove fixed height %>
-        <h3 class="font-medium text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200 line-clamp-2 mb-2">
-          <%= video[:title] %>
-        </h3>
+    <div class="p-4">
+      <h3 class="font-medium mb-2 line-clamp-2 text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+        <%= video[:title] %>
+      </h3>
 
-        <%# Meta info - Keep at bottom %>
-        <div class="mt-auto flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-2">
-          <span class="truncate"><%= video[:channel] %></span>
-          <span class="text-gray-400 dark:text-gray-600 shrink-0">•</span>
-          <span class="shrink-0"><%= time_ago_in_words(video[:published_at]) %> ago</span>
-        </div>
-
-        <%# Optional search context %>
-        <% if video[:match_context].present? && local_assigns[:highlight_terms].present? %>
-          <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-            <%= render "shared/truncate",
-                  text: highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200 dark:bg-yellow-600">\1</mark>'),
-                  lines: 2,
-                  size: "sm",
-                  class: "text-gray-600 dark:text-gray-400" %>
-          </div>
-        <% end %>
+      <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-2">
+        <span class="truncate"><%= video[:channel] %></span>
+        <span class="text-gray-400 dark:text-gray-600 shrink-0">•</span>
+        <span class="shrink-0"><%= time_ago_in_words(video[:published_at]) %> ago</span>
       </div>
     </div>
   <% end %>
