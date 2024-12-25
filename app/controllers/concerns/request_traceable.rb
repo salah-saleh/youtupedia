@@ -30,7 +30,7 @@ module RequestTraceable
   extend ActiveSupport::Concern
 
   included do
-    prepend_before_action :set_request_context
+    before_action :set_request_context
     prepend_around_action :tag_logs
     before_action :log_request_start
     after_action :log_request_completion
@@ -63,10 +63,13 @@ module RequestTraceable
   #
   # @return [void]
   def set_request_context
+    # First ensure we have a request ID in Current
+    Current.set_request_id(request)
+
     @request_context = {
-      request_id: request.request_id || SecureRandom.uuid,
+      request_id: Current.request_id,
       session_id: Current.session_id,
-      user_id: Current.user&.id,
+      user_id: Current.user&.id,  # This should now be set correctly after authentication
       ip: request.remote_ip,
       user_agent: request.user_agent,
       referer: request.referer,
@@ -81,11 +84,11 @@ module RequestTraceable
     Thread.current[:request_context] = @request_context
     @request_start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
-    # Set up tags for the logger
+    # Set up tags for the logger with the correct user ID
     Rails.logger.push_tags(
       "rid=#{@request_context[:request_id]}",
       "sid=#{@request_context[:session_id]}",
-      "uid=#{@request_context[:user_id]}",
+      "uid=#{@request_context[:user_id]}",  # This will now show the correct user ID
       "ip=#{@request_context[:ip]}"
     )
   end
@@ -129,5 +132,17 @@ module RequestTraceable
       status: response.status,
       content_type: response.content_type
     }
+  end
+
+  # We should also update the request context when authentication completes
+  def after_authentication
+    return unless @request_context
+
+    # Update the user ID in the request context
+    @request_context[:user_id] = Current.user&.id
+
+    # Update the logger tags with the new user ID
+    Rails.logger.tags.reject! { |tag| tag.start_with?("uid=") }
+    Rails.logger.push_tags("uid=#{@request_context[:user_id]}")
   end
 end

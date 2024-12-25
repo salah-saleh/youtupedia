@@ -15,7 +15,7 @@ module Authentication
   extend ActiveSupport::Concern
 
   included do
-    before_action :set_current_request_details
+    prepend_before_action :set_current_request_details
     before_action :authenticate_user!
     helper_method :user_signed_in?, :current_user
   end
@@ -25,6 +25,7 @@ module Authentication
   def set_current_request_details
     Current.session = authenticate_session
     Current.user = Current.session&.user
+    after_authentication if respond_to?(:after_authentication)
   end
 
   def authenticate_user!
