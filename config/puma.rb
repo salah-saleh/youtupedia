@@ -24,14 +24,15 @@
 # Any libraries that use a connection pool or another resource pool should
 # be configured to provide at least as many connections as the number of
 # threads. This includes Active Record's `pool` parameter in `database.yml`.
-threads_count = ENV.fetch("RAILS_MAX_THREADS", 3)
+workers Integer(ENV.fetch("WEB_CONCURRENCY", 2))
+threads_count = Integer(ENV.fetch("RAILS_MAX_THREADS", 5))
 threads threads_count, threads_count
 
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
 port ENV.fetch("PORT", 3000)
 
-# Allow puma to be restarted by `bin/rails restart` command.
-plugin :tmp_restart
+# Specifies the `environment` that Puma will run in.
+environment ENV.fetch("RAILS_ENV", "development")
 
 # Run the Solid Queue supervisor inside of Puma for single-server deployments
 plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
@@ -39,3 +40,25 @@ plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.
 # In other environments, only set the PID file if requested.
 pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
+
+# Allow puma to be restarted by `rails restart` command.
+plugin :tmp_restart
+
+# Heroku specific settings
+if ENV["RAILS_ENV"] == "production"
+  # Preload the application for better performance
+  preload_app!
+
+  # Before forking the application, disconnect from connected services
+  before_fork do
+    ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+  end
+
+  # After forking, reconnect to services
+  on_worker_boot do
+    ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+  end
+end
+
+# Increase worker timeout to prevent frequent restarts
+worker_timeout 3600 if ENV.fetch("RAILS_ENV", "development") == "development"

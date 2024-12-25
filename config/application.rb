@@ -18,6 +18,13 @@ module Y2si
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # Silence asset logging
+    config.assets.quiet = true
+
+    # Add lib to the autoload paths
+    config.autoload_paths << Rails.root.join("lib")
+
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
@@ -34,5 +41,22 @@ module Y2si
     # Setting it to nil ensures that Tailwind's JIT (Just-In-Time) compiler works correctly
     # Without this, you might get CSS compilation errors in production or missing styles
     config.assets.css_compressor = nil
+
+    # Add middleware to set Current attributes
+    config.middleware.use(
+      Class.new do
+        def initialize(app)
+          @app = app
+        end
+
+        def call(env)
+          request = ActionDispatch::Request.new(env)
+          Current.set_attributes(request)
+          @app.call(env)
+        ensure
+          Current.reset
+        end
+      end
+    )
   end
 end

@@ -1,6 +1,5 @@
 TODO BEFORE LAUNCH:
 - [ ] fix searching requiring a lock
-
 - [ ] load videos as a bulk for index endpoints/searches
 - [ ] refactor summaries show controller to use async to get transcript, after metadata to speed up the page load (refactor load_video_data)
 - [ ] more analytics on logged in users
@@ -20,3 +19,4 @@ TODO AFTER LAUNCH:
 - [ ] SSL certificate topic
 - [ ] rework landing page
 - [ ] look to the logs and optimize things based on analysis of composer
+- [ ] logs.rake do provide more analysis average per route, p95, p99, max,etc.

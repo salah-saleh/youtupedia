@@ -82,8 +82,6 @@ Rails.application.configure do
 
   # Configure logging for development
   config.log_level = :debug
-  config.logger = ActiveSupport::Logger.new(STDOUT)
-  config.logger.formatter = Logging::Formatter.new(colorize: true)
 
   # Only reduce MongoDB noise in development
   Mongoid.logger.level = Logger::INFO
@@ -95,4 +93,26 @@ Rails.application.configure do
   # Configure ActiveJob logging to be less verbose
   ActiveJob::Base.logger = Logger.new(STDOUT)
   ActiveJob::Base.logger.level = Logger::INFO
+
+  # Set up console logger with custom formatter
+  console_logger = ActiveSupport::Logger.new(STDOUT)
+  console_logger.formatter = Logging::Formatter.new(
+    colorize: true,   # Colors in console
+  )
+  console_logger = ActiveSupport::TaggedLogging.new(console_logger)
+
+  # Set up file logger with custom formatter
+  file_logger = ActiveSupport::Logger.new(Rails.root.join("log/#{Rails.env}.log"))
+  file_logger.formatter = Logging::Formatter.new(
+    colorize: false,  # No colors in file
+  )
+  file_logger = ActiveSupport::TaggedLogging.new(file_logger)
+
+  # Combine loggers and add tagging support
+  combined_logger = ActiveSupport::BroadcastLogger.new(file_logger, console_logger)
+  combined_logger.level = config.log_level || :debug
+
+  # Use the combined logger
+  Rails.logger = combined_logger
+  config.logger = combined_logger
 end
