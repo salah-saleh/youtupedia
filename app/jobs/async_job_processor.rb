@@ -42,7 +42,7 @@ class AsyncJobProcessor < ApplicationJob
     cache_service = Cache::CacheFactory.build(namespace)
     return if cache_service.exist?(key)
 
-    log_debug "Scheduling job", context: { service: service_class_name, key: key }
+    log_info "Scheduling job", context: { service: service_class_name, key: key }
     set(wait: 1.second).perform_later(service_class_name, key, *args)
   end
 
@@ -53,7 +53,7 @@ class AsyncJobProcessor < ApplicationJob
   # @param key [String] Key to store the result under
   # @param args [Array] Arguments to pass to perform
   def perform(service_class_name, key, *args)
-    log_debug "Processing job", context: { service: service_class_name, key: key }
+    log_info "Processing job", context: { service: service_class_name, key: key }
 
     # Create service instance and process task
     service_class = service_class_name.constantize
@@ -63,7 +63,7 @@ class AsyncJobProcessor < ApplicationJob
     namespace = service_class.name.demodulize.underscore.pluralize
     cache_service = Cache::CacheFactory.build(namespace)
 
-    log_debug "Caching result", context: {
+    log_info "Caching result", context: {
       service: service_class_name,
       key: key,
       namespace: namespace,

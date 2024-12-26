@@ -3,10 +3,10 @@ module Cache
     def self.build(namespace, type = default_type)
       case type.to_sym
       when :file
-        log_debug "Using FileCacheService", context: { namespace: namespace }
+        log_info "Using FileCacheService", context: { namespace: namespace }
         FileCacheService.new(namespace)
       when :mongo
-        log_debug "Using MongoCacheService", context: {
+        log_info "Using MongoCacheService", context: {
           namespace: namespace,
           uri: ENV["MONGODB_URI"].gsub(/:[^@]*@/, ":***@").first(20)
         }

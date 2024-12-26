@@ -14,13 +14,13 @@ class SummariesController < ApplicationController
     UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id)
 
     # Fetch or start async processing summary
-    result = Chat::ChatGptService.fetch_summary(
+    summary_data = Chat::ChatGptService.fetch_summary(
       @video_id,
       @transcript[:transcript_full],
       @metadata
     )
 
-    @summary = build_summary_data(@video_id, @metadata, @transcript, result)
+    @summary = build_summary_data(@video_id, @metadata, @transcript, summary_data)
   end
 
   def index

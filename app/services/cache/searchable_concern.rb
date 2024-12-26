@@ -17,7 +17,7 @@ module Cache
         raise "#{self.class.name} must include IndexableConcern for search functionality"
       end
 
-      log_debug "Performing text search", query, context: {
+      log_info "Performing text search", query, context: {
         operation: :search,
         namespace: namespace,
         options: options
@@ -63,7 +63,7 @@ module Cache
         { score: { "$meta" => "textScore" } }
       ).limit(10).to_a
 
-      log_debug "Text search results", context: {
+      log_info "Text search results", context: {
         count: results.length,
         scores: results.map { |r| r["score"] },
         criteria: search_criteria  # Log the full search criteria

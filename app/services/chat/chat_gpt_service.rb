@@ -11,7 +11,7 @@ module Chat
       # @return [Hash, nil] Summary data if cached, nil if processing started
       def fetch_summary(video_id, transcript, metadata)
         fetch_cached(video_id, expires_in: nil) do
-          log_debug "Starting async summary generation", context: { video_id: video_id }
+          log_info "Starting async summary generation", context: { video_id: video_id }
           start_async(video_id, transcript, metadata)
           nil
         end

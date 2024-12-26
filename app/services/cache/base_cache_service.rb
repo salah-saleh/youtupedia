@@ -2,7 +2,7 @@ module Cache
   class BaseCacheService
     def initialize(namespace)
       @namespace = namespace
-      log_debug "Initialized", context: { namespace: namespace }
+      log_info "Initialized", context: { namespace: namespace }
     end
 
     # Fetches data from cache or generates it using the provided block
@@ -13,22 +13,22 @@ module Cache
     # @yield Block to generate data if not in cache
     # @return [Hash] The cached or generated data
     def fetch(key, &block)
-      log_debug "Attempting to fetch", key
+      log_info "Attempting to fetch", key
 
       # Try to get from cache first
       if exist?(key)
-        log_debug "Cache hit", key
+        log_info "Cache hit", key
         cached_data = read(key)
 
         # If cached data represents a failure, clear it and try again
         if cached_data.is_a?(Hash) && cached_data[:success] == false
-          log_debug "Found failed result in cache, clearing", context: {
+          log_info "Found failed result in cache, clearing", context: {
             key: key,
             error: cached_data[:error]
           }
           delete(key)
         else
-          log_debug "Retrieved data", key
+          log_info "Retrieved data", key
           return cached_data
         end
       end
@@ -36,20 +36,20 @@ module Cache
       return unless block_given?
 
       # Execute the block to get fresh data
-      log_debug "Cache miss", key
+      log_info "Cache miss", key
       result = yield
 
       # Only cache successful results
       if result.is_a?(Hash) && result[:success]
-        log_debug "Caching successful result", context: { key: key }
+        log_info "Caching successful result", context: { key: key }
         write(key, result)
       elsif result.is_a?(Hash) && result[:error]
-        log_debug "Not caching failed result", context: {
+        log_info "Not caching failed result", context: {
           key: key,
           error: result[:error]
         }
       else
-        log_debug "Nothing to cache", context: {
+        log_info "Nothing to cache", context: {
           key: key,
           result: result
         }

@@ -35,7 +35,7 @@ module AsyncProcessable
     # @return [void]
     def start_async(key, *args)
       AsyncJobProcessor.schedule(name, key, *args)
-      log_debug "Started async job", context: { key: key, service: name }
+      log_info "Started async job", context: { key: key, service: name }
     end
 
     # Checks if async processing is complete and returns the result

@@ -43,7 +43,7 @@ module Youtube
       python_path = determine_python_path
       script_path = Rails.root.join("lib/python/youtube_transcript.py")
 
-      log_debug "Executing Python script", context: { video_id: video_id }
+      log_info "Executing Python script", context: { video_id: video_id }
       output = `#{python_path} #{script_path} #{video_id}`
 
       JSON.parse(output, symbolize_names: true)

@@ -23,13 +23,13 @@ module Cache
       begin
         return if text_index_exists?(text_fields)
 
-        log_debug "Creating text indexes", context: {
+        log_info "Creating text indexes", context: {
           namespace: namespace,
           fields: text_fields
         }
 
         create_text_index(text_fields)
-        log_debug "Successfully created text indexes"
+        log_info "Successfully created text indexes"
       rescue Mongo::Error::OperationFailure => e
         log_error "Failed to create text indexes", context: { error: e.message }
         raise

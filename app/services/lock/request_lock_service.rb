@@ -88,16 +88,16 @@ module Lock
       end
 
       begin
-        log_debug "Acquired lock", context: { user_id: user_id, action: action, timeout: timeout }
+        log_info "Acquired lock", context: { user_id: user_id, action: action, timeout: timeout }
         result = block.call
-        log_debug "Completed action", context: { user_id: user_id, action: action }
+        log_info "Completed action", context: { user_id: user_id, action: action }
         result
       ensure
         # Only release if we still own the lock (check token)
         # This prevents accidentally releasing a lock acquired by another request
         if cache.read(lock_key) == token
           cache.delete(lock_key)
-          log_debug "Released lock", context: { user_id: user_id, action: action }
+          log_info "Released lock", context: { user_id: user_id, action: action }
         end
       end
     end
@@ -119,7 +119,7 @@ module Lock
         raise ConcurrentRequestError, "Another action is in progress. Please wait."
       end
 
-      log_debug "Acquired lock", context: { user_id: user_id, action: action, timeout: timeout }
+      log_info "Acquired lock", context: { user_id: user_id, action: action, timeout: timeout }
       token
     end
 
@@ -129,7 +129,7 @@ module Lock
       lock_key = generate_lock_key(user_id, action)
       cache = Rails.cache
       cache.delete(lock_key)
-      log_debug "Released lock", context: { user_id: user_id, action: action }
+      log_info "Released lock", context: { user_id: user_id, action: action }
     end
 
     private

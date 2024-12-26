@@ -15,18 +15,18 @@ module SearchableVideos
   def search_videos(query)
     return [] if query.blank?
 
-    log_debug "[Search] Starting search for query: #{query}"
+    log_info "[Search] Starting search for query: #{query}"
 
     # Get user's video IDs for filtering results
     user_videos = UserServices::UserDataService.user_items(Current.user.id, :summaries)
     return [] if user_videos.empty?
 
-    log_debug "[Search] Found #{user_videos.size} videos for user"
+    log_info "[Search] Found #{user_videos.size} videos for user"
 
     # Search in summaries (GPT-generated content)
-    log_debug "[Search] Searching in summaries..."
+    log_info "[Search] Searching in summaries..."
     summary_results = search_in_collection(query, Chat::ChatGptService, user_videos)
-    log_debug "[Search] Found #{summary_results.size} summary results"
+    log_info "[Search] Found #{summary_results.size} summary results"
 
     # Process results to add metadata and context
     processed_results = process_search_results(summary_results, query)
@@ -63,19 +63,19 @@ module SearchableVideos
 
     results.map do |result|
       video_id = result["key"]
-      log_debug "[Search] Processing result for video: #{video_id}"
+      log_info "[Search] Processing result for video: #{video_id}"
 
       # Step 1: Get video metadata
       metadata = metadata_cache.read(video_id)
       unless metadata&.dig(:success)
-        log_debug "[Search] No metadata found for video: #{video_id}"
+        log_info "[Search] No metadata found for video: #{video_id}"
         next
       end
 
       # Step 2: Build search context with highlighted matches
       context = build_context(query, result["matched_fields"])
 
-      log_debug "[Search] Built context for video: #{video_id}"
+      log_info "[Search] Built context for video: #{video_id}"
 
       # Step 3: Construct final result with all metadata
       {

@@ -18,13 +18,13 @@ module Cache
     # @return [Hash] Cached data
     def write(key, data)
       with_retry do
-        log_debug "Writing data for key", key, context: { operation: :write }
+        log_info "Writing data for key", key, context: { operation: :write }
         collection.update_one(
           { _id: key },
           { '$set': { data: data } },
           upsert: true
         )
-        log_debug "Successfully wrote data for key", key, context: { operation: :write }
+        log_info "Successfully wrote data for key", key, context: { operation: :write }
         data
       end
     rescue => e
@@ -36,10 +36,10 @@ module Cache
     # @param key [String] Cache key
     # @return [Hash, nil] Cached data or nil if not found
     def read(key)
-      log_debug "Reading key", key, context: { operation: :read }
+      log_info "Reading key", key, context: { operation: :read }
       document = collection.find(_id: key).first
       if document
-        log_debug "Found document for key", key, context: { operation: :read, found: true }
+        log_info "Found document for key", key, context: { operation: :read, found: true }
         data = document&.dig("data")
         return nil unless data
 
@@ -58,7 +58,7 @@ module Cache
           nil
         end
       else
-        log_debug "No document found for key", key, context: { operation: :read, found: false }
+        log_info "No document found for key", key, context: { operation: :read, found: false }
         nil
       end
     rescue => e
@@ -70,9 +70,9 @@ module Cache
     # @param key [String] Cache key
     # @return [Boolean] True if key exists
     def exist?(key)
-      log_debug "Checking existence of key", key, context: { operation: :exist }
+      log_info "Checking existence of key", key, context: { operation: :exist }
       exists = collection.find(_id: key).count > 0
-      log_debug "Key existence result", key, context: { operation: :exist, exists: exists }
+      log_info "Key existence result", key, context: { operation: :exist, exists: exists }
       exists
     rescue => e
       log_error "Error checking key existence", key, context: { error: e.message }
@@ -80,18 +80,18 @@ module Cache
     end
 
     def delete(key)
-      log_debug "Deleting key", key, context: { operation: :delete }
+      log_info "Deleting key", key, context: { operation: :delete }
       result = collection.delete_one(_id: key)
-      log_debug "Deletion result", key, context: { operation: :delete, deleted_count: result.deleted_count }
+      log_info "Deletion result", key, context: { operation: :delete, deleted_count: result.deleted_count }
     rescue => e
       log_error "Error deleting key", key, context: { error: e.message }
       raise
     end
 
     def all_keys
-      log_debug "Fetching all keys", context: { operation: :all_keys }
+      log_info "Fetching all keys", context: { operation: :all_keys }
       keys = collection.find({}, { projection: { _id: 1 } }).map { |doc| doc[:_id] }
-      log_debug "Found keys", context: { operation: :all_keys, count: keys.length }
+      log_info "Found keys", context: { operation: :all_keys, count: keys.length }
       keys
     rescue => e
       log_error "Error fetching all keys", context: { error: e.message }
@@ -105,10 +105,10 @@ module Cache
     # @return [Mongo::Collection] MongoDB collection for caching
     def collection
       @collection ||= begin
-        log_debug "Initializing collection", context: { namespace: namespace }
+        log_info "Initializing collection", context: { namespace: namespace }
         client = Mongoid::Clients.default
         database = client.database
-        log_debug "Using database", database.name
+        log_info "Using database", database.name
         database[namespace]
       end
     end

@@ -85,12 +85,16 @@ module RequestTraceable
     @request_start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
     # Set up tags for the logger with the correct user ID
-    Rails.logger.push_tags(
-      "rid=#{@request_context[:request_id]}",
-      "sid=#{@request_context[:session_id]}",
-      "uid=#{@request_context[:user_id]}",  # This will now show the correct user ID
-      "ip=#{@request_context[:ip]}"
-    )
+    begin
+      Rails.logger.push_tags(
+        "rid=#{@request_context[:request_id]}",
+        "sid=#{@request_context[:session_id]}",
+        "uid=#{@request_context[:user_id]}",  # This will now show the correct user ID
+        "ip=#{@request_context[:ip]}"
+      )
+    rescue => e
+      nil
+    end
   end
 
   # Tags log entries with request context information.
@@ -102,8 +106,13 @@ module RequestTraceable
   def tag_logs
     yield
   ensure
-    Rails.logger.pop_tags if @request_context
-    Thread.current[:request_context] = nil
+    begin
+      Rails.logger.pop_tags if @request_context
+      Thread.current[:request_context] = nil
+    rescue => e
+      # Rails.logger.error "Error popping tags: #{e.message}"
+      nil
+    end
   end
 
   def log_request_start
@@ -143,6 +152,10 @@ module RequestTraceable
 
     # Update the logger tags with the new user ID
     Rails.logger.tags.reject! { |tag| tag.start_with?("uid=") }
-    Rails.logger.push_tags("uid=#{@request_context[:user_id]}")
+    begin
+      Rails.logger.push_tags("uid=#{@request_context[:user_id]}")
+    rescue => e
+      nil
+    end
   end
 end

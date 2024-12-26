@@ -22,7 +22,7 @@ module UserServices
       # @param item_id [String] The ID of the item to add
       # @return [Hash] The updated user data
       def add_item(user_id, type, item_id)
-        log_debug "Adding item", context: { user_id: user_id, type: type, item_id: item_id }
+        log_info "Adding item", context: { user_id: user_id, type: type, item_id: item_id }
 
         data = fetch_cached("user_#{user_id}") do
           default_data
@@ -30,7 +30,7 @@ module UserServices
         data[type] ||= []
 
         if data[type].include?(item_id)
-          log_debug "Item already exists", context: {
+          log_info "Item already exists", context: {
             user_id: user_id,
             type: type,
             item_id: item_id,
@@ -42,7 +42,7 @@ module UserServices
         data[type].unshift(item_id)
         cache_service.write("user_#{user_id}", data)
 
-        log_debug "Added new item", context: {
+        log_info "Added new item", context: {
           user_id: user_id,
           type: type,
           item_id: item_id,
@@ -53,7 +53,7 @@ module UserServices
       end
 
       def remove_item(user_id, type, item_id)
-        log_debug "Removing item", context: { user_id: user_id, type: type, item_id: item_id }
+        log_info "Removing item", context: { user_id: user_id, type: type, item_id: item_id }
 
         data = fetch_cached("user_#{user_id}") do
           default_data
@@ -62,18 +62,18 @@ module UserServices
         data[type]&.delete(item_id)
 
         cache_service.write("user_#{user_id}", data)
-        log_debug "Updated data", data
+        log_info "Updated data", data
       end
 
       def user_items(user_id, type)
-        log_debug "Fetching items", context: { user_id: user_id, type: type }
+        log_info "Fetching items", context: { user_id: user_id, type: type }
 
         data = fetch_cached("user_#{user_id}") do
           default_data
         end
         items = data[type] || []
 
-        log_debug "Found items", items
+        log_info "Found items", items
         items
       end
 

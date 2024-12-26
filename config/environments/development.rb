@@ -81,7 +81,7 @@ Rails.application.configure do
   # config.generators.apply_rubocop_autocorrect_after_generate!
 
   # Configure logging for development
-  config.log_level = :debug
+  config.log_level = :info
 
   # Only reduce MongoDB noise in development
   Mongoid.logger.level = Logger::INFO
@@ -99,7 +99,7 @@ Rails.application.configure do
   console_logger.formatter = Logging::Formatter.new(
     colorize: true,   # Colors in console
   )
-  console_logger = ActiveSupport::TaggedLogging.new(console_logger)
+  # console_logger = ActiveSupport::TaggedLogging.new(console_logger)
   console_logger.level = config.log_level
 
   # # Set up file logger with custom formatter
