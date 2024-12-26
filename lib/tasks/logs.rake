@@ -1,88 +1,40 @@
 # Log Analysis Tasks
 #
 # This file provides rake tasks for real-time log watching and analysis.
-# The analysis works independently of how logs are formatted for display
-# because it processes the underlying log data, not its presentation.
-#
-# Data Flow:
-# 1. Logs contain request context from RequestTraceable
-# 2. This data is stored in either JSON format or standard Rails log format
-# 3. The analysis parses both formats to extract meaningful data
-# 4. The formatter used to display logs doesn't affect this analysis
+# The analysis works with the standard Rails log format, parsing request IDs,
+# session IDs, and other context from the log lines.
 #
 # Available Tasks:
 # - rake logs:watch   - Watch and analyze logs in real-time
 # - rake logs:analyze - Analyze logs from a file
-# - rake logs:test    - Test log processing
 #
 # Environment Variables:
 # - DEBUG: Enable debug output
-# - HEROKU: Use Heroku logs instead of local
 # - LOG_FILE: Specify alternative log file
-# - LINES: Number of lines to analyze (Heroku only)
 namespace :logs do
   desc "Watch and analyze logs in real-time"
   task :watch do
-    require "json"
-
-    if ENV["HEROKU"]
-      watch_heroku_logs
-    else
-      watch_development_logs
-    end
+    watch_development_logs
   end
 
   desc "Analyze logs from a file"
   task :analyze do
-    require "json"
-
-    if ENV["HEROKU"]
-      analyze_heroku_logs
-    else
-      analyze_development_logs
-    end
+    analyze_development_logs
   end
 
-  desc "Test log processing"
-  task test: :environment do
-    stats = initialize_stats
-
-    # Sample log entries
-    sample_logs = [
-      'Started GET "/posts" for 127.0.0.1',
-      "Processing by PostsController#index as HTML",
-      "Completed 200 OK in 50ms"
-    ]
-
-    puts "Testing log processing..."
-    sample_logs.each do |line|
-      case line
-      when /Started/
-        process_rails_log_entry(line, stats)
-      when /Completed/
-        process_rails_completion(line, stats)
-      end
+  desc "Extract logs for a specific request ID"
+  task :request do
+    request_id = ENV["REQUEST_ID"]
+    if request_id.nil? || request_id.empty?
+      puts "Please provide a REQUEST_ID environment variable"
+      puts "Example: rake logs:request REQUEST_ID=abc-123"
+      exit 1
     end
 
-    puts "\nProcessing results:"
-    display_stats(stats)
+    extract_request_logs(request_id)
   end
 
   private
-
-  def watch_heroku_logs
-    puts "Watching Heroku logs..."
-    IO.popen("heroku logs --tail") do |io|
-      io.each do |line|
-        begin
-          entry = JSON.parse(line)
-          print_formatted_entry(entry)
-        rescue JSON::ParserError
-          print line # Print non-JSON logs as-is
-        end
-      end
-    end
-  end
 
   def watch_development_logs
     stats = initialize_stats
@@ -92,26 +44,7 @@ namespace :logs do
       File.open("log/development.log", "r") do |log|
         log.seek(0, IO::SEEK_END)
         loop do
-          while line = log.gets
-            puts "Got log line: #{line}" if ENV["DEBUG"]
-
-            begin
-              # Try parsing as JSON first
-              entry = JSON.parse(line)
-              process_entry(entry, stats)
-            rescue JSON::ParserError
-              # Handle Rails standard log format
-              case line
-              when /Started (\w+) "([^"]+)"/
-                puts "Found request: #{line}" if ENV["DEBUG"]
-                process_rails_log_entry(line, stats)
-              when /Completed (\d+)/
-                puts "Found completion: #{line}" if ENV["DEBUG"]
-                process_rails_completion(line, stats)
-              end
-            end
-          end
-
+          process_new_logs(log, stats)
           display_stats(stats)
           sleep 0.1
         end
@@ -122,318 +55,287 @@ namespace :logs do
     end
   end
 
-  def analyze_heroku_logs
-    puts "Analyzing Heroku logs..."
-    logs = `heroku logs -n #{ENV.fetch("LINES", 1000)}`
-    analyze_log_content(logs)
-  end
-
   def analyze_development_logs
     puts "Analyzing development logs..."
     log_file = ENV["LOG_FILE"] || "log/development.log"
-    analyze_log_content(File.read(log_file))
+    stats = initialize_stats
+
+    File.open(log_file, "r").each_line do |line|
+      process_log_line(line, stats)
+    end
+
+    puts "\nAnalysis Results:"
+    display_stats(stats)
   end
 
   def initialize_stats
     {
       requests: {},
+      pending_requests: {},
       errors: [],
       response_times: [],
-      start_time: Time.now
+      start_time: Time.now,
+      requests_by_controller: Hash.new(0),
+      avg_response_times: Hash.new { |h, k| h[k] = [] }
     }
   end
 
   def process_new_logs(log, stats)
     while line = log.gets
+      process_log_line(line, stats)
+    end
+  end
+
+  def process_log_line(line, stats)
+    puts "\nProcessing line: #{line}" if ENV["DEBUG"]
+
+    # Extract request_id if present
+    request_id = extract_request_id(line)
+    puts "  Found request_id: #{request_id}" if ENV["DEBUG"] && request_id
+
+    case line
+    when /Started (\w+) "([^"]+)" for/
+      method, path = $1, $2
+      puts "  Matched START: method=#{method}, path=#{path}" if ENV["DEBUG"]
+      process_request_start(method, path, stats)
+    when /Processing by (\w+)#(\w+) as (\w+)/
+      controller, action, format = $1, $2, $3
+      puts "  Matched PROCESSING: controller=#{controller}, action=#{action}" if ENV["DEBUG"]
+      process_controller_action(request_id, controller, action, format, stats)
+    when /\[(\w+)Controller\].*Request (started|completed).*\{(.+)\}/
+      controller, event, json_str = $1, $2, $3
       begin
-        # Try parsing as JSON first
-        entry = JSON.parse(line)
-        process_entry(entry, stats)
-      rescue JSON::ParserError
-        # Add debug output
-        puts "Processing standard log: #{line}" if ENV["DEBUG"]
+        # Parse the JSON-like string into a hash
+        data = json_str.split(",").map { |pair|
+          k, v = pair.split(":").map(&:strip)
+          [ k.delete('"{}'), v.to_s.delete('"{}') ]
+        }.to_h
 
-        # Handle standard Rails log formats
-        case line
-        when /Started (\w+) "([^"]+)"/
-          process_rails_log_entry(line, stats)
-        when /Completed (\d+)/
-          process_rails_completion(line, stats)
+        if event == "completed"
+          puts "  Matched CUSTOM COMPLETION: controller=#{controller}, duration=#{data['duration_ms']}, status=#{data['status']}" if ENV["DEBUG"]
+          process_request_completion(request_id, data["status"], data["duration_ms"], stats)
         end
+      rescue => e
+        puts "  Error parsing JSON-like string: #{e.message}" if ENV["DEBUG"]
+      end
+    when /ERROR/
+      puts "  Matched ERROR" if ENV["DEBUG"]
+      stats[:errors] << line
+    else
+      puts "  No match for line" if ENV["DEBUG"]
+    end
+  end
+
+  def extract_request_id(line)
+    if line =~ /rid=([^\s\]]+)/
+      $1
+    end
+  end
+
+  def process_request_start(method, path, stats)
+    return if path.start_with?("/assets/", "/packs/")
+
+    # Create a unique key for this request based on method and path
+    request_key = "#{method}:#{path}"
+    puts "  Starting request with key: #{request_key}" if ENV["DEBUG"]
+
+    # Create a new pending request
+    stats[:pending_requests][request_key] = {
+      path: path,
+      method: method,
+      start_time: Time.now,
+      controller: nil,
+      action: nil,
+      status: nil,
+      duration: nil,
+      request_id: nil
+    }
+  end
+
+  def process_controller_action(request_id, controller, action, format, stats)
+    request = find_request(request_id, controller, stats)
+    return unless request
+
+    puts "  Setting controller/action: #{controller}##{action}" if ENV["DEBUG"]
+    request[:controller] = controller
+    request[:action] = action
+    request[:format] = format
+    request[:request_id] = request_id if request_id
+
+    key = "#{controller}##{action}"
+    stats[:requests_by_controller][key] += 1
+    stats[:avg_response_times][key] ||= []
+  end
+
+  def process_request_completion(request_id, status, duration, stats)
+    request = find_request(request_id, nil, stats)
+    return unless request
+
+    # Skip if this request has already been completed
+    return if request[:status]
+
+    puts "  Completing request with status: #{status}, duration: #{duration}" if ENV["DEBUG"]
+    request[:status] = status.to_i
+    request[:duration] = duration.to_f
+
+    if request[:controller] && request[:action]
+      key = "#{request[:controller]}##{request[:action]}"
+      stats[:avg_response_times][key] << duration.to_f
+      puts "  Updated avg_response_times for #{key}: #{stats[:avg_response_times][key]}" if ENV["DEBUG"]
+    end
+
+    stats[:response_times] << duration.to_f
+    puts "  Updated response_times: #{stats[:response_times]}" if ENV["DEBUG"]
+
+    # Move from pending to completed
+    if request_id
+      key = stats[:pending_requests].keys.find { |k| stats[:pending_requests][k] == request }
+      if key
+        stats[:requests][request_id] = stats[:pending_requests].delete(key)
+      end
+    else
+      # Try to find by method/path if no request_id
+      key = stats[:pending_requests].keys.find { |k| stats[:pending_requests][k] == request }
+      if key
+        stats[:requests][key] = stats[:pending_requests].delete(key)
       end
     end
   end
 
-  # Processes both JSON-formatted and standard Rails logs.
-  # This flexibility allows the analysis to work regardless of:
-  # 1. The formatter used to display logs
-  # 2. The log format (JSON or standard Rails)
-  # 3. The presence or absence of specific fields in the display
-  #
-  # @param entry [String, Hash] The log entry to process
-  # @param stats [Hash] The statistics hash to update
-  def process_entry(entry, stats)
-    # Handle both string and parsed JSON input
-    entry = JSON.parse(entry) if entry.is_a?(String)
+  def find_request(request_id, controller, stats)
+    if request_id
+      # First try to find by request_id in pending requests
+      request = stats[:pending_requests].values.find { |r| r[:request_id] == request_id }
+      return request if request
 
-    # Skip if not a parseable log entry
-    return unless entry.is_a?(Hash)
-    return unless entry["request_id"] || entry["message"]&.include?("Started")
-
-    # Handle Rails default logs
-    if entry["message"]&.include?("Started")
-      match = entry["message"].match(/Started (\w+) "([^"]+)"/)
-      return unless match
-
-      request_id = SecureRandom.uuid # Generate ID for non-JSON logs
-      stats[:requests][request_id] ||= {
-        path: match[2],
-        method: match[1],
-        start_time: entry["timestamp"] || Time.now,
-        status: nil,
-        duration: nil
-      }
+      # Then try completed requests
+      request = stats[:requests][request_id]
+      return request if request
     end
 
-    # Handle JSON-formatted logs
-    if entry["request_id"]
-      stats[:requests][entry["request_id"]] ||= {
-        path: entry["path"],
-        method: entry["method"],
-        start_time: entry["timestamp"] ? Time.parse(entry["timestamp"]) : Time.now,
-        status: nil,
-        duration: nil
-      }
-
-      if entry["event"] == "request_completed"
-        request = stats[:requests][entry["request_id"]]
-        request[:status] = entry["status"]
-        request[:duration] = entry["duration_ms"]
-        stats[:response_times] << entry["duration_ms"] if entry["duration_ms"]
+    # If no request_id or not found by request_id, try to find by controller
+    if controller
+      stats[:pending_requests].values.find do |req|
+        !req[:controller] || req[:controller] == controller
       end
+    else
+      # If no controller specified, return the oldest pending request
+      stats[:pending_requests].values.first
     end
-
-    # Track errors regardless of format
-    if entry["level"] == "ERROR" || entry["message"]&.include?("ERROR")
-      stats[:errors] << entry
-    end
-  rescue => e
-    puts "Warning: Could not process log entry: #{e.message}"
-  end
-
-  # Processes standard Rails log format entries.
-  # This works independently of the formatter because it looks for
-  # specific patterns in the log content, not its display format.
-  #
-  # @param line [String] The log line to process
-  # @param stats [Hash] The statistics hash to update
-  def process_rails_log_entry(line, stats)
-    if match = line.match(/Started (\w+) "([^"]+)"/)
-      request_id = SecureRandom.uuid
-      method = match[1]
-      path = match[2]
-
-      puts "Processing request: #{method} #{path}" if ENV["DEBUG"]
-
-      # Skip asset requests in statistics
-      return if path.start_with?("/assets/", "/packs/")
-
-      stats[:requests][request_id] ||= {
-        path: path,
-        method: method,
-        start_time: Time.now,
-        status: nil,
-        duration: nil
-      }
-    end
-  rescue => e
-    puts "Warning: Could not process Rails log entry: #{line}"
-    puts "Error: #{e.message}"
-    puts e.backtrace if ENV["DEBUG"]
-  end
-
-  def process_rails_completion(line, stats)
-    if match = line.match(/Completed (\d+).*?in (\d+(?:\.\d+)?)ms/)
-      status = match[1].to_i
-      duration = match[2].to_f
-
-      puts "Processing completion: status=#{status}, duration=#{duration}" if ENV["DEBUG"]
-
-      # Find the most recent uncompleted request
-      request = stats[:requests].values.reverse.find { |r| r[:status].nil? }
-      if request
-        puts "Completing request: #{request[:method]} #{request[:path]} (#{status})" if ENV["DEBUG"]
-
-        request[:status] = status
-        request[:duration] = duration
-        stats[:response_times] << duration
-      else
-        puts "Warning: Found completion but no matching request" if ENV["DEBUG"]
-      end
-    end
-  rescue => e
-    puts "Warning: Could not process Rails completion: #{line}"
-    puts "Error: #{e.message}"
-    puts e.backtrace if ENV["DEBUG"]
-  end
-
-  def print_formatted_entry(entry)
-    color = case entry["level"]
-    when "ERROR" then "\e[31m" # red
-    when "WARN"  then "\e[33m" # yellow
-    when "INFO"  then "\e[32m" # green
-    else "\e[0m"               # default
-    end
-    puts "#{color}[#{entry['timestamp']}] #{entry['level']}: #{entry['message']}\e[0m"
   end
 
   def display_stats(stats)
-    print "\e[H\e[2J" # Clear screen
-    print_summary(stats)
-    print_recent_requests(stats)
-    print_recent_errors(stats)
-  end
+    # Only clear the screen if we're not in debug mode
+    system("clear") || system("cls") unless ENV["DEBUG"]
 
-  def print_summary(stats)
-    total_requests = stats[:requests].count
-    completed_requests = stats[:requests].count { |_, r| r[:status] }
-    error_count = stats[:errors].count
-    avg_response = stats[:response_times].empty? ? 0 : stats[:response_times].sum / stats[:response_times].size
+    puts "\n----------------------------------------"
+    puts "Log Analysis Statistics"
+    puts "======================"
+    puts
+    puts "Total Requests: #{stats[:requests].size}"
+    puts "Pending Requests: #{stats[:pending_requests].size}"
+    puts "Error Count: #{stats[:errors].size}"
 
-    puts "=== Live Log Analysis ==="
-    puts "Running for: #{(Time.now - stats[:start_time]).to_i}s"
-    puts "\nSummary:"
-    puts "  Total Requests: #{total_requests}"
-    puts "  Completed: #{completed_requests}"
-    puts "  Pending: #{total_requests - completed_requests}"
-    puts "  Errors: #{error_count}"
-    puts "  Avg Response: #{avg_response.round(2)}ms"
-
-    # Add status code breakdown with proper sorting
-    if completed_requests > 0
-      puts "\nStatus Codes:"
-      status_counts = stats[:requests].values
-                                    .map { |r| r[:status] }
-                                    .compact
-                                    .group_by(&:itself)
-                                    .transform_values(&:count)
-                                    .sort_by { |status, _| status.to_i }
-                                    .to_h
-
-      status_counts.each do |status, count|
-        color = case status.to_i
-        when 200..299 then "\e[32m" # green
-        when 400..499 then "\e[33m" # yellow
-        when 500..599 then "\e[31m" # red
-        else "\e[0m"
-        end
-        puts "    #{color}#{status}: #{count}\e[0m"
-      end
-    end
-  end
-
-  def print_recent_requests(stats)
-    puts "\nRecent Requests:"
-    stats[:requests].to_a.last(5).each do |_, req|
-      status_color = case req[:status]
-      when 200..299 then "\e[32m" # green
-      when 400..499 then "\e[33m" # yellow
-      when 500..599 then "\e[31m" # red
-      else "\e[0m"
-      end
-      puts "  #{status_color}#{req[:method]} #{req[:path]} - #{req[:status]} (#{req[:duration]}ms)\e[0m"
-    end
-  end
-
-  def print_recent_errors(stats)
-    return unless stats[:errors].any?
-
-    puts "\nRecent Errors:"
-    stats[:errors].last(3).each do |error|
-      puts "  \e[31m[#{error['timestamp']}] #{error['message']}\e[0m"
-    end
-  end
-
-  def analyze_log_content(content)
-    stats = initialize_stats
-
-    content.each_line do |line|
-      # Skip empty lines and asset requests
-      next if line.strip.empty?
-      next if line.include?("/assets/") || line.include?("/packs/")
-
-      puts "Processing line: #{line}" if ENV["DEBUG"]
-
-      begin
-        # Try parsing as JSON first
-        entry = JSON.parse(line)
-        process_entry(entry, stats)
-      rescue JSON::ParserError
-        # Handle Rails standard log format
-        case line
-        when /Started (\w+) "([^"]+)"/
-          puts "Found request: #{line}" if ENV["DEBUG"]
-          process_rails_log_entry(line, stats)
-        when /Completed (\d+)/
-          puts "Found completion: #{line}" if ENV["DEBUG"]
-          process_rails_completion(line, stats)
-        end
-      end
+    if stats[:response_times].any?
+      avg_time = stats[:response_times].sum / stats[:response_times].size
+      puts "Average Response Time: #{avg_time.round(2)}ms"
+      puts "Response Time Range: #{stats[:response_times].min.round(2)}ms - #{stats[:response_times].max.round(2)}ms"
     end
 
-    print_analysis_results(stats)
-  end
-
-  def print_analysis_results(stats)
-    # Print final analysis
-    puts "\nLog Analysis Results:"
-    print_summary(stats)
-
-    if stats[:requests].any?
-      puts "\nTop 5 Slowest Requests:"
-      stats[:requests]
-        .sort_by { |_, r| -(r[:duration] || 0) }
-        .first(5)
-        .each do |_, req|
-          next unless req[:duration] # Skip requests without duration
-          status_color = case req[:status]
-          when 200..299 then "\e[32m" # green
-          when 400..499 then "\e[33m" # yellow
-          when 500..599 then "\e[31m" # red
-          else "\e[0m"
-          end
-          puts "  #{status_color}#{req[:method]} #{req[:path]} - #{req[:status]} (#{req[:duration]}ms)\e[0m"
-        end
-
-      # Print path statistics
-      puts "\nPath Statistics:"
-      path_stats = stats[:requests]
-        .group_by { |_, r| r[:path] }
-        .transform_values do |reqs|
-          completed_reqs = reqs.select { |_, r| r[:duration] }
-          durations = completed_reqs.map { |_, r| r[:duration] }
-          {
-            count: reqs.size,
-            completed: completed_reqs.size,
-            avg_duration: durations.empty? ? 0 : durations.sum / durations.size,
-            error_count: reqs.count { |_, r| r[:status].to_i >= 400 }
-          }
-        end
-
-      path_stats.sort_by { |_, v| -v[:count] }.first(10).each do |path, stat|
-        puts "  #{path}:"
-        puts "    Total Requests: #{stat[:count]}"
-        puts "    Completed: #{stat[:completed]}"
-        puts "    Avg Duration: #{stat[:avg_duration].round(2)}ms"
-        puts "    Errors: #{stat[:error_count]}"
-      end
+    puts "\nTop Controllers:"
+    stats[:requests_by_controller].sort_by { |_, v| -v }.first(5).each do |controller, count|
+      avg_time = stats[:avg_response_times][controller].sum / stats[:avg_response_times][controller].size rescue 0
+      min_time = stats[:avg_response_times][controller].min rescue 0
+      max_time = stats[:avg_response_times][controller].max rescue 0
+      puts "  #{controller}: #{count} requests (avg: #{avg_time.round(2)}ms, range: #{min_time.round(2)}ms - #{max_time.round(2)}ms)"
     end
 
     if stats[:errors].any?
-      puts "\nAll Errors:"
-      stats[:errors].each do |error|
-        puts "  \e[31m[#{error['timestamp']}] #{error['message']}\e[0m"
+      puts "\nRecent Errors:"
+      stats[:errors].last(3).each do |error|
+        puts "  #{error.strip}"
       end
     end
+
+    puts "\nRecent Requests:"
+    completed_requests = stats[:requests].values.select { |r| r[:status] }.sort_by { |r| r[:start_time] }.last(5)
+    completed_requests.each do |req|
+      status_color = req[:status] == 200 ? "\e[32m" : "\e[31m"
+      duration_str = req[:duration] ? "(#{req[:duration].round(2)}ms)" : ""
+      controller_action = req[:controller] && req[:action] ? " [#{req[:controller]}##{req[:action]}]" : ""
+      puts "  #{req[:method]} #{req[:path]}#{controller_action} - #{status_color}#{req[:status]}\e[0m #{duration_str}"
+    end
+
+    if stats[:pending_requests].any?
+      puts "\nPending Requests:"
+      stats[:pending_requests].each do |key, req|
+        elapsed = ((Time.now - req[:start_time]) * 1000).round(2)
+        controller_action = req[:controller] && req[:action] ? " [#{req[:controller]}##{req[:action]}]" : ""
+        puts "  #{req[:method]} #{req[:path]}#{controller_action} (#{elapsed}ms elapsed)"
+      end
+    end
+    puts "----------------------------------------\n"
+  end
+
+  def extract_request_logs(request_id)
+    puts "Extracting logs for request ID: #{request_id}"
+    puts "----------------------------------------\n"
+
+    log_file = ENV["LOG_FILE"] || "log/development.log"
+    found_lines = []
+
+    File.open(log_file, "r").each_line do |line|
+      if line.include?(request_id)
+        found_lines << line.strip
+      end
+    end
+
+    if found_lines.empty?
+      puts "No logs found for request ID: #{request_id}"
+      return
+    end
+
+    # Group logs by severity
+    severity_groups = {
+      "DEBUG" => [],
+      "INFO" => [],
+      "WARN" => [],
+      "ERROR" => [],
+      "FATAL" => []
+    }
+
+    found_lines.each do |line|
+      severity = line.split(" | ")[1]&.strip || "INFO"
+      severity_groups[severity] ||= []
+      severity_groups[severity] << line
+    end
+
+    # Print summary
+    total_lines = found_lines.size
+    puts "Found #{total_lines} log entries\n\n"
+    severity_groups.each do |severity, lines|
+      next if lines.empty?
+      percentage = ((lines.size.to_f / total_lines) * 100).round(1)
+      puts "#{severity}: #{lines.size} lines (#{percentage}%)"
+    end
+    puts "\n----------------------------------------\n"
+
+    # Print logs grouped by severity
+    severity_groups.each do |severity, lines|
+      next if lines.empty?
+      puts "\n#{severity} Logs:"
+      puts "============\n"
+      lines.each do |line|
+        # Extract timestamp and message
+        parts = line.split(" | ")
+        timestamp = parts[0]
+        message = parts[2..-1]&.join(" | ")
+
+        # Format the output
+        puts "#{timestamp.strip}"
+        puts "  #{message.strip}"
+      end
+    end
+    puts "\n----------------------------------------"
   end
 end

@@ -36,11 +36,6 @@ Rails.application.configure do
 
   # Configure logging for production
   config.log_level =  ENV.fetch("RAILS_LOG_LEVEL", "debug")
-  config.log_tags = [ :request_id ]
-
-  # Set up main application logger
-  config.logger = ActiveSupport::Logger.new(STDOUT)
-  config.logger.formatter = Logging::Formatter.new(colorize: false)  # No colors for clean logs
 
   # Service-specific log levels
   Mongoid.logger.level = Logger::WARN
@@ -50,6 +45,17 @@ Rails.application.configure do
   # Configure ActiveJob logging to be less verbose
   ActiveJob::Base.logger = Logger.new(STDOUT)
   ActiveJob::Base.logger.level = Logger::INFO
+
+  # Set up console logger with custom formatter
+  console_logger = ActiveSupport::Logger.new(STDOUT)
+  console_logger.formatter = Logging::Formatter.new(
+    colorize: false,   # No colors in console for heroku production
+  )
+  console_logger = ActiveSupport::TaggedLogging.new(console_logger)
+  console_logger.level = config.log_level
+
+  Rails.logger = console_logger
+  config.logger = console_logger
 
   # Prevent health checks from clogging up the logs
   config.silence_healthcheck_path = "/up"

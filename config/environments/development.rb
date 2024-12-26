@@ -100,19 +100,20 @@ Rails.application.configure do
     colorize: true,   # Colors in console
   )
   console_logger = ActiveSupport::TaggedLogging.new(console_logger)
+  console_logger.level = config.log_level
 
-  # Set up file logger with custom formatter
-  file_logger = ActiveSupport::Logger.new(Rails.root.join("log/#{Rails.env}.log"))
-  file_logger.formatter = Logging::Formatter.new(
-    colorize: false,  # No colors in file
-  )
-  file_logger = ActiveSupport::TaggedLogging.new(file_logger)
+  # # Set up file logger with custom formatter
+  # file_logger = ActiveSupport::Logger.new(Rails.root.join("log/#{Rails.env}.log"))
+  # file_logger.formatter = Logging::Formatter.new(
+  #   colorize: false,  # No colors in file
+  # )
+  # file_logger = ActiveSupport::TaggedLogging.new(file_logger)
 
-  # Combine loggers and add tagging support
-  combined_logger = ActiveSupport::BroadcastLogger.new(file_logger, console_logger)
-  combined_logger.level = config.log_level || :debug
+  # # Combine loggers and add tagging support
+  # combined_logger = ActiveSupport::BroadcastLogger.new(file_logger, console_logger)
+  # combined_logger.level = config.log_level
 
   # Use the combined logger
-  Rails.logger = combined_logger
-  config.logger = combined_logger
+  Rails.logger = console_logger
+  config.logger = console_logger
 end
