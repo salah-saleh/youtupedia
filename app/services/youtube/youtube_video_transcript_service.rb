@@ -2,36 +2,38 @@ module Youtube
   # Service for fetching and processing YouTube video transcripts
   # Uses Python script for transcript extraction and provides both segmented and full versions
   class YoutubeVideoTranscriptService < YoutubeBaseService
-    # Fetches both segmented and full transcripts for a video
-    # @param video_id [String] YouTube video ID
-    # @return [Hash] Contains both segmented and full transcripts
-    #   @option [Array<Hash>] :transcript_segmented Time-stamped transcript segments
-    #   @option [String] :transcript_full Combined transcript with timestamps
-    #   @option [Boolean] :success Operation status
-    #   @option [String] :error Error message if failed
-    def self.fetch_transcript(video_id)
-      segmented_result = fetch_cached(video_id, namespace: default_cache_namespace + "_segmented", expires_in: nil) do
-        fetch_from_python(video_id)
-      end
+    include AsyncProcessable
+    include Cacheable
 
-      unless segmented_result[:success]
-        return {
-          success: false,
-          error: segmented_result[:error]
+    class << self
+      def fetch_transcript(video_id)
+        fetch_cached(video_id, namespace: default_cache_namespace, expires_in: nil)
+      end
+    end
+
+    def process_task(video_id)
+      begin
+        # Get segmented transcript from Python
+        segmented_result = self.class.fetch_from_python(video_id)
+
+        unless segmented_result[:success]
+          return {
+            success: false,
+            error: segmented_result[:error]
+          }
+        end
+
+        # Create full transcript
+        full_result = self.class.create_full_transcript(segmented_result[:transcript])
+
+        {
+          success: true,
+          transcript_segmented: segmented_result[:transcript],
+          transcript_full: full_result[:transcript]
         }
+      rescue => e
+        handle_error(e, "Transcript Error")
       end
-
-      full_result = fetch_cached(video_id, namespace: default_cache_namespace + "_full", expires_in: nil) do
-        create_full_transcript(segmented_result[:transcript])
-      end
-
-      {
-        success: true,
-        transcript_segmented: segmented_result[:transcript],
-        transcript_full: full_result[:transcript]
-      }
-    rescue => e
-      handle_error(e, "Transcript Error")
     end
 
     private

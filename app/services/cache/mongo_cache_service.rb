@@ -105,7 +105,6 @@ module Cache
     # @return [Mongo::Collection] MongoDB collection for caching
     def collection
       @collection ||= begin
-        log_info "Initializing collection", context: { namespace: namespace }
         client = Mongoid::Clients.default
         database = client.database
         log_info "Using database", database.name

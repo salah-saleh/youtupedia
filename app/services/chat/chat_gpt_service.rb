@@ -4,26 +4,14 @@ module Chat
     include Cacheable
 
     class << self
-      # Fetches summary from cache or starts async processing if not available
+      # Fetches summary from cache
       # @param video_id [String] The YouTube video ID
-      # @param transcript [String] The video transcript
-      # @param metadata [Hash] The video metadata
       # @return [Hash, nil] Summary data if cached, nil if processing started
-      def fetch_summary(video_id, transcript, metadata)
-        fetch_cached(video_id, expires_in: nil) do
-          log_info "Starting async summary generation", context: { video_id: video_id }
-          start_async(video_id, transcript, metadata)
-          nil
-        end
+      def fetch_summary(video_id)
+        fetch_cached(video_id, expires_in: nil)
       end
 
       def answer_question(video_id, question, transcript, metadata)
-        generate_answer(video_id, question, transcript, metadata)
-      end
-
-      private
-
-      def generate_answer(video_id, question, transcript, metadata)
         client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
         thread_data = Chat::ChatThreadService.create_or_load_thread(video_id)
 
@@ -117,7 +105,7 @@ module Chat
     # @param transcript [String] The video transcript
     # @param metadata [Hash] The video metadata
     # @return [Hash] Summary data or error message
-    def process_task(transcript, metadata)
+    def process_task(video_id, transcript, metadata)
       return { success: false, error: "Video is too short" } if transcript.length < 100
 
       client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
@@ -143,18 +131,18 @@ module Chat
       return { success: false, error: "No content received" } unless content
 
       begin
-        result = JSON.parse(content)
+        result = JSON.parse(content, symbolize_names: true)
 
-        unless result["tldr"] && result["takeaways"] && result["tags"] && result["summary"]
+        unless result[:tldr] && result[:takeaways] && result[:tags] && result[:summary]
           return { success: false, error: "Missing required fields in response" }
         end
 
         {
           success: true,
-          tldr: result["tldr"],
-          takeaways: result["takeaways"],
-          tags: result["tags"],
-          summary: result["summary"]
+          tldr: result[:tldr],
+          takeaways: result[:takeaways],
+          tags: result[:tags],
+          summary: result[:summary]
         }
       rescue JSON::ParserError => e
         log_error "JSON parsing error", context: {

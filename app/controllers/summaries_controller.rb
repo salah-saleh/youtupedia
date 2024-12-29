@@ -2,8 +2,6 @@ class SummariesController < ApplicationController
   include YoutubeUrlHelper
   include SummaryDataHelper
 
-  before_action :load_video_data, only: [ :show, :ask_gpt ]
-
   def create_from_url
     video_id = extract_video_id(params[:youtube_url])
     return redirect_to root_path, alert: "Invalid YouTube URL" unless video_id
@@ -11,16 +9,22 @@ class SummariesController < ApplicationController
   end
 
   def show
-    UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id)
+    @video_id = params[:id]
+    @metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(@video_id)
+    return redirect_to root_path, alert: "This video is not possible to summarize. #{@metadata[:error]}" unless @metadata[:success]
 
-    # Fetch or start async processing summary
-    summary_data = Chat::ChatGptService.fetch_summary(
-      @video_id,
-      @transcript[:transcript_full],
-      @metadata
-    )
+    # Try to get existing data from cache
+    @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id)
+    @summary = Chat::ChatGptService.fetch_summary(@video_id)
 
-    @summary = build_summary_data(@video_id, @metadata, @transcript, summary_data)
+    # If no data exists, start the job
+    if !@transcript || !@summary
+      SummaryJob.schedule(@video_id)
+      UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id)
+    end
+
+    # Build summary data
+    @summary_data = build_summary_data(@video_id, @metadata, @transcript, @summary)
   end
 
   def index
@@ -44,7 +48,11 @@ class SummariesController < ApplicationController
 
   def check_status
     video_id = params[:id]
-    result = Chat::ChatGptService.fetch_result(video_id)
+    transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
+    summary = Chat::ChatGptService.fetch_summary(video_id)
+    metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
+
+    result = build_summary_data(video_id, metadata, transcript, summary)
 
     respond_to do |format|
       format.json { render json: build_status_response(result) }
@@ -54,7 +62,11 @@ class SummariesController < ApplicationController
 
   def ask_gpt
     question = params[:question]
-    result = Chat::ChatGptService.answer_question(@video_id, question, @transcript[:transcript_full], @metadata)
+    video_id = params[:id]
+    transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
+    metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
+
+    result = Chat::ChatGptService.answer_question(video_id, question, transcript[:transcript_full], metadata)
 
     if result[:success]
       render json: { success: true, answer: result[:answer] }
@@ -65,58 +77,20 @@ class SummariesController < ApplicationController
 
   private
 
-  def load_video_data
-    @video_id = params[:id]
-    @metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(@video_id)
-    return redirect_to root_path, alert: "This video is not possible to summarize. #{@metadata[:error].first(100)}" unless @metadata[:success]
-
-    @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id)
-    unless @transcript[:success]
-      log_error "Failed to fetch transcript", context: {
-        video_id: @video_id,
-        error: @transcript[:error]
-      }
-      redirect_to root_path, alert: "No transcript available for this video. #{@transcript[:error].first(100)}"
-    end
-  end
-
   def build_status_response(result)
-    if result
-      if result[:success]
-        { status: "completed", summary: result }
-      else
-        { status: "failed", error: result[:error] }
-      end
-    else
+    if result[:loading]
       { status: "processing" }
+    else
+      if result[:error]
+        { status: "failed", error: result[:error] }
+      else
+        { status: "completed", summary: result }
+      end
     end
   end
 
   def render_status_stream(frame_id, result)
-    summary_data = if result
-      if result[:success]
-        result.merge(loading: false)
-      else
-        {
-          loading: false,
-          error: result[:error],
-          tldr: "Oops! #{result[:error]}",
-          takeaways: [],
-          tags: [],
-          summary: ""
-        }
-      end
-    else
-      {
-        loading: true,
-        tldr: "",
-        takeaways: [],
-        tags: [],
-        summary: ""
-      }
-    end
-
     partial_name = frame_id == "summary" ? "summary_detail_section" : "#{frame_id}_section"
-    render turbo_stream: turbo_stream.update(frame_id, partial: partial_name, locals: { summary: summary_data })
+    render turbo_stream: turbo_stream.update(frame_id, partial: partial_name, locals: { summary: result })
   end
 end

@@ -2,38 +2,40 @@
 
 <div class="space-y-8"
      data-controller="youtube summary-loader"
-     data-youtube-video-id-value="<%= @summary[:video_id] %>"
-     data-summary-loader-video-id-value="<%= @summary[:video_id] %>"
-     data-summary-loader-loading-value="<%= @summary[:loading] %>">
+     data-youtube-video-id-value="<%= @summary_data[:video_id] %>"
+     data-summary-loader-video-id-value="<%= @summary_data[:video_id] %>"
+     data-summary-loader-loading-value="<%= @summary_data[:loading] %>">
 
   <!-- Video Header -->
-  <%= render "video_header", summary: @summary %>
+  <%= render "video_header", summary: @summary_data %>
 
   <!-- Main Content -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Left Column -->
     <div class="space-y-6">
-      <%= render "rating_section", summary: @summary %>
+      <%= render "rating_section", summary: @summary_data unless true %>
       <div data-summary-loader-target="tldr">
-        <%= render "tldr_section", summary: @summary %>
+        <%= render "tldr_section", summary: @summary_data %>
       </div>
       <div data-summary-loader-target="takeaways">
-        <%= render "takeaways_section", summary: @summary %>
+        <%= render "takeaways_section", summary: @summary_data unless @summary_data[:error] %>
       </div>
       <div data-summary-loader-target="summary">
-        <%= render "summary_detail_section", summary: @summary %>
+        <%= render "summary_detail_section", summary: @summary_data unless @summary_data[:error] %>
       </div>
     </div>
 
     <!-- Right Column -->
     <div class="space-y-6">
       <%= render "player_section" %>
-      <%= render "navigation_buttons" %>
-      <%= render "transcript_section", transcript: @summary[:transcript] %>
-      <div data-summary-loader-target="tags">
-        <%= render "tags_section", summary: @summary %>
+      <%= render "navigation_buttons" unless true %>
+      <div data-summary-loader-target="transcript">
+        <%= render "transcript_section", summary: @summary_data unless @summary_data[:error] %>
       </div>
-      <%= render "chat_section", summary: @summary %>
+      <div data-summary-loader-target="tags">
+        <%= render "tags_section", summary: @summary_data unless @summary_data[:error] %>
+      </div>
+      <%= render "chat_section", summary: @summary_data unless @summary_data[:loading] || @summary_data[:error] %>
     </div>
   </div>
 </div>
