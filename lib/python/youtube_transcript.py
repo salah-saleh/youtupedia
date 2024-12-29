@@ -50,19 +50,15 @@ def get_transcript_with_retry(video_id, max_retries=3, initial_delay=1):
 
         except Exception as e:
             last_error = str(e)
+            if "Could not retrieve a transcript for the video" in str(e):
+                return {
+                    'success': False,
+                    'error': 'Could not retrieve a transcript for the video.'
+                }
             if attempt < max_retries - 1:
                 # Calculate delay with exponential backoff and jitter
                 delay = initial_delay * (2 ** attempt) + uniform(0, 0.1)
-                print(json.dumps({
-                    'success': False,
-                    'error': f"Attempt {attempt + 1} failed: {str(e)}. Retrying in {delay:.1f} seconds..."
-                }), file=sys.stderr)
                 time.sleep(delay)
-            else:
-                print(json.dumps({
-                    'success': False,
-                    'error': f"All {max_retries} attempts failed. Last error: {str(e)}"
-                }), file=sys.stderr)
 
     return {
         'success': False,

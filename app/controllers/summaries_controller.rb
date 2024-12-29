@@ -17,9 +17,8 @@ class SummariesController < ApplicationController
     @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id)
     @summary = Chat::ChatGptService.fetch_summary(@video_id)
 
-    # If no data exists, start the job
-    if !@transcript || !@summary
-      SummaryJob.schedule(@video_id)
+    # If no data exists, try to schedule a job
+    if (!@transcript || !@summary) && SummaryJob.schedule(@video_id)
       UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id)
     end
 

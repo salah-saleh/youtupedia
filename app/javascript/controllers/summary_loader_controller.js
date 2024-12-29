@@ -6,8 +6,8 @@ export default class extends Controller {
   static values = {
     videoId: String,
     loading: Boolean,
-    interval: { type: Number, default: 3000 },
-    maxAttempts: { type: Number, default: 20 }
+    interval: { type: Number, default: 5000 },
+    maxAttempts: { type: Number, default: 12 }
   }
 
   connect() {
