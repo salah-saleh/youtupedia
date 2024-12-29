@@ -10,15 +10,14 @@ class SummaryJob < ApplicationJob
     # Then get transcript
     transcript = Youtube::YoutubeVideoTranscriptService.new.process_task(video_id)
 
-    # Cache the transcript result
-    cache_service = Cache::CacheFactory.build(Youtube::YoutubeVideoTranscriptService.name.demodulize.underscore.pluralize)
-    cache_service.write(video_id, transcript)
+    # Cache the transcript result atomically
+    Youtube::YoutubeVideoTranscriptService.write_cached(video_id, transcript, expires_in: nil)
     return transcript unless transcript[:success]
 
     # Finally generate summary
     result = Chat::ChatGptService.new.process_task(video_id, transcript[:transcript_full], metadata)
-    # Cache the summary result
-    cache_service = Cache::CacheFactory.build(Chat::ChatGptService.name.demodulize.underscore.pluralize)
-    cache_service.write(video_id, result)
+
+    # Cache the summary result atomically
+    Chat::ChatGptService.write_cached(video_id, result, expires_in: nil)
   end
 end

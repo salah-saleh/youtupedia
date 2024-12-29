@@ -4,6 +4,48 @@ module Cacheable
   extend ActiveSupport::Concern
 
   class_methods do
+    # Writes data to both Memcached and MongoDB atomically
+    # Ensures data consistency across cache layers
+    #
+    # Logic flow:
+    # 1. Write to MongoDB first (persistent storage)
+    #    ├── Success: Continue to Memcached
+    #    └── Failure: Return error result
+    #
+    # 2. Write to Memcached
+    #    ├── Success: Return success result
+    #    └── Failure: Return success (data is still in MongoDB)
+    #
+    # @param key [String] Cache key
+    # @param data [Hash] Data to cache (must include :success key)
+    # @param namespace [String, nil] Optional namespace for cache isolation
+    # @param expires_in [Integer, nil] Cache TTL (nil for no expiration)
+    # @return [Hash] Operation result with success status
+    def write_cached(key, data, namespace: nil, expires_in: 1.second)
+      return { success: false, error: "Invalid data format" } unless data.is_a?(Hash) && !data[:success].nil?
+
+      cache_namespace = namespace || default_cache_namespace
+      memcache_key = "#{cache_namespace}_#{key}"
+
+      begin
+        # Write to MongoDB first
+        cache = cache_service(cache_namespace)
+        cache.write(key, data)
+
+        # Then cache in Memcached
+        Rails.cache.write(memcache_key, data, expires_in: expires_in)
+        data
+      rescue => e
+        log_error "Cache write error", context: {
+          error: e.message,
+          backtrace: e.backtrace&.first(5),
+          key: key,
+          namespace: cache_namespace
+        }
+        { success: false, error: "Cache write error: #{e.message}" }
+      end
+    end
+
     # Fetches data from cache or generates it using provided block
     # Uses Memcached for fast access and MongoDB for persistent storage
     #

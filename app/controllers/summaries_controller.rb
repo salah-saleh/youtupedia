@@ -15,7 +15,8 @@ class SummariesController < ApplicationController
 
     # Try to get existing data from cache
     @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id)
-    @summary = Chat::ChatGptService.fetch_summary(@video_id)
+    # Only fetch summary if we have a successful transcript
+    @summary = @transcript&.dig(:success) ? Chat::ChatGptService.fetch_summary(@video_id) : nil
 
     # If no data exists, try to schedule a job
     if (!@transcript || !@summary) && SummaryJob.schedule(@video_id)
@@ -28,28 +29,33 @@ class SummariesController < ApplicationController
 
   def index
     video_ids = UserServices::UserDataService.user_items(Current.user.id, :summaries)
-    @summaries = video_ids.map do |video_id|
-      metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
+    return @summaries = [] if video_ids.empty?
+
+    # Fetch all metadata in one batch
+    metadata_results = Youtube::YoutubeVideoMetadataService.fetch_metadata_batch(video_ids)
+
+    @summaries = metadata_results.map do |video_id, metadata|
+      next unless metadata[:success]
+
       published_at = metadata[:metadata][:published_at]
       published_at = published_at.is_a?(String) ? DateTime.parse(published_at) : published_at
 
-      if metadata[:success]
-        {
-          video_id: video_id,
-          title: metadata[:metadata][:title],
-          channel: metadata[:metadata][:channel_title],
-          published_at: published_at,
-          thumbnail: metadata[:metadata][:thumbnails][:high]
-        }
-      end
+      {
+        video_id: video_id,
+        title: metadata[:metadata][:title],
+        channel: metadata[:metadata][:channel_title],
+        published_at: published_at,
+        thumbnail: metadata[:metadata][:thumbnails][:high]
+      }
     end.compact
   end
 
   def check_status
     video_id = params[:id]
-    transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
-    summary = Chat::ChatGptService.fetch_summary(video_id)
     metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
+    transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
+    # Only fetch summary if we have a successful transcript
+    summary = transcript&.dig(:success) ? Chat::ChatGptService.fetch_summary(video_id) : nil
 
     result = build_summary_data(video_id, metadata, transcript, summary)
 
