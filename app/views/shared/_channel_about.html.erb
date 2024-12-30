@@ -9,9 +9,9 @@
 
     <div class="mt-6">
       <div class="flex items-start gap-x-6 mb-6">
-        <% if channel[:thumbnail].present? %>
+        <% if channel[:thumbnail_url].present? %>
           <div class="flex-shrink-0">
-            <%= image_tag channel[:thumbnail], class: "h-24 w-24 rounded-full", alt: "#{channel[:title]} thumbnail" %>
+            <%= image_tag channel[:thumbnail_url], class: "h-24 w-24 rounded-full", alt: "#{channel[:title]} thumbnail" %>
           </div>
         <% end %>
         <div class="flex-grow">

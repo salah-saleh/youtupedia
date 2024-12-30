@@ -30,7 +30,10 @@
                        turbo:before-fetch-response->loading#stopLoading">
         <%= form_with(**local_assigns.except(:title, :subtitle, :form_classes),
                       class: "flex flex-col sm:flex-row items-start gap-3 #{local_assigns[:form_classes]}",
-                      data: { loading_target: "form" }) do |f| %>
+                      data: {
+                        loading_target: "form",
+                        turbo: local_assigns[:turbo] == false ? false : true
+                      }) do |f| %>
           <%= yield(f) %>
         <% end %>
       </div>

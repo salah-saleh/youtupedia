@@ -51,7 +51,6 @@ module Youtube
 
         response = youtube_client.list_channels("snippet,statistics", id: channel_id)
         channel = response.items.first
-
         {
           success: true,
           channel_id: channel.id,
@@ -60,7 +59,8 @@ module Youtube
           description: channel.snippet.description,
           thumbnail_url: channel.snippet.thumbnails.high.url,
           subscriber_count: channel.statistics&.subscriber_count,
-          video_count: channel.statistics&.video_count
+          video_count: channel.statistics&.video_count,
+          view_count: channel.statistics&.view_count
         }
       rescue => e
         handle_youtube_error(e)

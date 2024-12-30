@@ -5,6 +5,7 @@
         title: "Add Channel",
         url: parse_youtube_url_path,
         method: :post,
+        turbo: false,
         form_classes: "flex-col sm:flex-row items-start gap-3" do |f| %>
     <%= render "shared/form_components/url_input",
           form: f,

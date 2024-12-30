@@ -1,9 +1,10 @@
 TODO BEFORE LAUNCH:
+- [ ] check adding a channel in the summarize search and visa versa
 - [ ] check channels/show summaries/index and revise they are optimized
 - [ ] fix search
-- [ ] add pagination to all other pages
+- [ ] fix pagination to align to write on small screen
+- [ ] add pagination to search
 - [ ] reorganize index and show views into folders
-- [ ] search channel/summaries videos and paginate results
 - [ ] more analytics on logged in users
 - [ ] admin and active users
 - [ ] mongo db indexes

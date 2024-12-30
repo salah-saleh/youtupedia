@@ -14,6 +14,8 @@ class ChannelsController < ApplicationController
       redirect_to channels_path and return
     end
 
+    UserServices::UserDataService.add_item(Current.user.id, :channels, @channel_name)
+
     # Get the current page token from params
     @current_token = params[:page_token]
     @per_page = 9 # YouTube API returns 9 videos per page
@@ -41,14 +43,12 @@ class ChannelsController < ApplicationController
       format.turbo_stream do
         render turbo_stream: turbo_stream.update(
           "channel_videos_content",
-          partial: "channels/content",
+          partial: "shared/video_grid",
           locals: {
-            channel: @channel,
+            title: "Channel Videos",
             videos: @videos,
-            page: @page,
-            total_pages: @total_pages,
-            next_token: @next_token,
-            prev_token: @prev_token,
+            path: channel_path(@channel_name),
+            empty_message: "No videos found for this channel",
             youtube_pagination: true
           }
         )
@@ -60,6 +60,9 @@ class ChannelsController < ApplicationController
     channel_name = Youtube::YoutubeChannelService.extract_channel_name(params[:channel_url])
     return redirect_to channels_path, alert: "Invalid YouTube URL" unless channel_name
 
-    redirect_to channel_path(channel_name, channel_url: params[:channel_url])
+    respond_to do |format|
+      format.html { redirect_to channel_path(channel_name, channel_url: params[:channel_url]) }
+      format.turbo_stream { redirect_to channel_path(channel_name, channel_url: params[:channel_url]) }
+    end
   end
 end

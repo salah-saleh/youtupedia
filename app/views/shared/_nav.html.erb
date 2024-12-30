@@ -58,7 +58,7 @@
       <% if local_assigns[:dashboard] %>
         <!-- Center - Search Bar -->
         <div class="hidden sm:flex flex-1 justify-center max-w-3xl mx-4">
-          <%= form_with url: parse_youtube_url_path, method: :post, class: "w-full max-w-2xl relative" do |f| %>
+          <%= form_with url: parse_youtube_url_path, method: :post, class: "w-full max-w-2xl relative", data: { turbo: false } do |f| %>
             <%= f.text_field :url,
                 placeholder: "Enter YouTube URL or Search Keywords...",
                 class: "w-full px-4 py-2 pr-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800" %>
@@ -134,7 +134,7 @@
     <!-- Mobile search bar -->
     <% if local_assigns[:dashboard] %>
       <div class="sm:hidden py-2 hidden" data-search-toggle-target="form">
-        <%= form_with url: parse_youtube_url_path, method: :post, class: "relative" do |f| %>
+        <%= form_with url: parse_youtube_url_path, method: :post, class: "relative", data: { turbo: false } do |f| %>
           <%= f.text_field :url,
               placeholder: "Enter YouTube URL or Search Keywords...",
               class: "w-full px-4 py-2 pr-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800" %>
