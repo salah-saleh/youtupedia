@@ -1,6 +1,7 @@
 class SummariesController < ApplicationController
   include YoutubeUrlHelper
   include SummaryDataHelper
+  include Paginatable
 
   def create_from_url
     video_id = extract_video_id(params[:youtube_url])
@@ -31,8 +32,11 @@ class SummariesController < ApplicationController
     video_ids = UserServices::UserDataService.user_items(Current.user.id, :summaries)
     return @summaries = [] if video_ids.empty?
 
+    # Apply pagination to video_ids
+    paginated_video_ids = paginate(video_ids, per_page: 2)
+
     # Fetch all metadata in one batch
-    metadata_results = Youtube::YoutubeVideoMetadataService.fetch_metadata_batch(video_ids)
+    metadata_results = Youtube::YoutubeVideoMetadataService.fetch_metadata_batch(paginated_video_ids)
 
     @summaries = metadata_results.map do |video_id, metadata|
       next unless metadata[:success]
@@ -48,6 +52,8 @@ class SummariesController < ApplicationController
         thumbnail: metadata[:metadata][:thumbnails][:high]
       }
     end.compact
+
+    respond_with_pagination(turbo_frame_id: "summaries_content") { "summaries/content" }
   end
 
   def check_status

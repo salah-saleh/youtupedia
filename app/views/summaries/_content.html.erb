@@ -1,0 +1,26 @@
+<%= render "shared/page_header",
+      title: "Your Summaries",
+      subtitle: pluralize(@summaries&.length, "summary") do %>
+  <% if @summaries.any? %>
+    <%= render "shared/grid" do %>
+      <% @summaries.each do |summary| %>
+        <%= render "shared/video_card", video: summary %>
+      <% end %>
+    <% end %>
+
+    <%# Pagination %>
+    <% if @total_pages > 1 %>
+      <div class="mt-8">
+        <%= render "shared/pagination",
+              current_page: @page,
+              total_pages: @total_pages,
+              path: summaries_path,
+              class_names: "pt-6" %>
+      </div>
+    <% end %>
+  <% else %>
+    <%= render "shared/empty_state",
+          message: "No summaries yet. Add your first video above!",
+          icon: :video %>
+  <% end %>
+<% end %>

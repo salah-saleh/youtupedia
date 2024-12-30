@@ -1,38 +1,28 @@
 <%# Summaries Index %>
-<div class="space-y-6">
+<div>
   <%# Quick Summary Section %>
-  <%= render "shared/form_section",
-        title: "Quick Summary",
-        url: parse_youtube_url_path,
-        method: :post,
-        form_classes: "flex-col sm:flex-row items-start gap-3" do |f| %>
-    <%= render "shared/form_components/url_input",
-          form: f,
-          field: :url,
-          placeholder: "Enter YouTube video URL...",
-          required: true %>
+  <div class="mb-6">
+    <%= render "shared/form_section",
+          title: "Quick Summary",
+          url: parse_youtube_url_path,
+          method: :post,
+          form_classes: "flex-col sm:flex-row items-start gap-3" do |f| %>
+      <%= render "shared/form_components/url_input",
+            form: f,
+            field: :url,
+            placeholder: "Enter YouTube video URL...",
+            required: true %>
 
-    <%= render "shared/form_components/button",
-          text: "Summarize",
-          type: "submit",
-          variant: :primary,
-          size: :lg %>
-  <% end %>
+      <%= render "shared/form_components/button",
+            text: "Summarize",
+            type: "submit",
+            variant: :primary,
+            size: :lg %>
+    <% end %>
+  </div>
 
   <%# Summaries Grid %>
-  <%= render "shared/page_header",
-        title: "Your Summaries",
-        subtitle: pluralize(@summaries&.length, "summary") do %>
-    <% if @summaries.any? %>
-      <%= render "shared/grid" do %>
-        <% @summaries.each do |summary| %>
-          <%= render "shared/video_card", video: summary %>
-        <% end %>
-      <% end %>
-    <% else %>
-      <%= render "shared/empty_state",
-            message: "No summaries yet. Add your first video above!",
-            icon: :video %>
-    <% end %>
+  <%= turbo_frame_tag "summaries_content", data: { turbo_action: "advance" } do %>
+    <%= render "summaries/content" %>
   <% end %>
 </div>

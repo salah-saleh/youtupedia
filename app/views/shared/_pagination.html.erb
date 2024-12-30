@@ -1,0 +1,97 @@
+<%# Pagination component that can be reused across the application %>
+<%# Required local variables: %>
+<%# - current_page: Current page number %>
+<%# - total_pages: Total number of pages %>
+<%# - path: Base path for pagination links %>
+<%# Optional local variables: %>
+<%# - params: Additional params to preserve in pagination links (default: {}) %>
+<%# - class_names: Additional CSS classes for the pagination container (default: '') %>
+
+<%
+  params ||= {}
+  class_names ||= ''
+  show_pages = 5  # Number of page numbers to show
+  start_page = [1, current_page - (show_pages / 2)].max
+  end_page = [start_page + show_pages - 1, total_pages].min
+  start_page = [1, end_page - show_pages + 1].max if end_page - start_page < show_pages
+  show_start_ellipsis = start_page > 1
+  show_end_ellipsis = end_page < total_pages
+%>
+
+<nav class="flex items-center justify-between border-t border-gray-200 dark:border-gray-600 px-4 sm:px-0 <%= class_names %>" aria-label="Pagination">
+  <div class="hidden sm:block">
+    <p class="text-sm text-gray-700 dark:text-gray-300">
+      Showing page <span class="font-medium"><%= current_page %></span> of <span class="font-medium"><%= total_pages %></span>
+    </p>
+  </div>
+
+  <div class="flex flex-1 justify-between sm:justify-end gap-x-3">
+    <div class="flex gap-x-2">
+      <%# First page button %>
+      <% if current_page > 1 %>
+        <%= link_to summaries_path(page: 1), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-2 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", title: "First page", data: { turbo_frame: "summaries_content", turbo_action: "advance" } do %>
+          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M15.79 14.77a.75.75 0 01-1.06.02L10.232 10l4.938-3.71a.75.75 0 111.04 1.08l-3.57 3.37 3.57 3.37a.75.75 0 01-.02 1.06zm-6 0a.75.75 0 01-1.06.02L4.232 10l4.938-3.71a.75.75 0 111.04 1.08L6.64 10l3.57 3.37a.75.75 0 01-.02 1.06z" clip-rule="evenodd" />
+          </svg>
+        <% end %>
+      <% end %>
+
+      <%# Previous page button %>
+      <% if current_page > 1 %>
+        <%= link_to summaries_path(page: current_page - 1), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", data: { turbo_frame: "summaries_content", turbo_action: "advance" } do %>
+          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+          </svg>
+          Previous
+        <% end %>
+      <% end %>
+    </div>
+
+    <%# Page numbers %>
+    <div class="hidden sm:flex gap-x-2">
+      <%# Start ellipsis %>
+      <% if show_start_ellipsis %>
+        <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">...</span>
+      <% end %>
+
+      <%# Page numbers %>
+      <% (start_page..end_page).each do |page| %>
+        <% if page == current_page %>
+          <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md">
+            <%= page %>
+          </span>
+        <% else %>
+          <%= link_to summaries_path(page: page), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", data: { turbo_frame: "summaries_content", turbo_action: "advance" } do %>
+            <%= page %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <%# End ellipsis %>
+      <% if show_end_ellipsis %>
+        <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">...</span>
+      <% end %>
+    </div>
+
+    <div class="flex gap-x-2">
+      <%# Next page button %>
+      <% if current_page < total_pages %>
+        <%= link_to summaries_path(page: current_page + 1), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", data: { turbo_frame: "summaries_content", turbo_action: "advance" } do %>
+          Next
+          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+          </svg>
+        <% end %>
+      <% end %>
+
+      <%# Last page button %>
+      <% if current_page < total_pages %>
+        <%= link_to summaries_path(page: total_pages), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-2 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", title: "Last page", data: { turbo_frame: "summaries_content", turbo_action: "advance" } do %>
+          <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.21 14.77a.75.75 0 01.02-1.06L8.168 10 4.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02zm6 0a.75.75 0 01.02-1.06L14.168 10 10.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+          </svg>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</nav>
