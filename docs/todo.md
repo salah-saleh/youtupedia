@@ -1,6 +1,6 @@
 TODO BEFORE LAUNCH:
+- [ ] check channels/show summaries/index and revise they are optimized
 - [ ] fix search
-- [ ] fix channels page
 - [ ] add pagination to all other pages
 - [ ] reorganize index and show views into folders
 - [ ] search channel/summaries videos and paginate results

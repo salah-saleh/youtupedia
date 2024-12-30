@@ -6,6 +6,11 @@
     Optional local variables:
     - subtitle: String for the section subtitle (defaults to video count)
     - empty_message: String for empty state message
+    - youtube_pagination: Boolean to indicate if using YouTube API pagination (default: false)
+%>
+
+<%
+  youtube_pagination = local_assigns.fetch(:youtube_pagination, false)
 %>
 
 <%= render "shared/page_header",
@@ -18,13 +23,16 @@
       <% end %>
     <% end %>
 
-    <%# Pagination %>
-    <% if @total_pages > 1 %>
+    <%# Pagination - support both standard and YouTube pagination %>
+    <% if (youtube_pagination && (@next_token.present? || @prev_token.present?)) || (!youtube_pagination && @total_pages > 1) %>
       <div class="mt-3">
         <%= render "shared/pagination",
               current_page: @page,
               total_pages: @total_pages,
-              path: path %>
+              path: path,
+              next_token: @next_token,
+              prev_token: @prev_token,
+              youtube_pagination: youtube_pagination %>
       </div>
     <% end %>
   <% else %>

@@ -6,6 +6,6 @@
     end
 %>
 
-<%= link_to href, class: "group block overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow #{local_assigns[:class_names]}", data: local_assigns[:link_data] do %>
+<%= link_to href, class: "group block overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-900 shadow-sm hover:shadow-md transition-shadow #{local_assigns[:class_names]}", data: local_assigns[:link_data] do %>
   <%= yield %>
 <% end %>

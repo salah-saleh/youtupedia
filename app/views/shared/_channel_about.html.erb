@@ -1,0 +1,48 @@
+<%# Channel about section with metadata %>
+<section class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+  <div class="px-4 py-5 sm:p-6">
+    <div class="sm:flex sm:items-center">
+      <div class="sm:flex-auto">
+        <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">About Channel</h1>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <div class="flex items-start gap-x-6 mb-6">
+        <% if channel[:thumbnail].present? %>
+          <div class="flex-shrink-0">
+            <%= image_tag channel[:thumbnail], class: "h-24 w-24 rounded-full", alt: "#{channel[:title]} thumbnail" %>
+          </div>
+        <% end %>
+        <div class="flex-grow">
+          <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+            <div class="sm:col-span-1">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Channel name</dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= channel[:title] %></dd>
+            </div>
+
+            <div class="sm:col-span-1">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Subscribers</dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= number_with_delimiter(channel[:subscriber_count]) %></dd>
+            </div>
+
+            <div class="sm:col-span-1">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Total videos</dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= number_with_delimiter(channel[:video_count]) %></dd>
+            </div>
+
+            <div class="sm:col-span-1">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Total views</dt>
+              <dd class="mt-1 text-sm text-gray-900 dark:text-white"><%= number_with_delimiter(channel[:view_count] || 0) %></dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Description</dt>
+        <dd class="mt-2 text-sm text-gray-900 dark:text-white whitespace-pre-wrap"><%= channel[:description] %></dd>
+      </div>
+    </div>
+  </div>
+</section>

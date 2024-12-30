@@ -20,14 +20,15 @@ module Youtube
       end
     end
 
-    # Fetches recent videos from a channel
+    # Fetches videos from a channel with pagination support
     # @param channel_name [String] Channel name
     # @param channel_id [String] YouTube channel ID
-    # @param videos_count [Integer] Number of videos to fetch
-    # @return [Hash] List of recent videos with success status
-    def self.fetch_channel_videos(channel_name, channel_id, videos_count = 9)
-      fetch_cached(channel_name, namespace: default_cache_namespace + "_channel_videos") do
-        fetch_videos_from_api(channel_id, videos_count)
+    # @param page_size [Integer] Number of videos per page
+    # @param page_token [String] Token for the next page (optional)
+    # @return [Hash] List of videos with pagination info and success status
+    def self.fetch_channel_videos(channel_name, channel_id, page_size = 9, page_token = nil)
+      fetch_cached("#{channel_name}_#{page_token}", namespace: default_cache_namespace + "_channel_videos") do
+        fetch_videos_from_api(channel_id, page_size, page_token)
       end
     end
 
@@ -66,23 +67,38 @@ module Youtube
       end
     end
 
-    # Fetches recent videos for a channel from YouTube API
+    # Fetches videos for a channel from YouTube API with pagination
     # @param channel_id [String] YouTube channel ID
-    # @param videos_count [Integer] Number of videos to fetch
-    # @return [Hash] List of recent videos with success status
+    # @param page_size [Integer] Number of videos per page
+    # @param page_token [String] Token for the next page
+    # @return [Hash] List of videos with pagination info and success status
     #   @option [Boolean] :success Operation status
     #   @option [Array<Hash>] :videos List of video metadata
-    def self.fetch_videos_from_api(channel_id, videos_count = 9)
+    #   @option [String] :next_page_token Token for the next page
+    #   @option [String] :prev_page_token Token for the previous page
+    def self.fetch_videos_from_api(channel_id, page_size = 9, page_token = nil)
       response = youtube_client.list_searches("snippet",
         channel_id: channel_id,
         order: "date",
         type: "video",
-        max_results: videos_count
+        max_results: page_size,
+        page_token: page_token
       )
 
       {
         success: true,
-        videos: response.items.map { |item| format_video(item) }
+        videos: response.items.map { |item|
+          {
+            video_id: item.id.video_id,
+            title: item.snippet.title,
+            description: item.snippet.description,
+            thumbnail: item.snippet.thumbnails.high.url,
+            published_at: item.snippet.published_at,
+            channel_title: item.snippet.channel_title
+          }
+        },
+        next_page_token: response.next_page_token,
+        prev_page_token: response.prev_page_token
       }
     rescue => e
       handle_youtube_error(e)

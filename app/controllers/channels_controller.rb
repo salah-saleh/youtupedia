@@ -8,45 +8,52 @@ class ChannelsController < ApplicationController
   def show
     @channel_name = params[:id]
     @channel = Youtube::YoutubeChannelService.fetch_channel_metadata(@channel_name)
-    return redirect_to channels_path, alert: "Channel not found" unless @channel[:success]
 
-    # Get videos for the channel
-    response = Youtube::YoutubeChannelService.fetch_channel_videos(@channel_name, @channel[:channel_id], 9)
-
-    if response.empty? || !response[:success]
-      @videos = []
-      return respond_with_pagination(turbo_frame_id: "channel_videos_content") { "channels/videos" }
+    if !@channel[:success]
+      flash[:error] = "Channel not found"
+      redirect_to channels_path and return
     end
 
-    # Extract video data and prepare for pagination
-    all_videos = response[:videos]
-    total_count = all_videos.length
+    # Get the current page token from params
+    @current_token = params[:page_token]
+    @per_page = 9 # YouTube API returns 9 videos per page
+    @page = 1
+    @total_pages = (@channel[:video_count].to_f / @per_page).ceil
 
-    # Apply pagination to the videos array
-    @page = (params[:page] || 1).to_i
-    @per_page = 9
-    @total_pages = (total_count.to_f / @per_page).ceil
+    # Fetch videos for the current page
+    response = Youtube::YoutubeChannelService.fetch_channel_videos(
+      @channel_name,
+      @channel[:channel_id],
+      @per_page,
+      @current_token
+    )
 
-    # Get the slice of videos for the current page
-    start_index = (@page - 1) * @per_page
-    end_index = start_index + @per_page - 1
-    paginated_videos = all_videos[start_index..end_index] || []
+    if !response[:success] || response[:videos].empty?
+      @videos = []
+    else
+      @videos = response[:videos]
+      @next_token = response[:next_page_token]
+      @prev_token = response[:prev_page_token]
+    end
 
-    # Format the videos for display
-    @videos = paginated_videos.map do |video|
-      published_at = video[:published_at]
-      published_at = published_at.is_a?(String) ? DateTime.parse(published_at) : published_at
-
-      {
-        video_id: video[:video_id],
-        title: video[:title],
-        channel: video[:channel_title],
-        published_at: published_at,
-        thumbnail: video[:thumbnail]
-      }
-    end.compact
-
-    respond_with_pagination(turbo_frame_id: "channel_videos_content") { "channels/videos" }
+    respond_to do |format|
+      format.html
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.update(
+          "channel_videos_content",
+          partial: "channels/content",
+          locals: {
+            channel: @channel,
+            videos: @videos,
+            page: @page,
+            total_pages: @total_pages,
+            next_token: @next_token,
+            prev_token: @prev_token,
+            youtube_pagination: true
+          }
+        )
+      end
+    end
   end
 
   def create_from_url

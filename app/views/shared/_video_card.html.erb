@@ -15,7 +15,7 @@
       </h3>
 
       <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-2">
-        <span class="truncate"><%= video[:channel] %></span>
+        <span class="truncate"><%= video[:channel] || video[:channel_title] %></span>
         <span class="text-gray-400 dark:text-gray-600 shrink-0">•</span>
         <span class="shrink-0"><%= time_ago_in_words(video[:published_at]) %> ago</span>
       </div>
