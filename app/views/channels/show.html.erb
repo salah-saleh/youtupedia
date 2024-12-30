@@ -1,39 +1,23 @@
-<% content_for :container_width do %>
-  max-w-6xl py-8
-<% end %>
-
-<div data-controller="youtube" class="relative">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <!-- Left Column -->
-    <div class="space-y-6">
-      <!-- Channel Header -->
-      <div>
+<%# Channel Show Page %>
+<div>
+  <%# About Channel Section %>
+  <div class="mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+      <%# Channel Header %>
+      <div class="mb-6">
         <h1 class="text-2xl font-bold mb-3 text-gray-900 dark:text-white">
           <%= @channel[:title] %>
         </h1>
 
-        <div class="flex items-center text-gray-600 dark:text-gray-400 text-sm space-x-4 mb-6">
+        <div class="flex items-center text-gray-600 dark:text-gray-400 text-sm space-x-4">
           <span><%= number_with_delimiter(@channel[:subscriber_count]) %> subscribers</span>
           <span class="text-gray-400 dark:text-gray-600">•</span>
           <span><%= pluralize(@channel[:video_count], 'video') %></span>
         </div>
       </div>
 
-      <!-- Channel Description -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-        <div class="mb-4">
-          <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase">About Channel</h3>
-        </div>
-        <p class="text-gray-800 dark:text-gray-200 leading-relaxed">
-          <%= @channel[:description] %>
-        </p>
-      </div>
-    </div>
-
-    <!-- Right Column -->
-    <div class="space-y-6">
-      <!-- Navigation Buttons -->
-      <div class="flex items-center space-x-4">
+      <%# Channel Actions %>
+      <div class="flex items-center space-x-4 mb-6">
         <button class="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -59,28 +43,22 @@
         </button>
       </div>
 
-      <!-- Videos Grid -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-        <h3 class="text-lg font-medium mb-4 text-gray-900 dark:text-white">Latest Videos</h3>
-        <div class="space-y-4">
-          <% @videos.each do |video| %>
-            <%= link_to summary_path(video[:video_id]),
-                  class: "flex gap-4 p-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors" do %>
-              <div class="w-48 relative" style="aspect-ratio: 16/9;">
-                <%= image_tag video[:thumbnail],
-                      class: "absolute inset-0 w-full h-full object-cover rounded",
-                      loading: "lazy" %>
-              </div>
-              <div class="flex-1 min-w-0">
-                <h4 class="font-medium mb-1 line-clamp-2 text-gray-900 dark:text-white"><%= video[:title] %></h4>
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                  Published <%= time_ago_in_words(video[:published_at]) %> ago
-                </p>
-              </div>
-            <% end %>
-          <% end %>
-        </div>
+      <%# Channel Description %>
+      <div>
+        <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase mb-4">About Channel</h3>
+        <p class="text-gray-800 dark:text-gray-200 leading-relaxed">
+          <%= @channel[:description] %>
+        </p>
       </div>
     </div>
   </div>
+
+  <%# Channel Videos Grid %>
+  <%= turbo_frame_tag "channel_videos_content", data: { turbo_action: "advance" } do %>
+    <%= render "shared/video_grid",
+          videos: @videos,
+          title: "Channel Videos",
+          path: channel_path(@channel[:channel_name]),
+          empty_message: "No videos available for this channel." %>
+  <% end %>
 </div>

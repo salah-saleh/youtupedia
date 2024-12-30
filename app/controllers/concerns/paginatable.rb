@@ -10,7 +10,7 @@
 #
 #     def index
 #       all_videos = Video.all
-#       @videos = paginate(all_videos, per_page: 12)
+#       @videos = paginate(all_videos, per_page: 9)
 #       respond_with_pagination(turbo_frame_id: "videos_content") { "videos/content" }
 #     end
 #   end
@@ -41,9 +41,9 @@ module Paginatable
   # Paginates a collection and sets up pagination metadata.
   #
   # @param collection [Array, ActiveRecord::Relation] The collection to paginate
-  # @param per_page [Integer] Number of items per page (default: 12)
+  # @param per_page [Integer] Number of items per page (default: 9)
   # @return [Array] The paginated collection
-  def paginate(collection, per_page: 12)
+  def paginate(collection, per_page: 9)
     @page = (params[:page] || 1).to_i
     @per_page = (params[:per_page] || per_page).to_i
     @offset = (@page - 1) * @per_page

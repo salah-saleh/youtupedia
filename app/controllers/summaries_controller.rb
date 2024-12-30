@@ -33,7 +33,7 @@ class SummariesController < ApplicationController
     return @summaries = [] if video_ids.empty?
 
     # Apply pagination to video_ids
-    paginated_video_ids = paginate(video_ids, per_page: 2)
+    paginated_video_ids = paginate(video_ids)
 
     # Fetch all metadata in one batch
     metadata_results = Youtube::YoutubeVideoMetadataService.fetch_metadata_batch(paginated_video_ids)

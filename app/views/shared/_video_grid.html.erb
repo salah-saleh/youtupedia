@@ -1,94 +1,35 @@
-<%# Usage: render "shared/video_grid", videos: @videos, highlight_terms: @search_terms %>
+<%# Shared video grid with pagination
+    Required local variables:
+    - videos: Array of video hashes
+    - title: String for the section title
+    - path: Path for pagination links
+    Optional local variables:
+    - subtitle: String for the section subtitle (defaults to video count)
+    - empty_message: String for empty state message
+%>
 
-<% videos_to_display = videos || [] %>
-
-<% if local_assigns[:loading] %>
-  <%# Loading state %>
-  <% if local_assigns[:highlight_terms].present? %>
-    <%# List layout loading state %>
-    <div class="space-y-4">
-      <% 3.times do %>
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <div class="flex gap-8">
-            <%= render "shared/skeleton", variant: "image", class: "w-64 flex-shrink-0" %>
-            <div class="flex-1 space-y-4">
-              <%= render "shared/skeleton", variant: "title" %>
-              <%= render "shared/skeleton", variant: "text", lines: 2 %>
-            </div>
-          </div>
-        </div>
-      <% end %>
-    </div>
-  <% else %>
-    <%# Grid layout loading state %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <% 6.times do %>
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-          <%= render "shared/skeleton", variant: "card" %>
-        </div>
-      <% end %>
-    </div>
-  <% end %>
-
-<% elsif videos_to_display.any? %>
-  <%# Use list layout for search results, grid layout for regular display %>
-  <% if local_assigns[:highlight_terms].present? %>
-    <div class="space-y-4">
-      <% videos_to_display.each do |video| %>
-        <div class="group block bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:shadow-md transition-shadow">
-          <%= link_to summary_path(video[:video_id]), data: { turbo_frame: "_top" } do %>
-            <div class="flex gap-8">
-              <%# Thumbnail %>
-              <div class="flex-shrink-0 w-64">
-                <%= render "shared/image",
-                      src: video[:thumbnail],
-                      alt: video[:title],
-                      aspect: "video",
-                      size: "full" %>
-              </div>
-
-              <%# Content %>
-              <div class="flex-1 min-w-0">
-                <%= render "shared/truncate",
-                      text: local_assigns[:highlight_terms].present? ?
-                           highlight(video[:title], highlight_terms, highlighter: '<mark class="bg-yellow-200 dark:bg-yellow-600">\1</mark>') :
-                           video[:title],
-                      lines: 2,
-                      size: "lg",
-                      class: "font-medium mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400" %>
-
-                <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <span class="mr-2"><%= video[:channel] %></span>
-                  <span class="text-gray-400">•</span>
-                  <span class="ml-2"><%= time_ago_in_words(video[:published_at]) %> ago</span>
-                </div>
-              </div>
-            </div>
-          <% end %>
-
-          <%# Search context %>
-          <% if video[:match_context].present? %>
-            <div class="mt-3 border-t border-gray-200 dark:border-gray-700 pt-3">
-              <%= render "shared/truncate",
-                    text: highlight(video[:match_context], highlight_terms, highlighter: '<mark class="bg-yellow-200 dark:bg-yellow-600">\1</mark>'),
-                    lines: 3,
-                    expandable: true,
-                    size: "sm" %>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-  <% else %>
-    <%# Regular grid layout for non-search displays %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <% videos_to_display.each do |video| %>
+<%= render "shared/page_header",
+      title: title,
+      subtitle: local_assigns.fetch(:subtitle, pluralize(videos&.length, "video")) do %>
+  <% if videos.any? %>
+    <%= render "shared/grid" do %>
+      <% videos.each do |video| %>
         <%= render "shared/video_card", video: video %>
       <% end %>
-    </div>
+    <% end %>
+
+    <%# Pagination %>
+    <% if @total_pages > 1 %>
+      <div class="mt-3">
+        <%= render "shared/pagination",
+              current_page: @page,
+              total_pages: @total_pages,
+              path: path %>
+      </div>
+    <% end %>
+  <% else %>
+    <%= render "shared/empty_state",
+          message: local_assigns.fetch(:empty_message, "No videos available."),
+          icon: :video %>
   <% end %>
-<% else %>
-  <%= render "shared/empty_state",
-        icon: :video,
-        message: local_assigns[:empty_message] || "No videos available." %>
 <% end %>

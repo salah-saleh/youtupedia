@@ -1,5 +1,9 @@
 TODO BEFORE LAUNCH:
-- [ ] load videos as a bulk for index endpoints/searches
+- [ ] fix search
+- [ ] fix channels page
+- [ ] add pagination to all other pages
+- [ ] reorganize index and show views into folders
+- [ ] search channel/summaries videos and paginate results
 - [ ] more analytics on logged in users
 - [ ] admin and active users
 - [ ] mongo db indexes
@@ -8,6 +12,7 @@ TODO BEFORE LAUNCH:
 
 
 TODO AFTER LAUNCH:
+- [ ] implement prober queing
 - [ ] handling requests async https://www.youtube.com/watch?v=QeYcKw7nOkg&ab_channel=RubyCentral
 - [ ] explore gemini api https://ai.google.dev/gemini-api/docs/models/gemini-v2
 - [ ] explore cacheing on fragmnets https://guides.rubyonrails.org/caching_with_rails.html

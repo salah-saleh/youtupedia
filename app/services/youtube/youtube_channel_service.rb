@@ -23,10 +23,11 @@ module Youtube
     # Fetches recent videos from a channel
     # @param channel_name [String] Channel name
     # @param channel_id [String] YouTube channel ID
+    # @param videos_count [Integer] Number of videos to fetch
     # @return [Hash] List of recent videos with success status
-    def self.fetch_channel_videos(channel_name, channel_id)
+    def self.fetch_channel_videos(channel_name, channel_id, videos_count = 9)
       fetch_cached(channel_name, namespace: default_cache_namespace + "_channel_videos") do
-        fetch_videos_from_api(channel_id)
+        fetch_videos_from_api(channel_id, videos_count)
       end
     end
 
@@ -67,15 +68,16 @@ module Youtube
 
     # Fetches recent videos for a channel from YouTube API
     # @param channel_id [String] YouTube channel ID
+    # @param videos_count [Integer] Number of videos to fetch
     # @return [Hash] List of recent videos with success status
     #   @option [Boolean] :success Operation status
     #   @option [Array<Hash>] :videos List of video metadata
-    def self.fetch_videos_from_api(channel_id)
+    def self.fetch_videos_from_api(channel_id, videos_count = 9)
       response = youtube_client.list_searches("snippet",
         channel_id: channel_id,
         order: "date",
         type: "video",
-        max_results: 9
+        max_results: videos_count
       )
 
       {
