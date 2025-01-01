@@ -8,7 +8,7 @@ from random import uniform
 # https://github.com/jdepoix/youtube-transcript-api/issues/303
 # https://dashboard.nodemaven.com/
 
-def get_transcript_with_retry(video_id, max_retries=3, initial_delay=1):
+def get_transcript_with_retry(video_id, max_retries=2, initial_delay=1):
     last_error = None
 
     for attempt in range(max_retries):

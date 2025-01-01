@@ -7,35 +7,35 @@
      data-summary-loader-loading-value="<%= @summary_data[:loading] %>">
 
   <!-- Video Header -->
-  <%= render "video_header", summary: @summary_data %>
+  <%= render "summaries/show/video_header", summary: @summary_data %>
 
   <!-- Main Content -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Left Column -->
     <div class="space-y-6">
-      <%= render "rating_section", summary: @summary_data unless true %>
+      <%= render "summaries/show/rating_section", summary: @summary_data unless true %>
       <div data-summary-loader-target="tldr">
-        <%= render "tldr_section", summary: @summary_data %>
+        <%= render "summaries/show/tldr_section", summary: @summary_data %>
       </div>
       <div data-summary-loader-target="takeaways">
-        <%= render "takeaways_section", summary: @summary_data unless @summary_data[:error] %>
+        <%= render "summaries/show/takeaways_section", summary: @summary_data unless @summary_data[:error] %>
       </div>
       <div data-summary-loader-target="summary">
-        <%= render "summary_detail_section", summary: @summary_data unless @summary_data[:error] %>
+        <%= render "summaries/show/summary_detail_section", summary: @summary_data unless @summary_data[:error] %>
       </div>
     </div>
 
     <!-- Right Column -->
     <div class="space-y-6">
-      <%= render "player_section" %>
-      <%= render "navigation_buttons" unless true %>
+      <%= render "summaries/show/player_section" %>
+      <%= render "summaries/show/navigation_buttons" unless true %>
       <div data-summary-loader-target="transcript">
-        <%= render "transcript_section", summary: @summary_data unless @summary_data[:error] %>
+        <%= render "summaries/show/transcript_section", summary: @summary_data unless @summary_data[:error] %>
       </div>
       <div data-summary-loader-target="tags">
-        <%= render "tags_section", summary: @summary_data unless @summary_data[:error] %>
+        <%= render "summaries/show/tags_section", summary: @summary_data unless @summary_data[:error] %>
       </div>
-      <%= render "chat_section", summary: @summary_data unless @summary_data[:loading] || @summary_data[:error] %>
+      <%= render "summaries/show/chat_section", summary: @summary_data unless @summary_data[:loading] || @summary_data[:error] %>
     </div>
   </div>
 </div>

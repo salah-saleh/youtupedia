@@ -1,13 +1,10 @@
 TODO BEFORE LAUNCH:
 - [ ] check adding a channel in the summarize search and visa versa
 - [ ] check channels/show summaries/index and revise they are optimized
-- [ ] fix search
 - [ ] fix pagination to align to write on small screen
 - [ ] add pagination to search
-- [ ] reorganize index and show views into folders
 - [ ] more analytics on logged in users
 - [ ] admin and active users
-- [ ] mongo db indexes
 - [ ] description of the app html tags
 - [ ] use resque for job management
 
@@ -25,3 +22,7 @@ TODO AFTER LAUNCH:
 - [ ] rework landing page
 - [ ] look to the logs and optimize things based on analysis of composer
 - [ ] logs.rake do provide more analysis average per route, p95, p99, max,etc.
+
+
+Features:
+- [ ] discovery tap (based on your keywords, it suggests latest youtube videos to watch and summarize), works with concept of collections

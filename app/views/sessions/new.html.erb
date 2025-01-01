@@ -2,7 +2,7 @@
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
     <h2 class="text-lg lg:text-xl font-semibold mb-6 text-center text-gray-900 dark:text-white">Sign In</h2>
 
-    <%= form_with url: session_path, class: "space-y-4" do |f| %>
+    <%= form_with url: session_path, class: "space-y-4", data: { turbo: false } do |f| %>
       <%= render "shared/form_components/auth_input",
           form: f,
           field: :email_address,

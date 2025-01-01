@@ -53,7 +53,7 @@ class SummariesController < ApplicationController
       }
     end.compact
 
-    respond_with_pagination(turbo_frame_id: "summaries_content") { "summaries/content" }
+    respond_with_pagination(turbo_frame_id: "summaries_content") { "summaries/index/content" }
   end
 
   def check_status

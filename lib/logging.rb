@@ -1,4 +1,5 @@
 require_relative "logging/helper"
+require_relative "logging/formatter"
 
 # The Logging module provides a comprehensive logging system for the application.
 # It includes both class-level and instance-level logging methods with support for:

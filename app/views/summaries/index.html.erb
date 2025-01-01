@@ -21,12 +21,8 @@
     <% end %>
   </div>
 
-  <%# Summaries Grid %>
+  <%# Summaries grid %>
   <%= turbo_frame_tag "summaries_content", data: { turbo_action: "advance" } do %>
-    <%= render "shared/video_grid",
-          videos: @summaries,
-          title: "Your Summaries",
-          path: summaries_path,
-          empty_message: "No summaries yet. Add your first video above!" %>
+    <%= render "summaries/index/content" %>
   <% end %>
 </div>
