@@ -1,15 +1,14 @@
 TODO BEFORE LAUNCH:
-- [ ] check adding a channel in the summarize search and visa versa
-- [ ] check channels/show summaries/index and revise they are optimized
-- [ ] fix pagination to align to write on small screen
-- [ ] add pagination to search
 - [ ] more analytics on logged in users
 - [ ] admin and active users
 - [ ] description of the app html tags
-- [ ] use resque for job management
+- [ ] add pagination to search
+- [ ] check adding a channel in the summarize search and visa versa --> to be removed
 
 
 TODO AFTER LAUNCH:
+- [ ] payements
+- [ ] use resque for job management
 - [ ] implement prober queing
 - [ ] handling requests async https://www.youtube.com/watch?v=QeYcKw7nOkg&ab_channel=RubyCentral
 - [ ] explore gemini api https://ai.google.dev/gemini-api/docs/models/gemini-v2

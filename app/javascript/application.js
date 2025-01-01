@@ -11,3 +11,6 @@ const application = Application.start()
 // Eager load all controllers defined in the import map under controllers/**/*_controller
 import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
 eagerLoadControllersFrom("controllers", application)
+eagerLoadControllersFrom("controllers/shared", application)
+eagerLoadControllersFrom("controllers/search", application)
+eagerLoadControllersFrom("controllers/summaries", application)
