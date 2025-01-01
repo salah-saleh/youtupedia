@@ -101,7 +101,7 @@ class SummariesController < ApplicationController
   end
 
   def render_status_stream(frame_id, result)
-    partial_name = frame_id == "summary" ? "summary_detail_section" : "#{frame_id}_section"
+    partial_name = "summaries/show/#{frame_id}_section"
     render turbo_stream: turbo_stream.update(frame_id, partial: partial_name, locals: { summary: result })
   end
 end
