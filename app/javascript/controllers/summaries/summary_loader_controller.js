@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
-  static targets = ["tldr", "transcript", "takeaways", "tags", "summary"]
+  static targets = ["tldr", "transcript", "takeaways", "tags", "summary", "chatSubmit"]
   static values = {
     videoId: String,
     loading: Boolean,
@@ -17,6 +17,12 @@ export default class extends Controller {
       interval: this.intervalValue,
       maxAttempts: this.maxAttemptsValue
     })
+
+    // Disable chat submit button if summary is loading
+    if (this.loadingValue && this.hasChatSubmitTarget) {
+      this.chatSubmitTarget.disabled = true
+      this.chatSubmitTarget.title = "Please wait for the summary to complete before asking questions"
+    }
 
     if (this.loadingValue) {
       this.attempts = 0
@@ -92,6 +98,14 @@ export default class extends Controller {
                 status: updateResponse.status,
                 statusText: updateResponse.statusText
               })
+            }
+          }
+
+          if (data.status === "completed") {
+            // Enable chat submit button when summary is completed
+            if (this.hasChatSubmitTarget) {
+              this.chatSubmitTarget.disabled = false
+              this.chatSubmitTarget.removeAttribute("title")
             }
           }
 

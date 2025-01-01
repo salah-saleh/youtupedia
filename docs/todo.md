@@ -4,6 +4,8 @@ TODO BEFORE LAUNCH:
 - [ ] description of the app html tags
 - [ ] add pagination to search
 - [ ] check adding a channel in the summarize search and visa versa --> to be removed
+- [ ] expanding takeaways and asking questions
+- [ ] fix the chat section (to be disabled instead of hidden)
 
 
 TODO AFTER LAUNCH:

@@ -8,5 +8,5 @@
   <div data-summary-loader-target="tags">
     <%= render "summaries/show/tags_section", summary: @summary_data unless @summary_data[:error] %>
   </div>
-  <%= render "summaries/show/chat_section", summary: @summary_data unless @summary_data[:loading] || @summary_data[:error] %>
+  <%= render "summaries/show/chat_section", summary: @summary_data || @summary_data[:error] %>
 </div>

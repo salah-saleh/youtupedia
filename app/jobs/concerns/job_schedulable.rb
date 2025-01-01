@@ -29,11 +29,14 @@ module JobSchedulable
     # @return [Boolean] true if job was scheduled, false if already running
     def schedule(*args)
       job_key = "#{name.underscore}:#{args.join(':')}"
-      return false if Rails.cache.exist?(job_key)
+      if Rails.cache.exist?(job_key)
+        log_info "Job already running: #{job_key}"
+        return false
+      end
 
       # Set a cache key to indicate job is processing
       # The 30-minute expiry serves as a safety net for stalled jobs
-      Rails.cache.write(job_key, true, expires_in: 30.minutes)
+      Rails.cache.write(job_key, true, expires_in: 1.minute)
       perform_later(*args)
       true
     end
