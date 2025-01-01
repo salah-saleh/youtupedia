@@ -9,6 +9,8 @@ export default class extends Controller {
   connect() {
     console.log("YouTube controller connected")
     this.currentSegment = null
+    this.nextSegment = null
+    this.lastCheckedTime = null
     this.loadYouTubeAPI()
   }
 
@@ -44,17 +46,26 @@ export default class extends Controller {
   onPlayerReady(event) {
     console.log("Player ready!")
     if (this.hasLoadingIndicatorTarget) {
-      console.log("Found loading indicator, hiding it...")
       this.loadingIndicatorTarget.style.display = 'none'
-    } else {
-      console.log("Loading indicator target not found!")
     }
+    // Initialize segment data for faster lookups
+    this.initializeSegmentData()
     this.startMonitoring()
   }
 
+  initializeSegmentData() {
+    // Create a sorted array of segment boundaries for binary search
+    this.segments = this.segmentTargets.map(segment => ({
+      element: segment,
+      start: parseFloat(segment.dataset.start),
+      duration: parseFloat(segment.dataset.duration),
+      end: parseFloat(segment.dataset.start) + parseFloat(segment.dataset.duration)
+    })).sort((a, b) => a.start - b.start)
+  }
+
   startMonitoring() {
-    setInterval(() => {
-      if (this.player && this.player.getCurrentTime) {
+    this.monitoringInterval = setInterval(() => {
+      if (this.player?.getCurrentTime && this.player.getPlayerState() === YT.PlayerState.PLAYING) {
         this.updateDebug()
         this.checkTranscriptTime()
       }
@@ -66,10 +77,8 @@ export default class extends Controller {
 
     try {
       if (this.player?.getCurrentTime) {
-        this.debugTimeTarget.textContent =
-          `Current Time: ${this.player.getCurrentTime().toFixed(2)}`
-        this.debugStateTarget.textContent =
-          `Player State: ${this.player.getPlayerState()}`
+        this.debugTimeTarget.textContent = `Current Time: ${this.player.getCurrentTime().toFixed(2)}`
+        this.debugStateTarget.textContent = `Player State: ${this.player.getPlayerState()}`
       }
     } catch (e) {
       console.error("Debug update error:", e)
@@ -77,70 +86,125 @@ export default class extends Controller {
   }
 
   checkTranscriptTime() {
-    if (this.player?.getCurrentTime) {
-      const currentTime = this.player.getCurrentTime()
-      this.highlightCurrentSegment(currentTime)
+    if (!this.player?.getCurrentTime) return
+
+    const currentTime = this.player.getCurrentTime()
+    // Only update if time has changed significantly (more than 50ms)
+    if (this.lastCheckedTime !== null && Math.abs(currentTime - this.lastCheckedTime) < 0.05) {
+      return
     }
+    this.lastCheckedTime = currentTime
+    this.highlightCurrentSegment(currentTime)
   }
 
   highlightCurrentSegment(currentTime) {
-    let activeSegment = null
+    // Find the active segments
+    const { currentSegment, nextSegment } = this.findActiveSegments(currentTime)
 
-    this.segmentTargets.forEach(segment => {
-      const start = parseFloat(segment.dataset.start)
-      const duration = parseFloat(segment.dataset.duration)
-      const end = start + duration
-
-      segment.classList.remove(
+    // Remove highlights from old segments
+    if (this.currentSegment && (!currentSegment || this.currentSegment.element !== currentSegment.element)) {
+      this.currentSegment.element.classList.remove(
         'bg-purple-50',
         'dark:bg-purple-900/50',
         'border-l-4',
         'border-purple-500'
       )
+    }
+    if (this.nextSegment && (!nextSegment || this.nextSegment.element !== nextSegment.element)) {
+      this.nextSegment.element.classList.remove(
+        'bg-purple-50',
+        'dark:bg-purple-900/50',
+        'border-l-4',
+        'border-purple-500'
+      )
+    }
 
-      if (currentTime >= start && currentTime < end) {
-        activeSegment = segment
-        segment.classList.add(
-          'bg-purple-50',
-          'dark:bg-purple-900/50',
-          'border-l-4',
-          'border-purple-500'
-        )
-      }
-    })
+    // Highlight current segment with primary highlight
+    if (currentSegment && currentSegment !== this.currentSegment) {
+      currentSegment.element.classList.add(
+        'bg-purple-50',
+        'dark:bg-purple-900/50',
+        'border-l-4',
+        'border-purple-500'
+      )
+      this.handleActiveSegmentScroll(currentSegment.element)
+      this.currentSegment = currentSegment
+    }
 
-    this.handleActiveSegmentScroll(activeSegment)
+    // Highlight next segment with secondary highlight
+    if (nextSegment && nextSegment !== this.nextSegment) {
+      nextSegment.element.classList.add(
+        'bg-purple-50',
+        'dark:bg-purple-900/50',
+        'border-l-4',
+        'border-purple-500'
+      )
+      this.nextSegment = nextSegment
+    }
+  }
+
+  findActiveSegments(currentTime) {
+    const buffer = 0.1
+
+    // Find current segment
+    const currentIndex = this.segments.findIndex(segment =>
+      currentTime >= (segment.start - buffer) && currentTime < (segment.end + buffer)
+    )
+
+    if (currentIndex === -1) {
+      return { currentSegment: null, nextSegment: null }
+    }
+
+    // Get next segment if available
+    const nextSegment = currentIndex < this.segments.length - 1 ?
+      this.segments[currentIndex + 1] : null
+
+    return {
+      currentSegment: this.segments[currentIndex],
+      nextSegment
+    }
   }
 
   handleActiveSegmentScroll(activeSegment) {
-    if (activeSegment && activeSegment !== this.currentSegment) {
-      this.currentSegment = activeSegment
-      const container = this.transcriptTarget
-      const containerRect = container.getBoundingClientRect()
-      const activeRect = activeSegment.getBoundingClientRect()
+    if (!activeSegment) return
 
-      const relativeTop = activeRect.top - containerRect.top
-      const relativeBottom = activeRect.bottom - containerRect.top
+    const container = this.transcriptTarget
+    const containerRect = container.getBoundingClientRect()
+    const activeRect = activeSegment.getBoundingClientRect()
 
-      if (relativeTop < 0 || relativeBottom > containerRect.height) {
-        container.scrollTop = container.scrollTop + relativeTop - (containerRect.height / 2) + (activeRect.height / 2)
-      }
+    const relativeTop = activeRect.top - containerRect.top
+    const relativeBottom = activeRect.bottom - containerRect.top
+
+    if (relativeTop < 0 || relativeBottom > containerRect.height) {
+      const scrollTarget = container.scrollTop + relativeTop - (containerRect.height / 3)
+      container.scrollTo({
+        top: scrollTarget,
+        behavior: 'smooth'
+      })
     }
   }
 
   seekToTime(event) {
-    const time = parseFloat(event.currentTarget.dataset.time);
+    const time = parseFloat(event.currentTarget.dataset.time)
     if (this.player?.seekTo) {
-      this.player.seekTo(time, true);
-      this.player.playVideo();
+      this.player.seekTo(time, true)
+      this.player.playVideo()
     }
   }
 
   onPlayerStateChange(event) {
-    console.log("Player State Changed:", event.data)
+    if (event.data === YT.PlayerState.PLAYING) {
+      this.checkTranscriptTime()
+    }
   }
 
   onPlayerError(event) {
     console.error("Player Error:", event.data)
+  }
+
+  disconnect() {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval)
+    }
   }
 }
