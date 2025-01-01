@@ -6,6 +6,7 @@ module Cacheable
   class_methods do
     # Writes data to both Memcached and MongoDB atomically
     # Ensures data consistency across cache layers
+    # write_cached will always write to MongoDB and Memcached independent of the result
     #
     # Logic flow:
     # 1. Write to MongoDB first (persistent storage)
@@ -17,12 +18,12 @@ module Cacheable
     #    └── Failure: Return success (data is still in MongoDB)
     #
     # @param key [String] Cache key
-    # @param data [Hash] Data to cache (must include :success key)
+    # @param data Data to cache (can be any object)
     # @param namespace [String, nil] Optional namespace for cache isolation
     # @param expires_in [Integer, nil] Cache TTL (nil for no expiration)
     # @return [Hash] Operation result with success status
     def write_cached(key, data, namespace: nil, expires_in: 1.second)
-      return { success: false, error: "Invalid data format" } unless data.is_a?(Hash) && !data[:success].nil?
+      return { success: false, error: "No data to cache" } unless data
 
       cache_namespace = namespace || default_cache_namespace
       memcache_key = "#{cache_namespace}_#{key}"
@@ -55,13 +56,13 @@ module Cacheable
     #    └── Miss: Continue to MongoDB
     #
     # 2. Check MongoDB
-    #    ├── Hit AND valid result (Hash with success: true)
+    #    ├── Hit AND valid result
     #    │   └── Return MongoDB data and cache in Memcached
     #    └── Miss OR invalid result
     #        └── Execute provided block
     #
     # 3. Process block result
-    #    ├── Valid result (Hash with success: true)
+    #    ├── Valid result
     #    │   ├── Write to MongoDB
     #    │   │   ├── Success: Return result and cache in Memcached
     #    │   │   └── Error: Return result without caching
@@ -98,7 +99,7 @@ module Cacheable
         log_info "Result from MongoDB", context: { result: result }
 
         # Case 1: Valid MongoDB result - cache and return
-        if result && result.is_a?(Hash) && result[:success]
+        if result
           log_info "Valid result from MongoDB", context: { key: key }
           result  # Will be cached in Memcached
 
@@ -109,7 +110,7 @@ module Cacheable
           log_info "Block result", context: { result: result }
 
           # Case 2a: Valid block result - store in both caches
-          if result && result.is_a?(Hash) && result[:success]
+          if result
             log_info "Valid block result, storing in caches", context: { key: key }
             begin
               cache.write(key, result)

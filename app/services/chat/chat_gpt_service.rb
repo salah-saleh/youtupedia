@@ -81,7 +81,7 @@ module Chat
         1. A brief TLDR
         2. Ten key conculusions or takeaways with timestamps. PLease be informative and not just a list of topics.
         3. Important tags/topics with timestamps
-        4. A detailed summary of 500 to 700 words that references timestamps
+        4. A detailed summary of 500 to 700 words that references timestamps between brackets. Don't include the words "timestamp" or "timestamps" in the summary.
 
         Make sure your response is a valid JSON object with no trailing commas.
         Do not include any explanatory text outside the JSON structure.
@@ -96,7 +96,7 @@ module Chat
             {"timestamp": 123, "tag": "Topic 1"},
             {"timestamp": 456, "tag": "Topic 2"}
           ],
-          "summary": "Detailed summary with (123) timestamp references"
+          "summary": "Detailed summary blah blah blah (123). blah blah blah (456). blah blah blah (789)."
         }
       PROMPT
     end
