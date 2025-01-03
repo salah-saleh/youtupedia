@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
-  static targets = ["tldr", "transcript", "takeaways", "tags", "summary", "chatSubmit"]
+  static targets = ["tldr", "transcript", "takeaways", "summary"]
   static values = {
     videoId: String,
     loading: Boolean,
@@ -76,7 +76,7 @@ export default class extends Controller {
         if (data.status === "completed" || data.status === "failed") {
           console.log(`Summary ${data.status}, updating sections...`)
           // Update all sections with the new data
-          const sections = ["tldr", "transcript", "takeaways", "tags", "summary"]
+          const sections = ["tldr", "transcript", "takeaways", "summary"]
 
           for (const section of sections) {
             console.log(`Updating section: ${section}`)

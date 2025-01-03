@@ -1,14 +1,30 @@
 <%= turbo_frame_tag "takeaways" do %>
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 lg:p-6 border border-gray-200 dark:border-gray-700" data-controller="copy">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-xl lg:text-lg font-semibold text-gray-900 dark:text-white">Key Takeaways</h3>
-      <button data-action="click->copy#copy"
-              data-copy-target="button"
-              class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
-        </svg>
-      </button>
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 lg:p-6 border border-gray-200 dark:border-gray-700"
+       data-controller="copy collapsible">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-xl lg:text-lg font-semibold text-gray-900 dark:text-white">Timeline</h3>
+      <div class="flex items-center gap-2">
+        <!-- Toggle all button -->
+        <button data-action="click->collapsible#toggleAll"
+                class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors">
+          <svg class="w-5 h-5"
+               data-collapsible-target="globalIcon"
+               xmlns="http://www.w3.org/2000/svg"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <!-- Copy all button -->
+        <button data-action="click->copy#copy"
+                data-copy-target="button"
+                class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <% if summary[:loading] %>
@@ -24,19 +40,64 @@
         <% end %>
       </div>
     <% else %>
-      <div class="space-y-4" data-copy-target="source">
-        <% summary[:takeaways].each_with_index do |takeaway, index| %>
-          <div class="flex items-start gap-3">
-            <div class="flex-shrink-0 w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+      <div class="relative space-y-8 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-purple-100 dark:before:bg-purple-900"
+           data-copy-target="source">
+
+        <% summary[:contents].each_with_index do |content, index| %>
+          <div class="relative pl-10" data-timeline-item>
+            <!-- Timeline dot -->
+            <div class="absolute left-0 top-1.5 w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
               <span class="text-sm text-purple-600 dark:text-purple-400 font-medium"><%= index + 1 %></span>
             </div>
-            <div class="text-gray-900 dark:text-white leading-relaxed flex-1 prose prose-sm dark:prose-invert max-w-none">
-              <%= takeaway[:content] %>
-              <button class="ml-2 text-xs text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
-                     data-action="click->youtube#seekToTime"
-                     data-time="<%= takeaway[:timestamp] %>">
-                (<%= format_duration(takeaway[:timestamp]) %>)
-              </button>
+
+            <!-- Content -->
+            <div class="space-y-2">
+              <!-- Topic header with timestamp and actions -->
+              <div class="flex items-center gap-2">
+                <!-- Timestamp -->
+                <button class="text-sm text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors font-mono w-[70px] text-left flex-shrink-0"
+                        data-action="click->youtube#seekToTime"
+                        data-time="<%= content[:timestamp] %>">
+                  <%= content[:timestamp] %>
+                </button>
+
+                <button class="group flex-1 text-left flex items-center gap-2"
+                        data-action="click->collapsible#toggle"
+                        data-collapsible-target="itemToggle"
+                        aria-expanded="true">
+                  <h4 class="text-base font-medium text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400"
+                      data-timeline-topic>
+                    <%= content[:topic] %>
+                  </h4>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-transform duration-200 transform"
+                       data-collapsible-target="icon"
+                       xmlns="http://www.w3.org/2000/svg"
+                       fill="none"
+                       viewBox="0 0 24 24"
+                       stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <!-- Copy item button -->
+                <button class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors flex-shrink-0"
+                        data-action="click->copy#copy"
+                        data-copy-single-target
+                        data-topic="<%= content[:topic] %>"
+                        data-takeaway="<%= content[:takeaway] %>">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Takeaway content -->
+              <div class="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 overflow-hidden transition-all duration-200 ease-in-out"
+                   style="max-height: none;"
+                   data-timeline-takeaway
+                   data-collapsible-target="content">
+                <%= content[:takeaway] %>
+              </div>
             </div>
           </div>
         <% end %>

@@ -77,26 +77,26 @@ module Chat
       <<~PROMPT
         You are an AI assistant that helps summarize video transcripts.
         Try to comprehend and infer meaning of the messages in the transcript.
-        Please analyze the transcript and provide:
-        1. A brief TLDR
-        2. Ten key conculusions or takeaways with timestamps. PLease be informative and not just a list of topics.
-        3. Important tags/topics with timestamps
-        4. A detailed summary of 500 to 700 words that references timestamps between brackets. Don't include the words "timestamp" or "timestamps" in the summary.
+        Timeline should be as comprehensive as possible.
+        EXTREMELY important: use at least as many topics as in the metadata if it is provided.
+        EXTREMELY important: generate at least a 20 topic timeline if metadata is not provided.
+        EXTREMELY important: the timestamps should be evenly spaced and distributed, so if you have a 2 hour video, the timestamps should be roughly 6 minutes apart.
+        EXTREMELY important: timestamps format is "hh:mm:ss".
+        Once you have generated the timeline, go over the takeaways again and add any missing points.
+        Double check that the timestamps you provide are correct.
+        Ignore any advertising or promotional information that is not relevant to the transcript.
+        In some videos, the first section is usually a summary of what to expect in the video. If that is the case, be very careful not to base the timestamps of where the topics start on the first section if that is the case.
+        Your response must be in valid JSON format.
 
         Make sure your response is a valid JSON object with no trailing commas.
         Do not include any explanatory text outside the JSON structure.
         The response must contain exactly these fields:
         {
-          "tldr": "A brief summary here, mentioning speakers if possible",
-          "takeaways": [
-            {"timestamp": 123, "content": "Key point 1"},
-            {"timestamp": 456, "content": "Key point 2"}
+          "tldr": "A brief tldr here, mentioning speakers if possible",
+          "contents": [
+            {"timestamp": "00:00:30", "topic": "here you mention the topic.", "takeaway": "here you provide a detailed paragraph of the takeways in this segment."},
           ],
-          "tags": [
-            {"timestamp": 123, "tag": "Topic 1"},
-            {"timestamp": 456, "tag": "Topic 2"}
-          ],
-          "summary": "Detailed summary blah blah blah (123). blah blah blah (456). blah blah blah (789)."
+          "summary": "Detailed summary focusing on searching keywords, minmum 200 words blah blah blah with. blah blah blah. blah blah blah."
         }
       PROMPT
     end
@@ -133,15 +133,14 @@ module Chat
       begin
         result = JSON.parse(content, symbolize_names: true)
 
-        unless result[:tldr] && result[:takeaways] && result[:tags] && result[:summary]
+        unless result[:tldr] && result[:contents] && result[:summary]
           return { success: false, error: "Missing required fields in response" }
         end
 
         {
           success: true,
           tldr: result[:tldr],
-          takeaways: result[:takeaways],
-          tags: result[:tags],
+          contents: result[:contents],
           summary: result[:summary]
         }
       rescue JSON::ParserError => e

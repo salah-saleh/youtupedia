@@ -19,22 +19,7 @@
       </div>
     <% else %>
       <div class="text-gray-900 dark:text-white leading-relaxed prose prose-sm dark:prose-invert max-w-none" data-copy-target="source">
-        <%
-          # Split by timestamps (e.g., "text (123.45)")
-          parts = summary[:summary].scan(/([^()]+)(?:\((\d+(?:\.\d+)?)\))?/)
-          parts.each do |text, timestamp|
-            if timestamp
-        %>
-            <%= text.strip %>
-            <button class="inline-flex items-center mx-1 text-xs text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/50 rounded transition-colors"
-                    data-action="click->youtube#seekToTime"
-                    data-time="<%= timestamp.to_f %>">
-              (<%= format_duration(timestamp.to_f.round) %>)
-            </button>
-        <%  else %>
-            <%= text.strip %>
-        <%  end %>
-        <% end %>
+          <%= summary[:summary] %>
       </div>
     <% end %>
   </div>

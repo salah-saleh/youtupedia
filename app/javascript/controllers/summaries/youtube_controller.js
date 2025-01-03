@@ -185,9 +185,29 @@ export default class extends Controller {
   }
 
   seekToTime(event) {
-    const time = parseFloat(event.currentTarget.dataset.time)
-    if (this.player?.seekTo) {
-      this.player.seekTo(time, true)
+    const timeStr = event.currentTarget.dataset.time
+    let seconds
+
+    // Check if it's a timestamp format (hh:mm:ss or mm:ss)
+    if (typeof timeStr === 'string' && timeStr.includes(':')) {
+      const parts = timeStr.split(':').map(Number)
+      if (parts.length === 3) {
+        // hh:mm:ss format
+        seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
+      } else if (parts.length === 2) {
+        // mm:ss format
+        seconds = parts[0] * 60 + parts[1]
+      } else {
+        console.error('Invalid timestamp format')
+        return
+      }
+    } else {
+      // Assume it's already in seconds
+      seconds = parseFloat(timeStr)
+    }
+
+    if (this.player?.seekTo && !isNaN(seconds)) {
+      this.player.seekTo(seconds, true)
       this.player.playVideo()
     }
   }

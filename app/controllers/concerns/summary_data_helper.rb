@@ -21,9 +21,8 @@ module SummaryDataHelper
         error: transcript&.dig(:error) || summary&.dig(:error),
         transcript_segmented: transcript&.dig(:transcript_segmented) || [],
         transcript_full: transcript&.dig(:transcript_full) || "",
-        tldr: transcript&.dig(:error).first(300) + "..." || summary&.dig(:error).first(300) + "...",
-        takeaways: [],
-        tags: [],
+        tldr: transcript&.dig(:error)&.first(300) || summary&.dig(:error)&.first(300) || "Unknown error",
+        contents: [],
         summary: ""
       )
     end
@@ -35,8 +34,7 @@ module SummaryDataHelper
         transcript_segmented: [],
         transcript_full: "",
         tldr: "",
-        takeaways: [],
-        tags: [],
+        contents: [],
         summary: ""
       )
     end
@@ -47,8 +45,7 @@ module SummaryDataHelper
       transcript_segmented: transcript&.dig(:transcript_segmented) || [],
       transcript_full: transcript&.dig(:transcript_full) || "",
       tldr: summary&.dig(:tldr) || "",
-      takeaways: summary&.dig(:takeaways) || [],
-      tags: summary&.dig(:tags) || [],
+      contents: summary&.dig(:contents) || [],
       summary: summary&.dig(:summary) || ""
     )
   end
