@@ -1,6 +1,7 @@
 TODO BEFORE LAUNCH:
 - clean up takeaways section refactoring
 - clean up searching
+- report a problem button/send feedback/request a feature
 - [ ] more analytics on logged in users
 - [ ] admin and active users
 - [ ] description of the app html tags

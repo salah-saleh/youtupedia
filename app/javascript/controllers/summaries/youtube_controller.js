@@ -11,6 +11,7 @@ export default class extends Controller {
     this.currentSegment = null
     this.nextSegment = null
     this.lastCheckedTime = null
+    this.monitoringInterval = null
     this.loadYouTubeAPI()
   }
 
@@ -48,28 +49,38 @@ export default class extends Controller {
     if (this.hasLoadingIndicatorTarget) {
       this.loadingIndicatorTarget.style.display = 'none'
     }
-    // Initialize segment data for faster lookups
     this.initializeSegmentData()
     this.startMonitoring()
   }
 
   initializeSegmentData() {
-    // Create a sorted array of segment boundaries for binary search
+    console.log("Initializing segment data...")
+    if (!this.hasSegmentTarget) {
+      console.warn("No segments found")
+      return
+    }
+
     this.segments = this.segmentTargets.map(segment => ({
       element: segment,
       start: parseFloat(segment.dataset.start),
       duration: parseFloat(segment.dataset.duration),
       end: parseFloat(segment.dataset.start) + parseFloat(segment.dataset.duration)
     })).sort((a, b) => a.start - b.start)
+
+    console.log(`Initialized ${this.segments.length} segments`)
   }
 
   startMonitoring() {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval)
+    }
+
     this.monitoringInterval = setInterval(() => {
       if (this.player?.getCurrentTime && this.player.getPlayerState() === YT.PlayerState.PLAYING) {
         this.updateDebug()
         this.checkTranscriptTime()
       }
-    }, 100)
+    }, 50) // Increased frequency for more responsive updates
   }
 
   updateDebug() {
@@ -86,13 +97,15 @@ export default class extends Controller {
   }
 
   checkTranscriptTime() {
-    if (!this.player?.getCurrentTime) return
+    if (!this.player?.getCurrentTime || !this.segments?.length) return
 
     const currentTime = this.player.getCurrentTime()
+
     // Only update if time has changed significantly (more than 50ms)
     if (this.lastCheckedTime !== null && Math.abs(currentTime - this.lastCheckedTime) < 0.05) {
       return
     }
+
     this.lastCheckedTime = currentTime
     this.highlightCurrentSegment(currentTime)
   }
@@ -120,7 +133,7 @@ export default class extends Controller {
     }
 
     // Highlight current segment with primary highlight
-    if (currentSegment && currentSegment !== this.currentSegment) {
+    if (currentSegment && (!this.currentSegment || this.currentSegment.element !== currentSegment.element)) {
       currentSegment.element.classList.add(
         'bg-purple-50',
         'dark:bg-purple-900/50',
@@ -207,13 +220,39 @@ export default class extends Controller {
     }
 
     if (this.player?.seekTo && !isNaN(seconds)) {
+      // Reset tracking variables
+      this.lastCheckedTime = null
+      this.currentSegment = null
+      this.nextSegment = null
+
+      // Ensure segments are initialized
+      if (!this.segments?.length) {
+        this.initializeSegmentData()
+      }
+
+      // Seek and play
       this.player.seekTo(seconds, true)
       this.player.playVideo()
+
+      // Restart monitoring if needed
+      this.startMonitoring()
+
+      // Force immediate segment check
+      requestAnimationFrame(() => {
+        if (this.player.getPlayerState() === YT.PlayerState.PLAYING) {
+          this.checkTranscriptTime()
+        }
+      })
     }
   }
 
   onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
+      // Ensure segments are initialized
+      if (!this.segments?.length) {
+        this.initializeSegmentData()
+      }
+      this.startMonitoring()
       this.checkTranscriptTime()
     }
   }

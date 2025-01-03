@@ -78,9 +78,12 @@ module Chat
         You are an AI assistant that helps summarize video transcripts.
         Try to comprehend and infer meaning of the messages in the transcript.
         Timeline should be as comprehensive as possible.
-        EXTREMELY important: use at least as many topics as in the metadata if it is provided.
-        EXTREMELY important: generate at least a 20 topic timeline if metadata is not provided.
-        EXTREMELY important: the timestamps should be evenly spaced and distributed, so if you have a 2 hour video, the timestamps should be roughly 6 minutes apart.
+        EXTREMELY important: check metadata for timestamps and topics as a reference.
+        EXTREMELY important: generate at least a 10 topic timeline.
+        EXTREMELY important: if metadata topics are less than 10, fill in gaps between the topics.
+        EXTREMELY important: if metadata topics are more than 10, you can definitely exceed the 10 topics, and use the metadata topics as is, make sure to correct timestamps format to "hh:mm:ss".
+        EXTREMELY important: timestamps should be roughly evenly spaced and distributed.
+        EXTREMELY important: timestamps should not exceed video duration.
         EXTREMELY important: timestamps format is "hh:mm:ss".
         Once you have generated the timeline, go over the takeaways again and add any missing points.
         Double check that the timestamps you provide are correct.
@@ -94,7 +97,7 @@ module Chat
         {
           "tldr": "A brief tldr here, mentioning speakers if possible",
           "contents": [
-            {"timestamp": "00:00:30", "topic": "here you mention the topic.", "takeaway": "here you provide a detailed paragraph of the takeways in this segment."},
+            {"timestamp": "00:00:30", "topic": "here you mention the topic.", "takeaway": "here you provide a paragraph of the takeways in this segment."},
           ],
           "summary": "Detailed summary focusing on searching keywords, minmum 200 words blah blah blah with. blah blah blah. blah blah blah."
         }
