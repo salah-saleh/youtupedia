@@ -1,24 +1,16 @@
 <%# Navigation Component
-    Provides the main navigation bar with authentication and theme controls.
+    Provides the main navigation bar with search functionality.
 
     Dependencies:
-    - Authentication helpers (user_signed_in?, current_user)
-    - Tailwind CSS (for styling)
-    - Dark mode support
-    - Theme controller (Stimulus)
-    - Dropdown controller (Stimulus)
+    - Tailwind CSS
     - Search toggle controller (Stimulus)
     - Nav toggle controller (Stimulus)
-    - Icon helper (sun, moon, magnifying_glass, bars_3 icons)
+    - Icon helper (magnifying_glass, bars_3 icons)
 
     Features:
     - Responsive design
-    - Dark mode toggle
-    - User authentication state
     - Search bar (desktop and mobile)
     - Mobile navigation toggle
-    - User dropdown menu
-    - Accessible controls
 %>
 
 <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" data-controller="search-toggle nav-toggle">
@@ -71,62 +63,8 @@
 
       <!-- Right side -->
       <div class="flex items-center space-x-4">
-        <% if user_signed_in? %>
-          <% if local_assigns[:dashboard] %>
-            <!-- Theme toggle -->
-            <button type="button"
-                    data-controller="theme"
-                    data-action="theme#toggle"
-                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 dark:bg-gray-700 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                    role="switch"
-                    aria-checked="false">
-              <span class="sr-only">Toggle dark mode</span>
-              <span data-theme-target="indicator"
-                    class="pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-5">
-                <span class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity dark:opacity-0">
-                  <%= render_icon :sun, class: "h-3 w-3 text-gray-400" %>
-                </span>
-                <span class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity opacity-0 dark:opacity-100">
-                  <%= render_icon :moon, class: "h-3 w-3 text-purple-600" %>
-                </span>
-              </span>
-            </button>
-
-            <!-- User menu dropdown -->
-            <div class="relative" data-controller="dropdown">
-              <button type="button"
-                      class="flex items-center space-x-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-1"
-                      data-action="click->dropdown#toggle"
-                      aria-expanded="false">
-                <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white">
-                  <%= Current.user.email_address.first.upcase %>
-                </div>
-              </button>
-
-              <!-- Dropdown menu -->
-              <div class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 hidden
-                          transform opacity-0 scale-95 transition-all duration-200 ease-in-out
-                          origin-top-right z-50"
-                   data-dropdown-target="menu">
-                <div class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                  <div class="truncate" title="<%= Current.user.email_address %>">
-                    <%= Current.user.email_address %>
-                  </div>
-                </div>
-                <%= button_to "Sign Out", session_path, method: :delete,
-                    class: "w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" %>
-              </div>
-            </div>
-          <% else %>
-            <% if Rails.env.development? %>
-              <%= link_to "Manage Users", dev_users_path, class: "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
-            <% end %>
-            <%= button_to "Sign Out", session_path, method: :delete,
-                class: "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
-          <% end %>
-        <% else %>
-          <%= link_to "Sign Up", new_registration_path, class: "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
-          <%= link_to "Sign In", new_session_path, class: "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
+        <% if !local_assigns[:dashboard] && Rails.env.development? %>
+          <%= link_to "Manage Users", dev_users_path, class: "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
         <% end %>
       </div>
     </div>
