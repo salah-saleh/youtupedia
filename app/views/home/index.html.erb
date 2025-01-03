@@ -1,1 +1,50 @@
-<%# Currently not used. Signed in users are redirected to the summaries index page. Otherwise, they are redirected to new_session_path. %>
+<%# Home page with centered search form
+    Features:
+    - Large centered heading
+    - Search form for YouTube URLs
+    - Consistent styling with application theme
+    - Dark mode support
+%>
+
+<div class="min-h-screen flex flex-col items-center pt-32 px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-2xl space-y-8">
+    <!-- Heading -->
+    <div class="text-center">
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+        Got a Youtube video or channel URL to share with me?
+      </h1>
+    </div>
+
+    <!-- Search Form -->
+    <div class="mt-10">
+      <%= form_with url: parse_youtube_url_path, method: :post, class: "relative", data: { turbo: false } do |f| %>
+        <div class="relative">
+          <%= f.text_field :url,
+              placeholder: "Enter YouTube URL or Search Keywords...",
+              class: "block w-full px-4 py-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 text-lg",
+              autofocus: true %>
+
+          <button type="submit"
+                  class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+            <%= render_icon :magnifying_glass, class: "w-6 h-6" %>
+          </button>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Recent Suggestions -->
+    <div class="mt-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <%= link_to summaries_path, class: "flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" do %>
+          <%= render_icon :video_camera, class: "w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" %>
+          <span class="text-gray-700 dark:text-gray-300">View All Summaries</span>
+        <% end %>
+
+        <%= link_to channels_path, class: "flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" do %>
+          <%= render_icon :channel, class: "w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" %>
+          <span class="text-gray-700 dark:text-gray-300">Browse Channels</span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

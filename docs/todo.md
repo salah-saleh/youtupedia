@@ -1,6 +1,9 @@
 TODO BEFORE LAUNCH:
+- iteration on summaries page by agent
+- takeaways to be extended
+- for error transcript can't be loaded, find a solution to allow retry after a few mins
 - clean up takeaways section refactoring
-- clean up searching
+- clean up searching concerns
 - report a problem button/send feedback/request a feature
 - [ ] more analytics on logged in users
 - [ ] admin and active users

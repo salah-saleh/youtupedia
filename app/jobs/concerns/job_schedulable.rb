@@ -35,8 +35,8 @@ module JobSchedulable
       end
 
       # Set a cache key to indicate job is processing
-      # The 30-minute expiry serves as a safety net for stalled jobs
-      Rails.cache.write(job_key, true, expires_in: 1.minute)
+      # The 2-minutes expiry serves as a safety net for stalled jobs
+      Rails.cache.write(job_key, true, expires_in: 2.minutes)
       perform_later(*args)
       true
     end
