@@ -1,0 +1,23 @@
+<%# Authentication Input Component
+    Provides consistent styling for authentication form inputs
+
+    Required locals:
+    - form: The form builder object
+    - field: The field name (symbol)
+    - type: The input type (e.g., :email_field, :password_field)
+    - label: The label text
+    Optional:
+    - placeholder: Placeholder text for the input
+%>
+
+<div>
+  <%= form.label field, label, class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+  <%= form.send type, field,
+      class: "block w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600
+              bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+              placeholder-gray-500 dark:placeholder-gray-400
+              focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
+              dark:focus:ring-offset-gray-800",
+      placeholder: local_assigns[:placeholder],
+      required: true %>
+</div>

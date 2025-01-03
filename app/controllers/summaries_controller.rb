@@ -2,6 +2,7 @@ class SummariesController < ApplicationController
   include YoutubeUrlHelper
   include SummaryDataHelper
   include Paginatable
+  public_actions [ :show, :create_from_url, :check_status ]
 
   def create_from_url
     video_id = extract_video_id(params[:youtube_url])
@@ -21,7 +22,7 @@ class SummariesController < ApplicationController
 
     # If no data exists, try to schedule a job
     if (!@transcript || !@summary) && SummaryJob.schedule(@video_id)
-      UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id)
+      UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id) if Current.user
     end
 
     # Build summary data

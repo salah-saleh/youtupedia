@@ -4,6 +4,7 @@ TODO BEFORE LAUNCH:
 - for error transcript can't be loaded, find a solution to allow retry after a few mins
 - clean up takeaways section refactoring
 - clean up searching concerns
+- make video grids searchable
 - report a problem button/send feedback/request a feature
 - [ ] more analytics on logged in users
 - [ ] admin and active users

@@ -1,5 +1,6 @@
 class ChannelsController < ApplicationController
   include Paginatable
+  public_actions :show
 
   def index
     @channels = Youtube::YoutubeChannelService.fetch_channels_for_user(Current.user.id)
@@ -14,7 +15,7 @@ class ChannelsController < ApplicationController
       redirect_to channels_path and return
     end
 
-    UserServices::UserDataService.add_item(Current.user.id, :channels, @channel_name)
+    UserServices::UserDataService.add_item(Current.user.id, :channels, @channel_name) if Current.user
 
     # Get the current page token from params
     @current_token = params[:page_token]

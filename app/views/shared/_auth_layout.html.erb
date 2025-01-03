@@ -1,0 +1,47 @@
+<%# Authentication Layout Component
+    Provides shared layout for authentication pages (login, registration)
+
+    Required locals:
+    - heading: Main heading text
+    - subheading: Descriptive text below heading
+    - footer_text: Text for the alternative action prompt
+    - footer_link_text: Text for the alternative action link
+    - footer_link_path: Path for the alternative action
+
+    Features:
+    - Centered layout with logo
+    - Consistent styling across auth pages
+    - Dark mode support
+%>
+
+<div class="min-h-screen flex flex-col items-center pt-32 px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-md space-y-8">
+    <!-- Logo and Heading -->
+    <div class="text-center">
+      <%= image_tag "y2si.png", class: "mx-auto h-16 w-16", alt: "Y2SI Logo" %>
+      <h1 class="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+        <%= heading %>
+      </h1>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <%= subheading %>
+      </p>
+    </div>
+
+    <!-- Form Section -->
+    <div class="mt-8">
+      <div class="space-y-4 rounded-lg bg-white dark:bg-gray-800 px-6 pb-8 border border-gray-200 dark:border-gray-700 shadow">
+        <%= yield %>
+      </div>
+    </div>
+
+    <!-- Footer Link -->
+    <div class="text-center">
+      <div class="flex items-center justify-center space-x-2">
+        <span class="text-gray-500 dark:text-gray-400"><%= footer_text %></span>
+        <%= link_to footer_link_text, footer_link_path,
+            class: "text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300
+                    font-medium transition-colors" %>
+      </div>
+    </div>
+  </div>
+</div>

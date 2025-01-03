@@ -1,31 +1,30 @@
-<%= render "shared/container", max_width: "max-w-md", class: "p-4 sm:p-6" do %>
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-    <h2 class="text-lg lg:text-xl font-semibold mb-6 text-center text-gray-900 dark:text-white">Sign In</h2>
+<%# Login page using shared authentication layout %>
 
-    <%= form_with url: session_path, class: "space-y-4", data: { turbo: false } do |f| %>
-      <%= render "shared/form_components/auth_input",
-          form: f,
-          field: :email_address,
-          type: :email_field,
-          label: "Email address",
-          required: true %>
+<%= render "shared/auth_layout",
+    heading: "Welcome back!",
+    subheading: "Sign in to access your summaries and channels",
+    footer_text: "New to Y2SI?",
+    footer_link_text: "Create an account",
+    footer_link_path: new_registration_path do %>
 
-      <%= render "shared/form_components/auth_input",
-          form: f,
-          field: :password,
-          type: :password_field,
-          label: "Password",
-          required: true %>
+  <%= form_with url: session_path, class: "space-y-6", data: { turbo: false } do |f| %>
+    <%= render "shared/auth_input",
+        form: f,
+        field: :email_address,
+        type: :email_field,
+        label: "Email address",
+        placeholder: "you@example.com" %>
 
-      <%= f.submit "Sign In",
-          class: "w-full h-12 px-6 bg-purple-600 text-white text-base rounded-lg
-                  hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500
-                  focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors" %>
-    <% end %>
+    <%= render "shared/auth_input",
+        form: f,
+        field: :password,
+        type: :password_field,
+        label: "Password",
+        placeholder: "••••••••" %>
 
-    <div class="mt-6 text-center">
-      <%= link_to "Need an account? Sign up", new_registration_path,
-          class: "text-base text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors" %>
-    </div>
-  </div>
+    <%= f.submit "Sign In",
+        class: "w-full px-4 py-3 bg-purple-600 text-white text-base font-medium rounded-lg
+                hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500
+                focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors" %>
+  <% end %>
 <% end %>

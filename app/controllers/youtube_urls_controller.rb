@@ -1,5 +1,6 @@
 class YoutubeUrlsController < ApplicationController
   include YoutubeUrlHelper
+  public_actions :parse
 
   # The parse action handles YouTube URLs submitted by users and redirects them
   # to the appropriate page based on the URL type:

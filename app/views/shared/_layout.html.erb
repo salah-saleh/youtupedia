@@ -6,31 +6,22 @@
 
   <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
     <div class="min-h-full flex flex-col">
-      <%= render "shared/nav", dashboard: local_assigns[:dashboard] %>
+      <%= render "shared/nav"%>
       <%= render "shared/toast" %>
 
-      <% if local_assigns[:dashboard] && user_signed_in? %>
-        <div class="flex flex-col lg:flex-row flex-1 h-[calc(100vh-3.5rem)]">
-          <!-- Sidebar (includes both desktop and mobile navigation) -->
-          <%= render "shared/sidebar" %>
+      <div class="flex flex-col lg:flex-row flex-1 h-[calc(100vh-3.5rem)]">
+        <!-- Sidebar (includes both desktop and mobile navigation) -->
+        <%= render "shared/sidebar" %>
 
-          <!-- Main Content -->
-          <div class="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
-            <div class="p-4 lg:p-6">
-              <div class="<%= content_for?(:container_width) ? yield(:container_width) : 'max-w-7xl' %> mx-auto w-full px-4">
-                <%= yield %>
-              </div>
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900">
+          <div class="p-4 lg:p-6">
+            <div class="<%= content_for?(:container_width) ? yield(:container_width) : 'max-w-7xl' %> mx-auto w-full px-4">
+              <%= yield %>
             </div>
           </div>
         </div>
-      <% else %>
-        <!-- Main Content -->
-        <main class="flex-1">
-          <div class="<%= content_for?(:container_width) ? yield(:container_width) : 'max-w-7xl' %> mx-auto w-full px-4">
-            <%= yield %>
-          </div>
-        </main>
-      <% end %>
+      </div>
     </div>
   </body>
 </html>

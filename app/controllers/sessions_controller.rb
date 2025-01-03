@@ -20,7 +20,7 @@ class SessionsController < PublicController
     if user = User.authenticate_by(email_address: params[:email_address], password: params[:password])
       session = user.sessions.create!
       cookies.signed[:session_token] = { value: session.token, httponly: true }
-      redirect_to root_path
+      redirect_back_or_to root_path
     else
       flash.now[:alert] = "Invalid email or password"
       render :new, status: :unprocessable_entity

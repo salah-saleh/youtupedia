@@ -1,38 +1,37 @@
-<%= render "shared/container", max_width: "max-w-md", class: "p-4 sm:p-6" do %>
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
-    <h2 class="text-lg lg:text-xl font-semibold mb-6 text-center text-gray-900 dark:text-white">Sign Up</h2>
+<%# Registration page using shared authentication layout %>
 
-    <%= form_with model: @user, url: registration_path, class: "space-y-4" do |f| %>
-      <%= render "shared/form_components/auth_input",
-          form: f,
-          field: :email_address,
-          type: :email_field,
-          label: "Email address",
-          required: true %>
+<%= render "shared/auth_layout",
+    heading: "Create your account",
+    subheading: "Start summarizing your favorite YouTube videos",
+    footer_text: "Already have an account?",
+    footer_link_text: "Sign in",
+    footer_link_path: new_session_path do %>
 
-      <%= render "shared/form_components/auth_input",
-          form: f,
-          field: :password,
-          type: :password_field,
-          label: "Password",
-          required: true %>
+  <%= form_with model: @user, url: registration_path, class: "space-y-6" do |f| %>
+    <%= render "shared/auth_input",
+        form: f,
+        field: :email_address,
+        type: :email_field,
+        label: "Email address",
+        placeholder: "you@example.com" %>
 
-      <%= render "shared/form_components/auth_input",
-          form: f,
-          field: :password_confirmation,
-          type: :password_field,
-          label: "Confirm password",
-          required: true %>
+    <%= render "shared/auth_input",
+        form: f,
+        field: :password,
+        type: :password_field,
+        label: "Password",
+        placeholder: "••••••••" %>
 
-      <%= f.submit "Sign Up",
-          class: "w-full h-12 px-6 bg-purple-600 text-white text-base rounded-lg
-                  hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500
-                  focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors" %>
-    <% end %>
+    <%= render "shared/auth_input",
+        form: f,
+        field: :password_confirmation,
+        type: :password_field,
+        label: "Confirm password",
+        placeholder: "••••••••" %>
 
-    <div class="mt-6 text-center">
-      <%= link_to "Already have an account? Sign in", new_session_path,
-          class: "text-base text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors" %>
-    </div>
-  </div>
+    <%= f.submit "Create Account",
+        class: "w-full px-4 py-3 bg-purple-600 text-white text-base font-medium rounded-lg
+                hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500
+                focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors" %>
+  <% end %>
 <% end %>
