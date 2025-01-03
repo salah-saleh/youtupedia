@@ -1,26 +1,5 @@
 <%# Summaries Index %>
 <div>
-  <%# Quick Summary Section %>
-  <div class="mb-6">
-    <%= render "shared/form_section",
-          title: "Quick Summary",
-          url: parse_youtube_url_path,
-          method: :post,
-          form_classes: "flex-col sm:flex-row items-start gap-3" do |f| %>
-      <%= render "shared/form_components/url_input",
-            form: f,
-            field: :url,
-            placeholder: "Enter YouTube video URL...",
-            required: true %>
-
-      <%= render "shared/form_components/button",
-            text: "Summarize",
-            type: "submit",
-            variant: :primary,
-            size: :lg %>
-    <% end %>
-  </div>
-
   <%# Summaries grid %>
   <%= turbo_frame_tag "summaries_content", data: { turbo_action: "advance" } do %>
     <%= render "summaries/index/content" %>

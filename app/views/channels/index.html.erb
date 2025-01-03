@@ -1,25 +1,5 @@
 <%# Channels Index %>
 <div class="space-y-6">
-  <%# Add Channel Section %>
-  <%= render "shared/form_section",
-        title: "Add Channel",
-        url: parse_youtube_url_path,
-        method: :post,
-        turbo: false,
-        form_classes: "flex-col sm:flex-row items-start gap-3" do |f| %>
-    <%= render "shared/form_components/url_input",
-          form: f,
-          field: :url,
-          placeholder: "Enter YouTube channel URL...",
-          required: true %>
-
-    <%= render "shared/form_components/button",
-          text: "Add Channel",
-          type: "submit",
-          variant: :primary,
-          size: :lg %>
-  <% end %>
-
   <%# Channels Grid %>
   <%= render "shared/page_header",
         title: "Your Channels",

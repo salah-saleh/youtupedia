@@ -5,7 +5,8 @@
     - Authentication helpers
     - Tailwind CSS
     - Dark mode support
-    - Icon helper (video_camera, channel, magnifying_glass, cog icons)
+    - Theme controller (Stimulus)
+    - Icon helper (sun, moon, arrow_right icons)
 
     Features:
     - Responsive design (desktop sidebar)
@@ -17,68 +18,27 @@
 
 <%# Desktop Sidebar %>
 <div class="hidden lg:block w-64 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4">
+  <!-- Logo -->
+  <div class="mb-6 px-4 pt-2">
+    <%= link_to root_path, class: "text-xl font-semibold flex items-center group" do %>
+      Youtupedia
+    <% end %>
+  </div>
+
   <%# Main Navigation %>
   <nav class="space-y-1">
-    <%= link_to root_path,
-        class: "block px-3 py-2 text-gray-700 dark:text-gray-300
-                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
-                #{current_page?(root_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-      <div class="flex items-center">
-        <%= render_icon :home, class: "w-5 h-5 mr-3" %>
-        <span>Home</span>
-      </div>
-    <% end %>
-
-    <%= link_to summaries_path,
-        class: "block px-3 py-2 text-gray-700 dark:text-gray-300
-                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
-                #{current_page?(summaries_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-      <div class="flex items-center">
-        <%= render_icon :video_camera, class: "w-5 h-5 mr-3" %>
-        <span>Summaries</span>
-      </div>
-    <% end %>
-
-    <%= link_to channels_path,
-        class: "block px-3 py-2 text-gray-700 dark:text-gray-300
-                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
-                #{current_page?(channels_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-      <div class="flex items-center">
-        <%= render_icon :channel, class: "w-5 h-5 mr-3" %>
-        <span>Channels</span>
-      </div>
-    <% end %>
-
-    <%= link_to search_index_path,
-        class: "block px-3 py-2 text-gray-700 dark:text-gray-300
-                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
-                #{current_page?(search_index_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-      <div class="flex items-center">
-        <%= render_icon :magnifying_glass, class: "w-5 h-5 mr-3" %>
-        <span>Search</span>
-      </div>
-    <% end %>
+    <%= render "shared/nav_links" %>
   </nav>
 
   <%# Divider %>
   <div class="border-t border-gray-200 dark:border-gray-700 my-4"></div>
 
-  <%# Settings %>
+  <%# Theme and User Section %>
   <nav class="space-y-1">
-    <%= link_to settings_path,
-        class: "block px-3 py-2 text-gray-700 dark:text-gray-300
-                hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
-                #{current_page?(settings_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-      <div class="flex items-center">
-        <%= render_icon :cog, class: "w-5 h-5 mr-3" %>
-        <span>Settings</span>
-      </div>
-    <% end %>
-
     <%# Dark Mode Toggle %>
     <div class="px-3 py-2">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center">
+      <div class="flex items-center">
+        <div class="flex items-center pr-5">
           <%= render_icon :moon, class: "w-5 h-5 mr-3 text-gray-500 dark:text-gray-400" %>
           <span class="text-gray-700 dark:text-gray-300">Theme</span>
         </div>

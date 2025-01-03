@@ -20,7 +20,7 @@ class SessionsController < PublicController
     if user = User.authenticate_by(email_address: params[:email_address], password: params[:password])
       session = user.sessions.create!
       cookies.signed[:session_token] = { value: session.token, httponly: true }
-      redirect_to root_path, notice: "Welcome back!"
+      redirect_to root_path
     else
       flash.now[:alert] = "Invalid email or password"
       render :new, status: :unprocessable_entity
@@ -30,6 +30,6 @@ class SessionsController < PublicController
   def destroy
     Current.session&.destroy
     cookies.delete(:session_token)
-    redirect_to root_path, notice: "You have been signed out"
+    redirect_to root_path
   end
 end

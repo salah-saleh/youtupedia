@@ -1,0 +1,53 @@
+<%# Shared Navigation Links
+    Contains the main navigation links used in both sidebar and mobile navigation.
+%>
+
+<%= link_to root_path,
+    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+            hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+            #{current_page?(root_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+  <div class="flex items-center">
+    <%= render_icon :home, class: "w-5 h-5 mr-3" %>
+    <span>Home</span>
+  </div>
+<% end %>
+
+<%= link_to summaries_path,
+    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+            hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+            #{current_page?(summaries_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+  <div class="flex items-center">
+    <%= render_icon :video_camera, class: "w-5 h-5 mr-3" %>
+    <span>Videos</span>
+  </div>
+<% end %>
+
+<%= link_to channels_path,
+    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+            hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+            #{current_page?(channels_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+  <div class="flex items-center">
+    <%= render_icon :channel, class: "w-5 h-5 mr-3" %>
+    <span>Channels</span>
+  </div>
+<% end %>
+
+<%= link_to search_index_path,
+    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+            hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+            #{current_page?(search_index_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+  <div class="flex items-center">
+    <%= render_icon :magnifying_glass, class: "w-5 h-5 mr-3" %>
+    <span>Search</span>
+  </div>
+<% end %>
+
+<%= link_to settings_path,
+    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+            hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+            #{current_page?(settings_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
+  <div class="flex items-center">
+    <%= render_icon :cog, class: "w-5 h-5 mr-3" %>
+    <span>Settings</span>
+  </div>
+<% end %>

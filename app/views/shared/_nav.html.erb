@@ -1,25 +1,26 @@
 <%# Navigation Component
-    Provides the main navigation bar with search functionality.
+    Provides mobile navigation with logo and menu toggle.
 
     Dependencies:
     - Tailwind CSS
-    - Search toggle controller (Stimulus)
     - Nav toggle controller (Stimulus)
-    - Icon helper (magnifying_glass, bars_3 icons)
+    - Theme controller (Stimulus)
+    - Icon helper (bars_3, sun, moon icons)
 
     Features:
-    - Responsive design
-    - Search bar (desktop and mobile)
+    - Mobile-only design
     - Mobile navigation toggle
+    - Theme toggle
+    - User authentication controls
 %>
 
-<nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" data-controller="search-toggle nav-toggle">
+<nav class="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" data-controller="nav-toggle">
   <div class="max-w-full mx-auto px-4">
     <div class="flex h-14 items-center justify-between">
       <!-- Left side -->
       <div class="flex items-center">
         <!-- Logo -->
-        <div class="<%= local_assigns[:dashboard] ? 'lg:w-64' : '' %> flex items-center space-x-2">
+        <div class="flex items-center space-x-2">
           <%= link_to root_path, class: "text-xl px-2 flex items-center group" do %>
             <div class="relative flex items-center">
               <div class="flex items-center space-x-1 -ml-1">
@@ -28,99 +29,58 @@
             </div>
           <% end %>
 
-          <% if local_assigns[:dashboard] %>
-            <!-- Mobile nav toggle -->
-            <button type="button"
-                    class="lg:hidden p-2 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
-                    data-action="nav-toggle#toggle">
-              <%= render_icon :bars_3, class: "w-5 h-5" %>
-            </button>
-
-            <!-- Mobile search toggle -->
-            <button type="button"
-                    class="sm:hidden p-2 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
-                    data-action="search-toggle#toggle">
-              <%= render_icon :magnifying_glass, class: "w-5 h-5" %>
-            </button>
-          <% end %>
+          <!-- Mobile hamburger nav toggle -->
+          <button type="button"
+                  class="p-2 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+                  data-action="nav-toggle#toggle">
+            <%= render_icon :bars_3, class: "w-5 h-5" %>
+          </button>
         </div>
       </div>
 
-      <% if local_assigns[:dashboard] %>
-        <!-- Center - Search Bar -->
-        <div class="hidden sm:flex flex-1 justify-center max-w-3xl mx-4">
-          <%= form_with url: parse_youtube_url_path, method: :post, class: "w-full max-w-2xl relative", data: { turbo: false } do |f| %>
-            <%= f.text_field :url,
-                placeholder: "Enter YouTube URL or Search Keywords...",
-                class: "w-full px-4 py-2 pr-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800" %>
-            <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <%= render_icon :magnifying_glass, class: "w-5 h-5 text-gray-400 dark:text-gray-500" %>
-            </button>
-          <% end %>
-        </div>
-      <% end %>
-
       <!-- Right side -->
       <div class="flex items-center space-x-4">
-        <% if !local_assigns[:dashboard] && Rails.env.development? %>
-          <%= link_to "Manage Users", dev_users_path, class: "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
+        <!-- Theme Toggle -->
+        <button type="button"
+                data-controller="theme"
+                data-action="theme#toggle"
+                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-gray-200 dark:bg-gray-700 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                role="switch"
+                aria-checked="false">
+          <span class="sr-only">Toggle dark mode</span>
+          <span data-theme-target="indicator"
+                class="pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-5">
+            <span class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity dark:opacity-0">
+              <%= render_icon :sun, class: "h-3 w-3 text-gray-400" %>
+            </span>
+            <span class="absolute inset-0 flex h-full w-full items-center justify-center transition-opacity opacity-0 dark:opacity-100">
+              <%= render_icon :moon, class: "h-3 w-3 text-purple-600" %>
+            </span>
+          </span>
+        </button>
+
+        <!-- User Section -->
+        <% if user_signed_in? %>
+          <div class="flex items-center text-gray-700 dark:text-gray-300">
+            <div class="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs">
+              <%= Current.user.email_address.first.upcase %>
+            </div>
+          </div>
+          <%= button_to session_path, method: :delete,
+              class: "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white flex items-center justify-center" do %>
+            <%= render_icon :arrow_right, class: "w-5 h-5" %>
+          <% end %>
+        <% else %>
+          <%= link_to "Sign In", new_session_path, class: "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" %>
         <% end %>
       </div>
     </div>
 
-    <!-- Mobile search bar -->
-    <% if local_assigns[:dashboard] %>
-      <div class="sm:hidden py-2 hidden" data-search-toggle-target="form">
-        <%= form_with url: parse_youtube_url_path, method: :post, class: "relative", data: { turbo: false } do |f| %>
-          <%= f.text_field :url,
-              placeholder: "Enter YouTube URL or Search Keywords...",
-              class: "w-full px-4 py-2 pr-10 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800" %>
-          <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <%= render_icon :magnifying_glass, class: "w-5 h-5 text-gray-400 dark:text-gray-500" %>
-          </button>
-        <% end %>
-      </div>
-
-      <!-- Mobile navigation -->
-      <div class="lg:hidden py-2 hidden border-t border-gray-200 dark:border-gray-700" data-nav-toggle-target="menu">
-        <nav class="flex flex-col space-y-1">
-          <%= link_to summaries_path,
-              class: "px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
-                      #{current_page?(summaries_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-            <div class="flex items-center">
-              <%= render_icon :video_camera, class: "w-5 h-5 mr-3" %>
-              <span>Summaries</span>
-            </div>
-          <% end %>
-
-          <%= link_to channels_path,
-              class: "px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
-                      #{current_page?(channels_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-            <div class="flex items-center">
-              <%= render_icon :channel, class: "w-5 h-5 mr-3" %>
-              <span>Channels</span>
-            </div>
-          <% end %>
-
-          <%= link_to search_index_path,
-              class: "px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
-                      #{current_page?(search_index_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-            <div class="flex items-center">
-              <%= render_icon :magnifying_glass, class: "w-5 h-5 mr-3" %>
-              <span>Search</span>
-            </div>
-          <% end %>
-
-          <%= link_to settings_path,
-              class: "px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
-                      #{current_page?(settings_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-            <div class="flex items-center">
-              <%= render_icon :cog, class: "w-5 h-5 mr-3" %>
-              <span>Settings</span>
-            </div>
-          <% end %>
-        </nav>
-      </div>
-    <% end %>
+    <!-- Mobile navigation -->
+    <div class="py-2 hidden border-t border-gray-200 dark:border-gray-700" data-nav-toggle-target="menu">
+      <nav class="flex flex-col space-y-1">
+        <%= render "shared/nav_links" %>
+      </nav>
+    </div>
   </div>
 </nav>
