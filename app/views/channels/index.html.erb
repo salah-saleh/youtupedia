@@ -4,16 +4,7 @@
   <%= render "shared/page_header",
         title: "Your Channels",
         subtitle: pluralize(@channels&.length, "channel") do %>
-    <% if @channels.any? %>
-      <%= render "shared/grid" do %>
-        <% @channels.each do |channel| %>
-          <%= render "shared/channel_card", channel: channel %>
-        <% end %>
-      <% end %>
-    <% else %>
-      <%= render "shared/empty_state",
-            message: "No channels added yet. Add your first channel above!",
-            icon: :channel %>
-    <% end %>
+
+    <%= render "channels/index/content" %>
   <% end %>
 </div>

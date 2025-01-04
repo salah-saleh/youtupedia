@@ -2,13 +2,11 @@ module Youtube
   # Service for managing YouTube channel data and related video information
   # Handles channel metadata, video lists, and user channel associations
   class YoutubeChannelService < YoutubeBaseService
-    # Fetches all channels associated with a user
-    # @param user_id [Integer] User ID
+    # Fetches all channels from the cache or fetches missing channels from the API
+    # @param paginated_channel_names [Array<String>] List of channel names
     # @return [Array<Hash>] List of channel metadata
-    def self.fetch_channels_for_user(user_id)
-      # TODO fetch all channels for user in one go
-      channel_names = UserServices::UserDataService.user_items(user_id, :channels)
-      channel_names.map { |name| fetch_cached(name, namespace: default_cache_namespace + "_channel_metadata", expires_in: nil) }.compact
+    def self.fetch_channels_metadata(paginated_channel_names)
+      paginated_channel_names.map { |name| fetch_channel_metadata(name) }.compact
     end
 
     # Fetches metadata for a specific channel

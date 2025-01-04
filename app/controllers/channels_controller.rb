@@ -3,7 +3,16 @@ class ChannelsController < ApplicationController
   public_actions :show
 
   def index
-    @channels = Youtube::YoutubeChannelService.fetch_channels_for_user(Current.user.id)
+    channel_names = UserServices::UserDataService.user_items(Current.user.id, :channels)
+    return @channels = [] if channel_names.empty?
+
+    # Apply pagination to channel_names
+    paginated_channel_names = paginate(channel_names, per_page: 9)
+
+    # Fetch all metadata in one batch
+    @channels = Youtube::YoutubeChannelService.fetch_channels_metadata(paginated_channel_names)
+
+    respond_with_pagination(turbo_frame_id: "channels_content") { "channels/index/content" }
   end
 
   def show

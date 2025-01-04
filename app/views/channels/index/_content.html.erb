@@ -1,0 +1,20 @@
+<%# Paginated channels content %>
+<%= turbo_frame_tag "channels_content" do %>
+  <% if @channels.any? %>
+    <%= render "shared/grid" do %>
+      <% @channels.each do |channel| %>
+        <%= render "shared/channel_card", channel: channel %>
+      <% end %>
+    <% end %>
+
+    <%# Pagination %>
+    <%= render "shared/pagination",
+          current_page: @page,
+          total_pages: @total_pages,
+          path: channels_path %>
+  <% else %>
+    <%= render "shared/empty_state",
+          message: "No channels added yet. Add your first channel above!",
+          icon: :channel %>
+  <% end %>
+<% end %>
