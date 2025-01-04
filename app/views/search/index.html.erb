@@ -1,33 +1,27 @@
-<%# Search Index %>
-<div class="space-y-6">
-  <%# Search Form %>
-  <%= render "shared/form_section",
-        title: "Search",
-        url: search_index_path,
-        method: :get do |f| %>
-    <%= render "shared/form_components/search_input",
-          form: f,
-          field: :q,
-          value: @query,
-          placeholder: "Search summaries...",
-          required: true %>
+<%# Search Index with centered layout %>
 
-    <%= render "shared/form_components/button",
-          text: "Search",
-          type: "submit",
-          variant: :primary,
-          size: :lg %>
-  <% end %>
+<%= render "shared/centered_search_layout",
+    heading: "Search Videos",
+    subheading: "Search your videos by using one or multiple keywords" do %>
+
+  <%= render "shared/search_form",
+      url: search_index_path,
+      method: :get,
+      field: :q,
+      value: @query,
+      placeholder: "Search videos..." %>
 
   <%# Search Results %>
   <% if @query.present? %>
-    <%= render "shared/section",
-          title: "Search Results",
-          subtitle: pluralize(@videos&.length || 0, "result") do %>
-      <%= render "shared/search_results",
-            videos: @videos,
-            highlight_terms: @search_terms,
-            loading: @loading %>
-    <% end %>
+    <div class="mt-8">
+      <%= render "shared/section",
+            title: "Search Results",
+            subtitle: pluralize(@videos&.length || 0, "result") do %>
+        <%= render "shared/search_results",
+              videos: @videos,
+              highlight_terms: @search_terms,
+              loading: @loading %>
+      <% end %>
+    </div>
   <% end %>
-</div>
+<% end %>

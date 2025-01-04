@@ -1,23 +1,17 @@
 <%# Grid Container Component
     Provides consistent grid layout with responsive columns
+    Inspired by the home page design with modern card styling
 
     Usage:
-    render "shared/grid", columns: 3, gap: 4 do
+    render "shared/grid" do
       Content goes here
     end
 
     Parameters:
-    - columns: Integer (optional) - Number of columns on desktop (default: 3)
     - gap: Integer (optional) - Gap size between items (default: 4)
     - classes: String (optional) - Additional CSS classes
 %>
 
-<%
-  columns = local_assigns[:columns] || 3
-  gap = local_assigns[:gap] || 4
-  grid_classes = "grid sm:grid-cols-1 md:grid-cols-#{columns} lg:grid-cols-#{columns} gap-#{gap} mb-6 #{local_assigns[:classes]}"
-%>
-
-<div class="<%= grid_classes %>">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 <%= local_assigns[:classes] %>">
   <%= yield if block_given? %>
 </div>

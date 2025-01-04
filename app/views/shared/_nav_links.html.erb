@@ -3,7 +3,7 @@
 %>
 
 <%= link_to root_path,
-    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+    class: "block px-3 py-2 text-sm text-gray-700 dark:text-gray-300
             hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
             #{current_page?(root_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
   <div class="flex items-center">
@@ -13,7 +13,7 @@
 <% end %>
 
 <%= link_to summaries_path,
-    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+    class: "block px-3 py-2 text-sm text-gray-700 dark:text-gray-300
             hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
             #{current_page?(summaries_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
   <div class="flex items-center">
@@ -23,7 +23,7 @@
 <% end %>
 
 <%= link_to channels_path,
-    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+    class: "block px-3 py-2 text-sm text-gray-700 dark:text-gray-300
             hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
             #{current_page?(channels_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
   <div class="flex items-center">
@@ -33,7 +33,7 @@
 <% end %>
 
 <%= link_to search_index_path,
-    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+    class: "block px-3 py-2 text-sm text-gray-700 dark:text-gray-300
             hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
             #{current_page?(search_index_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
   <div class="flex items-center">
@@ -43,7 +43,7 @@
 <% end %>
 
 <%= link_to settings_path,
-    class: "block px-3 py-2 text-gray-700 dark:text-gray-300
+    class: "block px-3 py-2 text-sm text-gray-700 dark:text-gray-300
             hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
             #{current_page?(settings_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
   <div class="flex items-center">

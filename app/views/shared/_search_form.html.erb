@@ -1,39 +1,64 @@
-<%# Usage: render "shared/search_form", form_config: { title:, url:, method:, field_name:, value:, placeholder:, button_text: } %>
-<div class="bg-white rounded-lg shadow p-4 lg:p-6">
-  <% if local_assigns[:form_config][:title].present? %>
-    <h2 class="text-xl lg:text-2xl font-semibold mb-4">
-      <%= form_config[:title] %>
-    </h2>
-  <% end %>
+<%# Search Form Component
+    Provides a clean, modern search form with icon
 
-  <%= form_with url: form_config[:url],
-        method: form_config[:method],
-        class: "relative",
-        data: {
+    Required locals:
+    - url: Form submission URL
+    - method: HTTP method (:get or :post)
+    Optional:
+    - field: Field name (default: :q)
+    - value: Initial input value
+    - placeholder: Input placeholder text
+    - button_text: Submit button text (default: "Search")
+
+    Features:
+    - Clean, modern design
+    - Search icon in input
+    - Responsive layout
+    - Dark mode support
+%>
+
+<%= form_with url: url,
+    method: method,
+    class: "relative",
+    data: {
           controller: "search-form",
           turbo: false,
           action: "submit->search-form#submit"
-        } do |f| %>
-    <div class="flex gap-3">
-      <div class="flex-1">
-        <%= f.text_field form_config[:field_name],
-              value: form_config[:value],
-              class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent",
-              placeholder: form_config[:placeholder],
-              data: { search_form_target: "input" } %>
-      </div>
+    } do |f| %>
+  <div class="relative">
+    <%= f.text_field local_assigns.fetch(:field, :q),
+        value: local_assigns[:value],
+        placeholder: local_assigns.fetch(:placeholder, "Search..."),
+        class: "block w-full px-4 py-4 pl-12 rounded-xl border border-gray-300 dark:border-gray-600
+                bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                placeholder-gray-500 dark:placeholder-gray-400
+                focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                dark:focus:ring-offset-gray-800 text-lg",
+        required: true,
+        autofocus: true,
+        data: { search_form_target: "input" } %>
 
-      <%= f.button type: "submit",
-            class: "px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
-            data: { search_form_target: "submitButton" } do %>
-        <span class="flex items-center">
-          <span data-search-form-target="buttonText"><%= form_config[:button_text] %></span>
-          <svg data-search-form-target="spinner" class="hidden animate-spin ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </span>
-      <% end %>
+    <!-- Search Icon -->
+    <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
+      <%= render_icon :magnifying_glass, class: "w-5 h-5 text-gray-400 dark:text-gray-500" %>
     </div>
-  <% end %>
-</div>
+
+    <button type="submit"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 px-4 py-2 bg-purple-600 text-white text-base font-medium rounded-lg
+                   hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500
+                   focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+            data-search-form-target="submitButton">
+      <span class="flex items-center">
+        <span data-search-form-target="buttonText"><%= local_assigns.fetch(:button_text, "Search") %></span>
+        <svg data-search-form-target="spinner"
+             class="hidden animate-spin ml-2 h-4 w-4"
+             xmlns="http://www.w3.org/2000/svg"
+             fill="none"
+             viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </span>
+    </button>
+  </div>
+<% end %>
