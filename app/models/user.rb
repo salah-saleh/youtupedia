@@ -4,11 +4,22 @@ class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
 
   validates :email_address, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
-  validates :password, allow_nil: true, length: { minimum: 8 }
+  validates :password, presence: true, length: { minimum: 8 }, if: :password_required?
 
-  normalizes :email_address, with: ->(email) { email.strip.downcase }
+  # Admin functionality
+  scope :admins, -> { where(admin: true) }
 
-  def authenticate_session(token)
-    sessions.find_by(token: token)
+  def make_admin!
+    update!(admin: true)
+  end
+
+  def remove_admin!
+    update!(admin: false)
+  end
+
+  private
+
+  def password_required?
+    new_record? || password.present?
   end
 end

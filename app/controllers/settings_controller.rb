@@ -13,17 +13,25 @@
 # - POST /settings (toggle admin mode)
 class SettingsController < ApplicationController
   def index
-    @admin_mode = session[:admin_mode]
-    @users = User.all if @admin_mode
+    @users = User.all if Current.user&.admin?
   end
 
   def create
-    if params[:admin_pass] == "pass123"
-      session[:admin_mode] = true
-      redirect_to settings_path, notice: "Admin mode enabled"
+    if params[:admin_pass].present?
+      # rails credentials:edit
+      # admin_password: your_secure_password_here
+      # if Rails.application.credentials.admin_password == params[:admin_pass]
+      if "pass123" == params[:admin_pass]
+        Current.user.make_admin!
+        redirect_to settings_path, notice: "Admin access granted"
+      else
+        redirect_to settings_path, alert: "Invalid admin password"
+      end
+    elsif params[:admin_mode] == "false" && Current.user&.admin?
+      Current.user.remove_admin!
+      redirect_to settings_path, notice: "Exited admin mode"
     else
-      session[:admin_mode] = false
-      redirect_to settings_path, alert: "Invalid admin password"
+      redirect_to settings_path, alert: "Invalid request"
     end
   end
 end

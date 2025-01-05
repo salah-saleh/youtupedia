@@ -10,13 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2024_12_04_065056) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_04_233500) do
   create_table "sessions", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "token"
     t.datetime "expires_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_sessions_on_token"
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
@@ -25,6 +26,9 @@ ActiveRecord::Schema[8.0].define(version: 2024_12_04_065056) do
     t.string "password_digest"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "admin", default: false, null: false
+    t.index ["admin"], name: "index_users_on_admin"
+    t.index ["email_address"], name: "index_users_on_email_address"
   end
 
   add_foreign_key "sessions", "users"

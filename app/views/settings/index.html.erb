@@ -5,13 +5,15 @@
 
   <%# Admin Access Section %>
   <%= render "shared/section", title: "Admin Access" do %>
-    <% if @admin_mode %>
+    <% if Current.user&.admin? %>
       <%# Admin Panel %>
       <div class="space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h4 class="text-base lg:text-lg font-medium text-gray-900 dark:text-white">User Management</h4>
           <div class="text-base">
-            <%= link_to "Exit Admin Mode", settings_path,
+            <%= button_to "Exit Admin Mode",
+                settings_path(admin_mode: false),
+                method: :post,
                 class: "text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors" %>
           </div>
         </div>
