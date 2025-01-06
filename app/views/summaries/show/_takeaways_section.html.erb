@@ -59,14 +59,16 @@
               <!-- Topic header with timestamp and actions -->
               <div class="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 <!-- Timestamp -->
-                <button type="button"
-                        class="text-sm text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors font-mono w-[70px] text-left flex-shrink-0 p-2"
-                        data-action="click->youtube#seekToTime"
-                        data-time="<%= content[:timestamp] %>"
-                        aria-label="Jump to <%= content[:timestamp] %>">
-                  <%= content[:timestamp] %>
-                </button>
-
+                <% if false %>
+                  <%# disabled for now %>
+                  <button type="button"
+                      class="text-sm text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors font-mono w-[70px] text-left flex-shrink-0 p-2"
+                      data-action="click->youtube#seekToTime"
+                      data-time="<%= content[:timestamp] %>"
+                      aria-label="Jump to <%= content[:timestamp] %>">
+                    <%= content[:timestamp] %>
+                  </button>
+                <% end %>
                 <!-- Topic toggle button -->
                 <button type="button"
                         class="group flex-1 text-left flex items-center gap-2 min-h-[44px] py-2 px-3 -mx-3 rounded-lg pl-5"

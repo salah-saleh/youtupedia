@@ -50,9 +50,7 @@
                           <%= f.check_box :admin_toggle,
                                 checked: user.admin?,
                                 class: "h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer",
-                                data: {
-                                  action: "change->form#submit"
-                                } %>
+                                onchange: "this.form.submit()" %>
                           <label class="ml-2 text-sm text-gray-600 dark:text-gray-400">
                             Admin
                           </label>
