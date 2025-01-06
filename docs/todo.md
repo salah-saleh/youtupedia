@@ -33,6 +33,8 @@ TODO BEFORE LAUNCH:
 
 
 TODO AFTER LAUNCH:
+- [ ] remove the test users as they are a security risk
+- [ ] change the route to signup/signin to login/register
 - [ ] payements
 - [ ] use resque for job management
 - [ ] implement prober queing

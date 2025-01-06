@@ -3,39 +3,77 @@
   <%# Settings Header %>
   <%= render "shared/section", title: "Settings" %>
 
-  <%# Admin Access Section %>
-  <%= render "shared/section", title: "Admin Access" do %>
-    <% if Current.user&.admin? %>
-      <%# Admin Panel %>
+  <%# Admin Access Section - Only visible to admins %>
+  <% if Current.user&.admin? || session[:admin_impersonation] %>
+    <%= render "shared/section", title: "Admin Access" do %>
       <div class="space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <h4 class="text-base lg:text-lg font-medium text-gray-900 dark:text-white">User Management</h4>
-          <div class="text-base">
-            <%= button_to "Exit Admin Mode",
-                settings_path(admin_mode: false),
-                method: :post,
-                class: "text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors" %>
+        <%# Admin Status Banner %>
+        <% if session[:admin_impersonation] && !Current.user&.admin? %>
+          <div class="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-purple-600 dark:text-purple-400">
+                You are browsing as an admin while impersonating another user
+              </p>
+              <%= button_to "Exit Impersonation",
+                    settings_path(exit_impersonation: true),
+                    method: :post,
+                    class: "text-sm text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-100" %>
+            </div>
+          </div>
+        <% end %>
+
+        <%# User Management %>
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div class="p-4 sm:p-6">
+            <h4 class="text-base lg:text-lg font-medium text-gray-900 dark:text-white mb-4">User Management</h4>
+
+            <div class="space-y-4">
+              <% @users.each do |user| %>
+                <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                  <div class="flex items-center gap-4">
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-900 dark:text-white"><%= user.email_address %></p>
+                      <% if user == Current.user %>
+                        <span class="text-xs text-purple-600 dark:text-purple-400">(Current User)</span>
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-4">
+                    <%# Admin Toggle - Only visible to real admins %>
+                    <% if Current.user&.admin? %>
+                      <%= form_with url: settings_path, method: :post, class: "flex items-center gap-2" do |f| %>
+                        <%= f.hidden_field :user_id, value: user.id %>
+                        <%= f.hidden_field :admin_action, value: user.admin? ? "remove" : "add" %>
+
+                        <div class="flex items-center">
+                          <%= f.check_box :admin_toggle,
+                                checked: user.admin?,
+                                class: "h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer",
+                                data: {
+                                  action: "change->form#submit"
+                                } %>
+                          <label class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                            Admin
+                          </label>
+                        </div>
+                      <% end %>
+                    <% end %>
+
+                    <%# Switch User (if not current user) %>
+                    <% if user != Current.user %>
+                      <%= button_to "Switch to User",
+                            settings_path(switch_to_user: user.id),
+                            method: :post,
+                            class: "text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300" %>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
           </div>
         </div>
-
-        <%= render "shared/user_switcher", users: @users %>
       </div>
-    <% else %>
-      <%# Admin Access Form %>
-      <%= form_with url: settings_path, method: :post, class: "max-w-md space-y-4" do |f| %>
-        <%= render "shared/form_components/auth_input",
-            form: f,
-            field: :admin_pass,
-            type: :password_field,
-            label: "Admin Password",
-            placeholder: "Enter admin password...",
-            required: true %>
-
-        <%= f.submit "Access Admin Panel",
-            class: "w-full h-12 px-6 bg-purple-600 text-white text-base rounded-lg
-                    hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500
-                    focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors" %>
-      <% end %>
     <% end %>
   <% end %>
 </div>
