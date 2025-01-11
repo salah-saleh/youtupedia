@@ -70,7 +70,7 @@ class User < ApplicationRecord
         environment: Rails.env
       }
 
-      if Rails.configuration.try(:require_email_verification) && !user.email_verified? && !Rails.env.development?
+      if Rails.configuration.try(:require_email_verification) && !user.email_verified?
         log_info "Email not verified", context: { user_id: user.id }
         user.errors.add(:base, "Please verify your email address. Check your inbox for verification instructions.")
         log_info "here", context: { user_id: user.id }

@@ -29,8 +29,7 @@ class RegistrationsController < PublicController
         redirect_to root_path, notice: "Welcome! Your account has been created successfully."
       end
     else
-      flash.now[:alert] = @user.errors.full_messages.to_sentence
-      render :new, status: :unprocessable_entity
+      redirect_to new_registration_path, alert: @user.errors.full_messages.to_sentence, status: :unprocessable_entity
     end
   end
 
