@@ -10,6 +10,8 @@
 # - POST /session (create session)
 # - DELETE /session (sign out)
 class SessionsController < PublicController
+  include ActionView::Helpers::TextHelper
+
   skip_before_action :set_current_request_details, only: [ :create ]
 
   def new
