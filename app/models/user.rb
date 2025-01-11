@@ -69,23 +69,46 @@ class User < ApplicationRecord
       end
 
       begin
-        authenticated = user.authenticate(attributes[:password])
+        log_debug "Attempting authentication", context: {
+          user_id: user.id,
+          password_digest_present: user.password_digest.present?,
+          password_digest_valid: user.password_digest.start_with?("$2a$")
+        }
+
+        authenticated = nil
+        begin
+          authenticated = user.authenticate(attributes[:password])
+        rescue BCrypt::Errors::InvalidHash => e
+          log_error "BCrypt invalid hash error", context: {
+            user_id: user.id,
+            error: e.message,
+            password_digest: user.password_digest&.gsub(/^.{5}|.{5}$/, '*****')
+          }
+          user.errors.add(:base, "Invalid login credentials")
+          return nil
+        rescue => e
+          log_error "Authentication error", context: {
+            user_id: user.id,
+            error_class: e.class,
+            error_message: e.message,
+            backtrace: e.backtrace,
+            password_digest_present: user.password_digest.present?,
+            password_digest_valid: user.password_digest&.start_with?("$2a$")
+          }
+          raise
+        end
+
         if authenticated
+          log_info "Authentication successful", context: { user_id: user.id }
           user.update_columns(failed_login_attempts: 0)
           user
         else
+          log_info "Authentication failed", context: { user_id: user.id }
           user.failed_login_attempt!
           nil
         end
-      rescue BCrypt::Errors::InvalidHash => e
-        log_error "BCrypt invalid hash error", context: {
-          user_id: user.id,
-          error: e.message
-        }
-        user.errors.add(:base, "Invalid login credentials")
-        nil
       rescue => e
-        log_error "Authentication error", context: {
+        log_error "Unexpected authentication error", context: {
           user_id: user.id,
           error_class: e.class,
           error_message: e.message,
