@@ -24,12 +24,17 @@ class SessionsController < PublicController
       return
     end
 
-    @authenticated_user = authenticate_user
+    begin
+      @authenticated_user = authenticate_user
 
-    if @authenticated_user
-      create_session_and_login(@authenticated_user)
-      redirect_back_or_to root_path
-    else
+      if @authenticated_user
+        create_session_and_login(@authenticated_user)
+        redirect_back_or_to root_path
+      else
+        handle_failed_login
+      end
+    rescue => e
+      log_error "Error during session creation", context: { error: e.message }
       handle_failed_login
     end
   end
