@@ -23,6 +23,10 @@ Rails.application.routes.draw do
   resource :registration, only: [ :new, :create ]
   resources :passwords, param: :token
 
+  # Email verification routes
+  get "verify_email/:token", to: "email_verifications#verify", as: :verify_email
+  post "resend_verification", to: "email_verifications#create", as: :resend_verification
+
   # Dev/Admin routes - available in all environments when accessed through settings
   namespace :dev do
     resources :users do

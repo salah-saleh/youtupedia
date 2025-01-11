@@ -9,7 +9,6 @@
 # - POST /registration (create account)
 class RegistrationsController < PublicController
   def new
-    redirect_to root_path if user_signed_in?
     @user = User.new
   end
 
@@ -17,10 +16,20 @@ class RegistrationsController < PublicController
     @user = User.new(user_params)
 
     if @user.save
-      session = @user.sessions.create!
-      cookies.signed[:session_token] = { value: session.token, httponly: true }
-      redirect_to root_path, notice: "Welcome! Your account has been created."
+      # Send verification email if required
+      if Rails.configuration.require_email_verification
+        @user.send_verification_email
+        redirect_to root_path, notice: "Thanks for signing up! Please check your email to verify your account."
+      else
+        # Auto-verify if not required
+        @user.verify_email!
+
+        # Create session for auto-login
+        create_session_for_user(@user)
+        redirect_to root_path, notice: "Welcome! Your account has been created successfully."
+      end
     else
+      flash.now[:alert] = @user.errors.full_messages.to_sentence
       render :new, status: :unprocessable_entity
     end
   end
@@ -29,5 +38,19 @@ class RegistrationsController < PublicController
 
   def user_params
     params.require(:user).permit(:email_address, :password, :password_confirmation)
+  end
+
+  def create_session_for_user(user)
+    session = user.sessions.create!(
+      token: SecureRandom.hex(32),
+      expires_at: 24.hours.from_now
+    )
+
+    cookies.signed[:session_token] = {
+      value: session.token,
+      expires: session.expires_at,
+      httponly: true,
+      secure: Rails.env.production?
+    }
   end
 end

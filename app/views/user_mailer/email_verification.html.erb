@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h1 style="color: #333; margin-bottom: 20px;">Welcome to Y2SI!</h1>
+
+      <p style="color: #666; font-size: 16px; line-height: 1.5;">
+        Thanks for signing up! To complete your registration and verify your email address, please click the button below:
+      </p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="<%= @verification_url %>"
+           style="display: inline-block; padding: 12px 24px; background-color: #9333ea; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">
+          Verify Email Address
+        </a>
+      </div>
+
+      <p style="color: #666; font-size: 14px; line-height: 1.5;">
+        If you didn't create an account with us, you can safely ignore this email.
+      </p>
+
+      <p style="color: #666; font-size: 14px; line-height: 1.5;">
+        If the button above doesn't work, copy and paste this link into your browser:
+        <br>
+        <span style="color: #9333ea;"><%= @verification_url %></span>
+      </p>
+    </div>
+  </body>
+</html>

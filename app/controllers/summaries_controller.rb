@@ -21,9 +21,9 @@ class SummariesController < ApplicationController
     @summary = @transcript&.dig(:success) ? Chat::ChatGptService.fetch_summary(@video_id) : nil
 
     # If no data exists, try to schedule a job
-    if (!@transcript || !@summary) && SummaryJob.schedule(@video_id)
-      UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id) if Current.user
-    end
+    SummaryJob.schedule(@video_id) if !@transcript || !@summary
+
+    UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id) if Current.user
 
     # Build summary data
     @summary_data = build_summary_data(@video_id, @metadata, @transcript, @summary)

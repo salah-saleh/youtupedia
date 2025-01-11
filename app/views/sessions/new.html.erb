@@ -22,6 +22,19 @@
         label: "Password",
         placeholder: "••••••••" %>
 
+    <%# Remember Me and Forgot Password %>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center">
+        <%= f.check_box :remember_me, class: "h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded" %>
+        <%= f.label :remember_me, "Remember me", class: "ml-2 block text-sm text-gray-900 dark:text-gray-300" %>
+      </div>
+
+      <div class="text-sm">
+        <%= link_to "Forgot your password?", new_password_path,
+            class: "font-medium text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300" %>
+      </div>
+    </div>
+
     <%= f.submit "Sign In",
         class: "w-full px-4 py-3 bg-purple-600 text-white text-base font-medium rounded-lg
                 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500

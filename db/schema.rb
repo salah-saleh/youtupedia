@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_01_04_233500) do
+ActiveRecord::Schema[8.0].define(version: 2025_01_06_233501) do
   create_table "sessions", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "token"
@@ -27,8 +27,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_04_233500) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "admin", default: false, null: false
+    t.integer "failed_login_attempts", default: 0, null: false
+    t.datetime "locked_at"
+    t.string "email_verification_token"
+    t.datetime "email_verification_sent_at"
+    t.datetime "email_verified_at"
     t.index ["admin"], name: "index_users_on_admin"
     t.index ["email_address"], name: "index_users_on_email_address"
+    t.index ["email_verification_token"], name: "index_users_on_email_verification_token", unique: true
+    t.index ["email_verified_at"], name: "index_users_on_email_verified_at"
+    t.index ["failed_login_attempts"], name: "index_users_on_failed_login_attempts"
+    t.index ["locked_at"], name: "index_users_on_locked_at"
   end
 
   add_foreign_key "sessions", "users"
