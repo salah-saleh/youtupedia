@@ -24,7 +24,9 @@ class SessionsController < PublicController
       return
     end
 
-    if authenticate_user
+    authenticated_user = authenticate_user
+
+    if authenticated_user
       create_session_and_login
       redirect_back_or_to root_path
     else
@@ -72,7 +74,9 @@ class SessionsController < PublicController
 
   # Handles failed login attempts
   def handle_failed_login
-    flash.now[:alert] = if @user
+    flash.now[:alert] = if @user&.errors&.any?
+      @user.errors.full_messages.first
+    elsif @user
       "Invalid password. #{pluralize(remaining_attempts(@user), 'attempt')} remaining before account is locked."
     else
       "Invalid email or password."
