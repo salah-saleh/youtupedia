@@ -8,26 +8,39 @@
     footer_link_path: new_session_path do %>
 
   <%= form_with model: @user, url: registration_path, class: "space-y-6", data: { turbo: false } do |f| %>
+    <% if @user.errors.any? %>
+      <div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4 mb-6">
+        <div class="text-sm text-red-700 dark:text-red-200">
+          <% @user.errors.full_messages.each do |message| %>
+            <p><%= message %></p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <%= render "shared/auth_input",
         form: f,
         field: :email_address,
         type: :email_field,
         label: "Email address",
-        placeholder: "you@example.com" %>
+        placeholder: "you@example.com",
+        error: @user.errors[:email_address].first %>
 
     <%= render "shared/auth_input",
         form: f,
         field: :password,
         type: :password_field,
         label: "Password",
-        placeholder: "••••••••" %>
+        placeholder: "••••••••",
+        error: @user.errors[:password].first %>
 
     <%= render "shared/auth_input",
         form: f,
         field: :password_confirmation,
         type: :password_field,
         label: "Confirm password",
-        placeholder: "••••••••" %>
+        placeholder: "••••••••",
+        error: @user.errors[:password_confirmation].first %>
 
     <%# Password Requirements - Only show in production or if strong passwords are required %>
     <% if Rails.configuration.require_strong_password %>

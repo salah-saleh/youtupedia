@@ -12,6 +12,8 @@ class RegistrationsController < PublicController
     @user = User.new
   end
 
+  # TODO instead of alerts, show message under the form.
+  # TODO verify password as it is typed in form
   def create
     @user = User.new(user_params)
 
@@ -29,7 +31,8 @@ class RegistrationsController < PublicController
         redirect_to root_path, notice: "Welcome! Your account has been created successfully."
       end
     else
-      redirect_to new_registration_path, alert: @user.errors.full_messages.to_sentence, status: :unprocessable_entity
+      # Render form again with validation errors
+      render :new, status: :unprocessable_entity
     end
   end
 
