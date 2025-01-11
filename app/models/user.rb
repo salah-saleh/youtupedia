@@ -21,7 +21,7 @@ class User < ApplicationRecord
       with: PASSWORD_REQUIREMENTS,
       message: "must include at least one lowercase letter, one uppercase letter, one number, and one symbol"
     },
-    if: -> { password_required? && Rails.configuration.require_strong_password }
+    if: -> { should_validate_password_strength? }
 
   # Track failed login attempts and verification
   attribute :failed_login_attempts, :integer, default: 0
@@ -52,12 +52,18 @@ class User < ApplicationRecord
       return nil
     end
 
-    if user.authenticate(attributes[:password])
-      user.update_columns(failed_login_attempts: 0)
-      user
-    else
-      user.failed_login_attempt!
-      nil
+    begin
+      if user.authenticate(attributes[:password])
+        user.update_columns(failed_login_attempts: 0)
+        user
+      else
+        user.failed_login_attempt!
+        nil
+      end
+    rescue => e
+      Rails.logger.error "Authentication error for user #{user.email_address}: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      raise
     end
   end
 
@@ -111,6 +117,14 @@ class User < ApplicationRecord
   end
 
   private
+
+  def should_validate_password_strength?
+    return false unless password_required?
+    return false unless Rails.configuration.require_strong_password
+
+    # Only validate strength for new records or password changes
+    new_record? || password.present?
+  end
 
   def password_required?
     new_record? || password.present?

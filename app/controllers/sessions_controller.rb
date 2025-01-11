@@ -64,7 +64,6 @@ class SessionsController < PublicController
   # Creates a new session and sets the login cookie
   def create_session_and_login
     session = @user.sessions.create!(
-      token: SecureRandom.hex(32),
       expires_at: session_expiry
     )
 
