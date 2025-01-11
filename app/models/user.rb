@@ -35,34 +35,70 @@ class User < ApplicationRecord
 
   # Class methods
   def self.authenticate_by(attributes)
-    return nil if attributes[:email_address].blank? || attributes[:password].blank?
-
-    user = find_by(email_address: attributes[:email_address].downcase)
-    return nil unless user
-
-    # Check if account is locked
-    if user.locked?
-      user.errors.add(:base, "Account is locked. Please reset your password or contact support.")
-      return nil
-    end
-
-    # Check if email is verified
-    if Rails.configuration.require_email_verification && !user.email_verified? && !Rails.env.development?
-      user.errors.add(:base, "Please verify your email address. Check your inbox for verification instructions.")
-      return nil
-    end
-
     begin
-      if user.authenticate(attributes[:password])
-        user.update_columns(failed_login_attempts: 0)
-        user
-      else
-        user.failed_login_attempt!
+      # Log the authentication attempt (filtering sensitive data)
+      log_info "Authentication attempt", context: {
+        email: attributes[:email_address]&.gsub(/.{0,4}@/, '****@')
+      }
+
+      return nil if attributes[:email_address].blank? || attributes[:password].blank?
+
+      user = find_by(email_address: attributes[:email_address].downcase)
+      return nil unless user
+
+      # Log that we found the user
+      log_info "User found", context: { user_id: user.id }
+
+      # Check if account is locked
+      if user.locked?
+        user.errors.add(:base, "Account is locked. Please reset your password or contact support.")
+        return nil
+      end
+
+      # Check if email is verified
+      if Rails.configuration.require_email_verification && !user.email_verified? && !Rails.env.development?
+        user.errors.add(:base, "Please verify your email address. Check your inbox for verification instructions.")
+        return nil
+      end
+
+      # Check if password_digest exists
+      unless user.password_digest.present?
+        log_error "Missing password_digest", context: { user_id: user.id }
+        user.errors.add(:base, "Invalid login credentials")
+        return nil
+      end
+
+      begin
+        authenticated = user.authenticate(attributes[:password])
+        if authenticated
+          user.update_columns(failed_login_attempts: 0)
+          user
+        else
+          user.failed_login_attempt!
+          nil
+        end
+      rescue BCrypt::Errors::InvalidHash => e
+        log_error "BCrypt invalid hash error", context: {
+          user_id: user.id,
+          error: e.message
+        }
+        user.errors.add(:base, "Invalid login credentials")
         nil
+      rescue => e
+        log_error "Authentication error", context: {
+          user_id: user.id,
+          error_class: e.class,
+          error_message: e.message,
+          backtrace: e.backtrace
+        }
+        raise
       end
     rescue => e
-      Rails.logger.error "Authentication error for user #{user.email_address}: #{e.class} - #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
+      log_error "Unexpected error in authenticate_by", context: {
+        error_class: e.class,
+        error_message: e.message,
+        backtrace: e.backtrace
+      }
       raise
     end
   end

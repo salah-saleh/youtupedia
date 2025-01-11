@@ -118,13 +118,16 @@ module RequestTraceable
   def log_request_start
     return unless @request_context
 
-    log_info "[#{controller_name}] Request started", context: {
+    filtered_params = params.to_unsafe_h.deep_dup
+    filter_sensitive_params(filtered_params)
+
+    log_info "Request started", context: {
       request_id: @request_context[:request_id],
       session_id: @request_context[:session_id],
       user_id: @request_context[:user_id],
       controller: @request_context[:controller],
       action: @request_context[:action],
-      params: params.to_unsafe_h,
+      params: filtered_params,
       method: @request_context[:method]
     }
   end
@@ -133,7 +136,7 @@ module RequestTraceable
     return unless @request_context && @request_start_time
 
     duration = (Process.clock_gettime(Process::CLOCK_MONOTONIC) - @request_start_time) * 1000
-    log_info "[#{controller_name}] Request completed", context: {
+    log_info "Request completed", context: {
       request_id: @request_context[:request_id],
       session_id: @request_context[:session_id],
       user_id: @request_context[:user_id],
@@ -156,6 +159,18 @@ module RequestTraceable
       Rails.logger.push_tags("uid=#{@request_context[:user_id]}")
     rescue => e
       nil
+    end
+  end
+
+  def filter_sensitive_params(params_hash)
+    sensitive_keys = %w[password password_confirmation current_password authenticity_token session_token]
+
+    params_hash.each do |key, value|
+      if value.is_a?(Hash)
+        filter_sensitive_params(value)
+      elsif sensitive_keys.include?(key.to_s) || key.to_s.include?('password')
+        params_hash[key] = '[FILTERED]'
+      end
     end
   end
 end
