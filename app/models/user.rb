@@ -63,14 +63,22 @@ class User < ApplicationRecord
       end
 
       # Check if email is verified
-      log_info "Checking if email is verified", context: { user_id: user.id }
-      if Rails.configuration.require_email_verification && !user.email_verified? && !Rails.env.development?
+      log_info "Checking if email is verified", context: {
+        user_id: user.id,
+        require_verification: Rails.configuration.try(:require_email_verification),
+        email_verified: user.email_verified?,
+        environment: Rails.env
+      }
+
+      if Rails.configuration.try(:require_email_verification) && !user.email_verified? && !Rails.env.development?
         log_info "Email not verified", context: { user_id: user.id }
         user.errors.add(:base, "Please verify your email address. Check your inbox for verification instructions.")
+        log_info "here", context: { user_id: user.id }
         return nil
       end
 
       # Check if password_digest exists
+      log_info "Checking if password_digest exists", context: { user_id: user.id }
       unless user.password_digest.present?
         log_error "Missing password_digest", context: { user_id: user.id }
         user.errors.add(:base, "Invalid login credentials")
