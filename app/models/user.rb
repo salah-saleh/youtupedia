@@ -47,16 +47,25 @@ class User < ApplicationRecord
       return nil unless user
 
       # Log that we found the user
-      log_info "User found", context: { user_id: user.id }
+      log_info "User found", context: {
+        user_id: user.id,
+        email_verified: user.email_verified?,
+        locked: user.locked?,
+        password_digest_present: user.password_digest.present?
+      }
 
       # Check if account is locked
+      log_info "Checking if account is locked", context: { user_id: user.id }
       if user.locked?
+        log_info "Account is locked", context: { user_id: user.id }
         user.errors.add(:base, "Account is locked. Please reset your password or contact support.")
         return nil
       end
 
       # Check if email is verified
+      log_info "Checking if email is verified", context: { user_id: user.id }
       if Rails.configuration.require_email_verification && !user.email_verified? && !Rails.env.development?
+        log_info "Email not verified", context: { user_id: user.id }
         user.errors.add(:base, "Please verify your email address. Check your inbox for verification instructions.")
         return nil
       end
@@ -68,13 +77,15 @@ class User < ApplicationRecord
         return nil
       end
 
-      begin
-        log_debug "Attempting authentication", context: {
-          user_id: user.id,
-          password_digest_present: user.password_digest.present?,
-          password_digest_valid: user.password_digest.start_with?("$2a$")
-        }
+      log_debug "Starting authentication process", context: {
+        user_id: user.id,
+        password_digest_present: user.password_digest.present?,
+        password_digest_valid: user.password_digest.start_with?("$2a$"),
+        password_digest_length: user.password_digest&.length,
+        password_digest_preview: user.password_digest&.gsub(/^(.{5}).*(.{5})$/, '\1...\2')
+      }
 
+      begin
         authenticated = nil
         begin
           authenticated = user.authenticate(attributes[:password])
@@ -82,7 +93,7 @@ class User < ApplicationRecord
           log_error "BCrypt invalid hash error", context: {
             user_id: user.id,
             error: e.message,
-            password_digest: user.password_digest&.gsub(/^.{5}|.{5}$/, '*****')
+            password_digest: user.password_digest&.gsub(/^(.{5}).*(.{5})$/, '\1...\2')
           }
           user.errors.add(:base, "Invalid login credentials")
           return nil
@@ -93,7 +104,8 @@ class User < ApplicationRecord
             error_message: e.message,
             backtrace: e.backtrace,
             password_digest_present: user.password_digest.present?,
-            password_digest_valid: user.password_digest&.start_with?("$2a$")
+            password_digest_valid: user.password_digest&.start_with?("$2a$"),
+            password_digest_preview: user.password_digest&.gsub(/^(.{5}).*(.{5})$/, '\1...\2')
           }
           raise
         end
