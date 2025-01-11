@@ -24,10 +24,10 @@ class SessionsController < PublicController
       return
     end
 
-    authenticated_user = authenticate_user
+    @authenticated_user = authenticate_user
 
-    if authenticated_user
-      create_session_and_login
+    if @authenticated_user
+      create_session_and_login(@authenticated_user)
       redirect_back_or_to root_path
     else
       handle_failed_login
@@ -64,8 +64,9 @@ class SessionsController < PublicController
   end
 
   # Creates a new session and sets the login cookie
-  def create_session_and_login
-    session = @user.sessions.create!(
+  # @param user [User] The user to create a session for
+  def create_session_and_login(user)
+    session = user.sessions.create!(
       expires_at: session_expiry
     )
 
