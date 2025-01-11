@@ -59,7 +59,7 @@ class User < ApplicationRecord
       if user.locked?
         log_info "Account is locked", context: { user_id: user.id }
         user.errors.add(:base, "Account is locked. Please reset your password or contact support.")
-        return nil
+        return user
       end
 
       # Check if email is verified
@@ -74,7 +74,7 @@ class User < ApplicationRecord
         log_info "Email not verified", context: { user_id: user.id }
         user.errors.add(:base, "Please verify your email address. Check your inbox for verification instructions.")
         log_info "here", context: { user_id: user.id }
-        return nil
+        return user
       end
 
       # Check if password_digest exists
@@ -82,7 +82,7 @@ class User < ApplicationRecord
       unless user.password_digest.present?
         log_error "Missing password_digest", context: { user_id: user.id }
         user.errors.add(:base, "Invalid login credentials")
-        return nil
+        return user
       end
 
       log_debug "Starting authentication process", context: {
@@ -104,7 +104,7 @@ class User < ApplicationRecord
             password_digest: user.password_digest&.gsub(/^(.{5}).*(.{5})$/, '\1...\2')
           }
           user.errors.add(:base, "Invalid login credentials")
-          return nil
+          return user
         rescue => e
           log_error "Authentication error", context: {
             user_id: user.id,
@@ -125,7 +125,7 @@ class User < ApplicationRecord
         else
           log_info "Authentication failed", context: { user_id: user.id }
           user.failed_login_attempt!
-          nil
+          user
         end
       rescue => e
         log_error "Unexpected authentication error", context: {

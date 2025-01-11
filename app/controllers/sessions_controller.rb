@@ -19,26 +19,20 @@ class SessionsController < PublicController
   end
 
   def create
-    @user = find_and_validate_user
+    @user = User.authenticate_by(
+      email_address: params[:email_address],
+      password: params[:password]
+    )
 
-    if @user&.locked?
-      handle_locked_account
-      return
-    end
-
-    begin
-      @authenticated_user = authenticate_user
-
-      if @authenticated_user
-        create_session_and_login(@authenticated_user)
-        redirect_back_or_to root_path
-      else
-        handle_failed_login
-      end
-    rescue => e
-      log_error "Error during session creation", context: { error: e.message }
+    if @user && @user.errors.empty?
+      create_session_and_login
+      redirect_back_or_to root_path
+    else
       handle_failed_login
     end
+  rescue => e
+    log_error "Error during session creation", context: { error: e.message }
+    handle_failed_login
   end
 
   def destroy
@@ -49,31 +43,9 @@ class SessionsController < PublicController
 
   private
 
-  # Finds and validates the user by email
-  # @return [User, nil] The user if found, nil otherwise
-  def find_and_validate_user
-    User.find_by(email_address: params[:email_address]&.downcase)
-  end
-
-  # Handles a locked account
-  def handle_locked_account
-    flash.now[:alert] = "Your account is locked due to too many failed attempts. Please try again in 1 hour or reset your password."
-    render :new, status: :unprocessable_entity
-  end
-
-  # Authenticates the user with provided credentials
-  # @return [User, nil] The authenticated user or nil
-  def authenticate_user
-    User.authenticate_by(
-      email_address: params[:email_address],
-      password: params[:password]
-    )
-  end
-
   # Creates a new session and sets the login cookie
-  # @param user [User] The user to create a session for
-  def create_session_and_login(user)
-    session = user.sessions.create!(
+  def create_session_and_login
+    session = @user.sessions.create!(
       expires_at: session_expiry
     )
 
