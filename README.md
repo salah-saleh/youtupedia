@@ -153,7 +153,7 @@ Development:
 config.cache_store = :mem_cache_store,
   "localhost:11211",
   {
-    namespace: "y2si_dev",
+    namespace: "youtupedia_dev",
     compress: true,
     failover: true,
     socket_timeout: 3.0,

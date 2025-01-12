@@ -88,7 +88,7 @@ Rails.application.configure do
   # config.action_mailer.raise_delivery_errors = true
 
   # # Set host to be used by links generated in mailer templates
-  config.action_mailer.default_url_options = { host: "y2si.com" }
+  config.action_mailer.default_url_options = { host: "youtupedia.ai" }
 
   # # Configure delivery method
   config.action_mailer.delivery_method = :postmark
@@ -96,7 +96,7 @@ Rails.application.configure do
 
   # # Enable SMTP/TLS when sending emails
   # config.action_mailer.smtp_settings = {
-  #   domain: 'y2si.com',
+  #   domain: 'youtupedia.ai',
   #   address: 'smtp.sendgrid.net',
   #   port: 587,
   #   authentication: :plain,

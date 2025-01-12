@@ -30,7 +30,7 @@ Rails.application.configure do
   config.cache_store = :mem_cache_store,
     ENV["MEMCACHED_URL"],
     {
-      namespace: "y2si_dev",    # Prefix to avoid key collisions
+      namespace: "youtupedia_dev",    # Prefix to avoid key collisions
       compress: true,           # Compress data to save memory
       failover: true,          # Try other servers if one fails
       socket_timeout: 3.0,     # Time to wait for response

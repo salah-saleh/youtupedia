@@ -1,4 +1,4 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: "Youtupedia <noreply@youtupedia.ai>"
+  default from: "Youtupedia <support@youtupedia.ai>"
   layout "mailer"
 end

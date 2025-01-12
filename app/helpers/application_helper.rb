@@ -1,7 +1,7 @@
 module ApplicationHelper
   # used in determining the page title in the browser tab
   def page_title
-    base_title = "Y2SI"
+    base_title = "Youtupedia"
 
     # Get title from content_for if set in the view
     custom_title = content_for(:page_title)

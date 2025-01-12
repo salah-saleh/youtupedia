@@ -16,23 +16,36 @@ class RegistrationsController < PublicController
   def create
     @user = User.new(user_params)
 
-    if @user.save
-      # Send verification email if required
-      if Rails.configuration.require_email_verification
-        @user.send_verification_email
-        redirect_to root_path, notice: "Thanks for signing up! Please check your email to verify your account."
-      else
-        # Auto-verify if not required
-        @user.verify_email!
+    User.transaction do
+      if @user.save
+        # Send verification email if required
+        if Rails.configuration.require_email_verification
+          # If email sending fails, it will rollback the transaction
+          @user.send_verification_email
+          redirect_to root_path, notice: "Thanks for signing up! Please check your email to verify your account."
+        else
+          # Auto-verify if not required
+          @user.verify_email!
 
-        # Create session for auto-login
-        create_session_for_user(@user)
-        redirect_to root_path, notice: "Welcome! Your account has been created successfully."
+          # Create session for auto-login
+          create_session_for_user(@user)
+          redirect_to root_path, notice: "Welcome! Your account has been created successfully."
+        end
+      else
+        # Render form again with validation errors
+        render :new, status: :unprocessable_entity
       end
-    else
-      # Render form again with validation errors
-      render :new, status: :unprocessable_entity
     end
+  rescue => e
+    # Log the error for debugging
+    log_error "Failed to create user account", context: { error: e.message }
+
+    # Delete the user if it was created but email failed
+    @user.destroy if @user&.persisted?
+
+    # Add a generic error message
+    @user.errors.add(:base, "We couldn't create your account at this time. Please try again later.")
+    render :new, status: :unprocessable_entity
   end
 
   private
