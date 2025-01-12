@@ -91,7 +91,8 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: "y2si.com" }
 
   # # Configure delivery method
-  # config.action_mailer.delivery_method = :smtp
+  config.action_mailer.delivery_method = :postmark
+  config.action_mailer.postmark_settings = { api_token: ENV["POSTMARK_API_KEY"] }
 
   # # Enable SMTP/TLS when sending emails
   # config.action_mailer.smtp_settings = {

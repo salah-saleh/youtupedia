@@ -195,6 +195,15 @@ class User < ApplicationRecord
     end
   end
 
+  def clean_expired_sessions
+    sessions.where('expires_at < ?', Time.current).destroy_all
+  end
+
+  def active_sessions
+    clean_expired_sessions
+    sessions.where('expires_at >= ?', Time.current)
+  end
+
   private
 
   def should_validate_password_strength?
