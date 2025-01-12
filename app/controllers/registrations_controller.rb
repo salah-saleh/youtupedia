@@ -12,7 +12,6 @@ class RegistrationsController < PublicController
     @user = User.new
   end
 
-  # TODO instead of alerts, show message under the form.
   # TODO verify password as it is typed in form
   def create
     @user = User.new(user_params)
