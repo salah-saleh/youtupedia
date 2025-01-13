@@ -23,8 +23,10 @@
         <div class="flex items-center space-x-2">
           <%= link_to root_path, class: "text-xl px-2 flex items-center group" do %>
             <div class="relative flex items-center">
-              <div class="flex items-center space-x-1 -ml-1">
-                Youtupedia
+              <%= image_tag "youtupedia-inverted.png", class: "h-10 w-10 hidden dark:block", alt: "Youtupedia" %>
+              <%= image_tag "youtupedia.png", class: "h-10 w-10 block dark:hidden", alt: "Youtupedia" %>
+              <div class="flex items-center space-x-1">
+                <span class="text-gray-900 dark:text-white">Youtupedia</span>
               </div>
             </div>
           <% end %>

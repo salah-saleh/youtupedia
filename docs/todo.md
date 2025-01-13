@@ -1,25 +1,7 @@
-Settings Controller Updates:
-Now uses persistent admin flag instead of session
-Uses Rails credentials for admin password
-Better error handling and messages
-Cleaner logic flow
-View Updates:
-Uses Current.user&.admin? for checks
-Maintains same UI but with more secure backend
-Better error messaging
-To set up the admin password in credentials:
-edit
-Add this line:
-your_secure_password_here
-The admin functionality is now:
-More secure (persistent and properly authenticated)
-More maintainable (proper database structure)
-More scalable (can easily add more admin features)
-Better integrated with Rails patterns
-Let me know if you'd like any adjustments to the implementation!
+
 
 TODO BEFORE LAUNCH:
-- remove transcript section, remove timeline timestamps
+- limit number of videos per user per day for start
 - iteration on summaries page by agent
 - takeaways to be extended
 - for error transcript can't be loaded, find a solution to allow retry after a few mins
