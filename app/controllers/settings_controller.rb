@@ -1,79 +1,86 @@
-# Handles application settings and admin access.
-# Dependencies:
-# - ApplicationController (requires authentication)
-# - User model (for admin user listing)
-#
-# Features:
+# Handles user settings and admin functionality, including:
+# - User profile settings
+# - Password management
 # - Admin user management
-# - User switching with admin privilege preservation
+# - User impersonation for admins
 #
-# Routes:
-# - GET /settings (settings page)
-# - POST /settings (admin actions)
+# Security:
+# - Requires authentication for all actions
+# - Admin-only actions are protected
+# - Impersonation maintains original admin session
 class SettingsController < ApplicationController
-  before_action :require_admin, except: [ :index ]
+  before_action :authenticate_user!
+  before_action :load_users, if: :admin_access?
 
+  # GET /settings
+  # Shows the settings page with:
+  # - Password management section
+  # - Admin section (if user is admin)
+  # - User management (if admin)
   def index
-    @users = User.all if Current.user&.admin? || session[:admin_impersonation]
   end
 
+  # POST /settings
+  # Handles various settings actions:
+  # - Admin toggling for users (admin only)
+  # - User impersonation (admin only)
+  # - Exit impersonation
   def create
-    if params[:user_id].present? && params[:admin_action].present?
-      handle_admin_toggle
-    elsif params[:switch_to_user].present?
-      handle_user_switch
-    elsif params[:exit_impersonation].present?
+    if params[:exit_impersonation]
       handle_exit_impersonation
+    elsif params[:switch_to_user] && admin_access?
+      handle_user_switch
+    elsif params[:user_id] && params[:admin_action] && Current.user&.admin?
+      handle_admin_toggle
     else
-      redirect_to settings_path, alert: "Invalid request"
+      redirect_to settings_path
     end
   end
 
   private
 
-  def require_admin
-    unless Current.user&.admin? || session[:admin_impersonation]
-      redirect_to settings_path, alert: "Admin access required"
-    end
+  # Loads all users for admin view
+  # Only called when user has admin access
+  def load_users
+    @users = User.all.order(:email_address)
   end
 
+  # Checks if user has admin access
+  # True if user is admin or in admin impersonation mode
+  def admin_access?
+    Current.user&.admin? || session[:admin_impersonation]
+  end
+
+  # Handles toggling admin status for users
+  # Only accessible by actual admins (not impersonated)
   def handle_admin_toggle
-    return unless Current.user&.admin? # Only real admins can toggle admin status
+    return unless Current.user&.admin?
 
-    user = User.find(params[:user_id])
+    user = User.find_by(id: params[:user_id])
+    return unless user
 
-    case params[:admin_action]
-    when "add"
-      user.make_admin!
-      redirect_to settings_path, notice: "Admin access granted to #{user.email_address}"
-    when "remove"
-      # Prevent removing the last admin
-      if User.admins.count == 1 && user.admin?
-        redirect_to settings_path, alert: "Cannot remove the last admin user"
-        return
-      end
-
-      user.remove_admin!
-      redirect_to settings_path, notice: "Admin access removed from #{user.email_address}"
+    if params[:admin_action] == "add"
+      user.update(admin: true)
+      flash[:notice] = "Admin privileges granted to #{user.email_address}"
+    elsif params[:admin_action] == "remove"
+      user.update(admin: false)
+      flash[:notice] = "Admin privileges removed from #{user.email_address}"
     end
+
+    redirect_to settings_path
   end
 
+  # Handles switching to another user (impersonation)
+  # Stores original admin session for later restoration
   def handle_user_switch
-    return unless Current.user&.admin? || session[:admin_impersonation]
+    new_user = User.find_by(id: params[:switch_to_user])
+    return unless new_user
 
-    new_user = User.find(params[:switch_to_user])
-
-    # If switching to the original admin user, treat it as exiting impersonation
-    if new_user.admin? && session[:original_admin_token].present?
-      handle_exit_impersonation
-      return
+    # Store the original admin's session token
+    unless session[:admin_impersonation]
+      session[:original_admin_token] = cookies.signed[:session_token]
+      session[:admin_impersonation] = true
     end
-
-    # Store the original admin's session token before switching
-    session[:original_admin_token] = cookies.signed[:session_token] if Current.user.admin?
-
-    # Store admin impersonation state if switching from an admin user
-    session[:admin_impersonation] = true if Current.user.admin?
 
     # Create a new session for the target user
     user_session = new_user.sessions.create!(
@@ -94,6 +101,8 @@ class SettingsController < ApplicationController
     redirect_to settings_path, notice: "Switched to #{new_user.email_address}"
   end
 
+  # Handles exiting impersonation mode
+  # Restores original admin session and cleans up impersonation
   def handle_exit_impersonation
     return unless session[:admin_impersonation]
 

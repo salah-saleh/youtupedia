@@ -3,6 +3,29 @@
   <%# Settings Header %>
   <%= render "shared/section", title: "Settings" %>
 
+  <%# Password Section %>
+  <%= render "shared/section", title: "Password" do %>
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div class="p-4 sm:p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="text-base lg:text-lg font-medium text-gray-900 dark:text-white">Change Password</h4>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Need to update your password? Use our secure password reset process.
+            </p>
+          </div>
+          <%= form_with url: passwords_path, data: { turbo: false } do |f| %>
+            <%= f.hidden_field :email, value: Current.user.email_address %>
+            <%= f.submit "Send Reset Email",
+                class: "px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg
+                        hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500
+                        focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <%# Admin Access Section - Only visible to admins %>
   <% if Current.user&.admin? || session[:admin_impersonation] %>
     <%= render "shared/section", title: "Admin Access" do %>

@@ -29,6 +29,11 @@ class User < ApplicationRecord
   attribute :email_verification_token, :string
   attribute :email_verification_sent_at, :datetime
   attribute :email_verified_at, :datetime
+  attribute :password_reset_token, :string
+  attribute :password_reset_sent_at, :datetime
+
+  # Add signed_id support for password reset
+  has_secure_token :password_reset_token
 
   before_save :downcase_email
   before_create :generate_email_verification_token, if: :email_verification_required?
@@ -73,7 +78,6 @@ class User < ApplicationRecord
       if Rails.configuration.try(:require_email_verification) && !user.email_verified?
         log_info "Email not verified", context: { user_id: user.id }
         user.errors.add(:base, "Please verify your email address. Check your inbox for verification instructions.")
-        log_info "here", context: { user_id: user.id }
         return user
       end
 
@@ -192,6 +196,32 @@ class User < ApplicationRecord
       UserMailer.with(user: self).email_verification.deliver_now
     else
       UserMailer.with(user: self).email_verification.deliver_later
+    end
+  end
+
+  def generate_password_reset_token!
+    # Use Rails' built-in signed id with expiration
+    update_columns(
+      password_reset_sent_at: Time.current
+    )
+  end
+
+  def clear_password_reset_token!
+    update_columns(
+      password_reset_token: nil,
+      password_reset_sent_at: nil
+    )
+  end
+
+  def password_reset_token_expired?
+    password_reset_sent_at.nil? || password_reset_sent_at < 4.hours.ago
+  end
+
+  def send_password_reset_email
+    if Rails.env.development?
+      UserMailer.with(user: self).password_reset.deliver_now
+    else
+      UserMailer.with(user: self).password_reset.deliver_later
     end
   end
 

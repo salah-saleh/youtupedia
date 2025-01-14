@@ -1,7 +1,6 @@
 
 
 TODO BEFORE LAUNCH:
-- forgot password reset link
 - limit number of videos per user per day for start
 - clear session on login
 - iteration on summaries page by agent

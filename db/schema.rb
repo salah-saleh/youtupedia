@@ -32,12 +32,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_06_233501) do
     t.string "email_verification_token"
     t.datetime "email_verification_sent_at"
     t.datetime "email_verified_at"
+    t.string "password_reset_token"
+    t.datetime "password_reset_sent_at"
     t.index ["admin"], name: "index_users_on_admin"
     t.index ["email_address"], name: "index_users_on_email_address"
     t.index ["email_verification_token"], name: "index_users_on_email_verification_token", unique: true
     t.index ["email_verified_at"], name: "index_users_on_email_verified_at"
     t.index ["failed_login_attempts"], name: "index_users_on_failed_login_attempts"
     t.index ["locked_at"], name: "index_users_on_locked_at"
+    t.index ["password_reset_token"], name: "index_users_on_password_reset_token"
   end
 
   add_foreign_key "sessions", "users"
