@@ -5,7 +5,10 @@
   </head>
   <body>
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-      <h1 style="color: #333; margin-bottom: 20px;">Welcome to Youtupedia!</h1>
+      <div style="text-align: center; margin-bottom: 20px;">
+        <%= image_tag attachments['youtupedia.png'].url, style: "height: 90px; width: 90px;", alt: "Youtupedia" if attachments['youtupedia.png'].present? %>
+      </div>
+      <h1 style="color: #333; margin-bottom: 20px; text-align: center;">Welcome to Youtupedia!</h1>
 
       <p style="color: #666; font-size: 16px; line-height: 1.5;">
         Thanks for signing up! To complete your registration and verify your email address, please click the button below:

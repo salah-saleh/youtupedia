@@ -8,7 +8,7 @@ Rails.application.config.tap do |config|
 
   # Override settings in development
   if Rails.env.development?
-    config.require_email_verification = false
+    config.require_email_verification = true
     config.require_strong_password = false
   end
 end

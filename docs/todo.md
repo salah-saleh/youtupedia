@@ -1,7 +1,9 @@
 
 
 TODO BEFORE LAUNCH:
+- forgot password reset link
 - limit number of videos per user per day for start
+- clear session on login
 - iteration on summaries page by agent
 - takeaways to be extended
 - for error transcript can't be loaded, find a solution to allow retry after a few mins
