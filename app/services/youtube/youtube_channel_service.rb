@@ -44,10 +44,20 @@ module Youtube
     #   @option [Integer] :video_count Total video count
     def self.fetch_channel_data(channel_name)
       begin
-        response = youtube_client.list_searches("snippet", q: channel_name, type: "channel")
-        channel_id = response.items.first&.id&.channel_id
+        # Try to get channel directly by handle first
+        response = youtube_client.list_channels(
+          "snippet,statistics",
+          for_handle: channel_name
+        )
 
-        response = youtube_client.list_channels("snippet,statistics", id: channel_id)
+        # If no channel found by handle, return error
+        if response.items.empty?
+          return {
+            success: false,
+            error: "Channel not found. Please verify the channel handle."
+          }
+        end
+
         channel = response.items.first
         {
           success: true,

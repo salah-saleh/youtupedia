@@ -9,7 +9,9 @@
 <% if local_assigns[:loading] %>
   <%= render "shared/card_skeleton" %>
 <% else %>
-  <%= render "shared/card", href: channel_path(channel[:channel_name]) do %>
+  <%= render "shared/card",
+        href: channel_path(channel[:channel_name]),
+        link_data: { turbo_frame: "_top" } do %>
     <%= render "shared/image", src: channel[:thumbnail_url], alt: channel[:title] %>
 
     <div class="p-4">
