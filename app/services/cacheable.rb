@@ -76,13 +76,19 @@ module Cacheable
     # @param namespace [String, nil] Optional namespace for cache isolation
     # @param expires_in [Integer, nil] Cache TTL (nil for no expiration).
     #        1 second by default to avoid accidentally staling data
+    # @param force_block_execution [Boolean] If true, force block execution even if Memcached is hit
     # @yield Block to generate data if not in cache
     # @return [Hash] Cached or generated data with success status
     #   @option [Boolean] :success Operation status
     #   @option [String] :error Error message if failed
-    def fetch_cached(key, namespace: nil, expires_in: 1.second)
+    def fetch_cached(key, namespace: nil, expires_in: 1.second, force_block_execution: false)
       cache_namespace = namespace || default_cache_namespace
       memcache_key = "#{cache_namespace}_#{key}"
+
+      if force_block_execution
+        log_info "Force fetching cache", context: { key: memcache_key }
+        Rails.cache.delete(memcache_key)
+      end
 
       # Try to read directly from Memcached first
       if (cached = Rails.cache.read(memcache_key))
@@ -94,9 +100,12 @@ module Cacheable
       Rails.cache.fetch(memcache_key, expires_in: expires_in) do
         log_info "Memcached miss, checking MongoDB", context: { key: key, namespace: cache_namespace }
 
-        cache = cache_service(cache_namespace)
-        result = cache.read(key)
-        log_info "Result from MongoDB", context: { result: result }
+        result = nil
+        unless force_block_execution
+          cache = cache_service(cache_namespace)
+          result = cache.read(key)
+          log_info "Result from MongoDB", context: { result: result }
+        end
 
         # Case 1: Valid MongoDB result - cache and return
         if result

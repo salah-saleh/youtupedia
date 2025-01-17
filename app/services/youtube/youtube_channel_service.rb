@@ -25,7 +25,9 @@ module Youtube
     # @param page_token [String] Token for the next page (optional)
     # @return [Hash] List of videos with pagination info and success status
     def self.fetch_channel_videos(channel_name, channel_id, page_size = 9, page_token = nil)
-      fetch_cached("#{channel_name}_#{page_token}", namespace: default_cache_namespace + "_channel_videos") do
+      # first page should be always fetched from API
+      force_block_execution = page_token.nil? ? true : false
+      fetch_cached("#{channel_name}_#{page_token}", namespace: default_cache_namespace + "_channel_videos", expires_in: nil, force_block_execution: force_block_execution) do
         fetch_videos_from_api(channel_id, page_size, page_token)
       end
     end

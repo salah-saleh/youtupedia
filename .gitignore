@@ -44,3 +44,37 @@ gpt-config.txt
 
 # Ignore macOS files
 .DS_Store
+
+# Ignore vendor directory
+/vendor/
+/vendor/bundle/
+
+# Other related directories and files that should be ignored
+/.bundle/
+/bin/ruby-lsp
+/bin/tapioca
+/bin/srb
+/bin/rubocop
+
+# Ruby LSP specific
+/.ruby-lsp/
+.ruby-lsp/.cache/
+
+# Sorbet
+/sorbet/rbi/hidden-definitions/
+/sorbet/rbi/hidden.rbi
+/sorbet/rbi/gems/
+
+# Cache files
+.sass-cache/
+/public/assets/
+
+# Ruby LSP specific
+/.ruby-lsp/
+.ruby-lsp/.cache/
+
+# VSCode specific
+.vscode/
+
+# Sorbet
+/sorbet

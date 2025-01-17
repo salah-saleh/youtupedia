@@ -58,6 +58,15 @@ group :development do
   gem "foreman"
   # Email preview in development
   gem "letter_opener", "~> 1.10"
+
+  # Ruby LSP and related gems
+  gem "ruby-lsp", require: false
+  gem "ruby-lsp-rails", require: false  # Add Rails-specific features
+
+  # Static type checking
+  gem "sorbet", "~> 0.5.11131"
+  gem "sorbet-runtime", "~> 0.5.11131"
+  gem "tapioca", "~> 0.11.9", require: false
 end
 
 group :test do
@@ -84,4 +93,4 @@ gem "dalli"
 gem "dotenv-rails", groups: [ :development, :test ]
 
 # Email
-gem 'postmark-rails'
+gem "postmark-rails"
