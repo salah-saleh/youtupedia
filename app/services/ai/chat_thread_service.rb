@@ -1,4 +1,4 @@
-module Chat
+module Ai
   class ChatThreadService < BaseService
     include Cacheable
 

@@ -37,8 +37,8 @@ namespace :cache do
       Youtube::YoutubeVideoMetadataService,
       Youtube::YoutubeVideoTranscriptService + "_full",
       Youtube::YoutubeVideoTranscriptService + "_segmented",
-      Chat::ChatGptService,
-      Chat::ChatThreadService,
+      Ai::ChatGptService,
+      Ai::ChatThreadService,
       UserServices::UserDataService
     ]
 

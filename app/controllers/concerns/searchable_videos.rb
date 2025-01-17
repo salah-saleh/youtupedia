@@ -25,7 +25,7 @@ module SearchableVideos
 
     # Search in summaries (GPT-generated content)
     log_info "[Search] Searching in summaries..."
-    summary_results = search_in_collection(query, Chat::ChatGptService, user_videos)
+    summary_results = search_in_collection(query, Ai::ChatGptService, user_videos)
     log_info "[Search] Found #{summary_results.size} summary results"
 
     # Process results to add metadata and context

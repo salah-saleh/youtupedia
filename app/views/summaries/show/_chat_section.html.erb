@@ -8,7 +8,7 @@
   <div class="space-y-4">
     <div class="chat-messages space-y-4 max-h-96 overflow-y-auto mb-4"
          data-chat-target="messagesContainer">
-      <% Chat::ChatThreadService.create_or_load_thread(summary[:video_id])[:messages].each do |message| %>
+      <% Ai::ChatThreadService.create_or_load_thread(summary[:video_id])[:messages].each do |message| %>
         <div class="p-3 rounded-lg <%= message[:role] == 'user' ? 'bg-purple-50 dark:bg-purple-900/50' : 'bg-gray-50 dark:bg-gray-700/50' %>">
           <div class="flex items-start gap-2">
             <span class="font-medium <%= message[:role] == 'user' ? 'text-purple-700 dark:text-purple-400' : 'text-gray-700 dark:text-gray-300' %>">

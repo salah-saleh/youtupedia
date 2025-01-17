@@ -32,7 +32,7 @@ class AsyncJobProcessor < ApplicationJob
   # Schedules a background job for async processing
   # Only schedules if no result exists for the given key
   #
-  # @param service_class_name [String] Name of the service class (e.g., "Chat::ChatGptService")
+  # @param service_class_name [String] Name of the service class (e.g., "Ai::ChatGptService")
   # @param key [String] Unique key to identify this job/result
   # @param args [Array] Arguments to pass to the service's perform method
   # @return [void]

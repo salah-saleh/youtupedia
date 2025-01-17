@@ -1,4 +1,4 @@
-module Chat
+module Ai
   class ChatGptService < BaseService
     include AsyncProcessable
     include Cacheable
@@ -13,7 +13,7 @@ module Chat
 
       def answer_question(video_id, question, transcript, metadata)
         client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
-        thread_data = Chat::ChatThreadService.create_or_load_thread(video_id)
+        thread_data = Ai::ChatThreadService.create_or_load_thread(video_id)
 
         # Build conversation history
         messages = [
@@ -58,8 +58,8 @@ module Chat
         content = response.dig("choices", 0, "message", "content")
         return { success: false, error: "No content received" } unless content
 
-        Chat::ChatThreadService.save_message(video_id, "user", question)
-        Chat::ChatThreadService.save_message(video_id, "assistant", content)
+        Ai::ChatThreadService.save_message(video_id, "user", question)
+        Ai::ChatThreadService.save_message(video_id, "assistant", content)
 
         { success: true, answer: content }
       rescue => e

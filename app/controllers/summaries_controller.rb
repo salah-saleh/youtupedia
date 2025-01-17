@@ -18,7 +18,7 @@ class SummariesController < ApplicationController
     # Try to get existing data from cache
     @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id)
     # Only fetch summary if we have a successful transcript
-    @summary = @transcript&.dig(:success) ? Chat::ChatGptService.fetch_summary(@video_id) : nil
+    @summary = @transcript&.dig(:success) ? Ai::ChatGptService.fetch_summary(@video_id) : nil
 
     # If no data exists, try to schedule a job
     SummaryJob.schedule(@video_id) if !@transcript || !@summary
@@ -62,7 +62,7 @@ class SummariesController < ApplicationController
     metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
     transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
     # Only fetch summary if we have a successful transcript
-    summary = transcript&.dig(:success) ? Chat::ChatGptService.fetch_summary(video_id) : nil
+    summary = transcript&.dig(:success) ? Ai::ChatGptService.fetch_summary(video_id) : nil
 
     result = build_summary_data(video_id, metadata, transcript, summary)
 
@@ -78,7 +78,7 @@ class SummariesController < ApplicationController
     transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
     metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
 
-    result = Chat::ChatGptService.answer_question(video_id, question, transcript[:transcript_full], metadata)
+    result = Ai::ChatGptService.answer_question(video_id, question, transcript[:transcript_full], metadata)
 
     if result[:success]
       render json: { success: true, answer: result[:answer] }

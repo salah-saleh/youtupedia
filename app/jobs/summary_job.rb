@@ -15,9 +15,9 @@ class SummaryJob < ApplicationJob
     return transcript unless transcript[:success]
 
     # Finally generate summary
-    result = Chat::ChatGptService.new.process_task(video_id, transcript[:transcript_full], metadata)
+    result = Ai::ChatGptService.new.process_task(video_id, transcript[:transcript_full], metadata)
 
     # Cache the summary result atomically
-    Chat::ChatGptService.write_cached(video_id, result, expires_in: nil)
+    Ai::ChatGptService.write_cached(video_id, result, expires_in: nil)
   end
 end
