@@ -16,6 +16,7 @@ TODO BEFORE LAUNCH:
 
 
 TODO AFTER LAUNCH:
+- statistics page
 - [ ] remove the test users as they are a security risk
 - [ ] change the route to signup/signin to login/register
 - [ ] payements

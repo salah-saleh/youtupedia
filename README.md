@@ -40,6 +40,14 @@ For more details about the product structure, see the [product.md](product.md) f
 
 ## Setup
 
+This application requires both Ruby and Python dependencies. To set up your development environment:
+
+1. Make sure you have Python 3.x installed
+2. Run `bin/setup` to install all dependencies and set up the environment
+3. Run `bin/dev` to start the development server
+
+If you get Python-related errors, try running `bin/setup` again to ensure all dependencies are properly installed.
+
 1. **Clone the repository**   ```bash
    git clone [repository-url]
    cd [repository-name]   ```

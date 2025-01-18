@@ -15,9 +15,9 @@ class SummaryJob < ApplicationJob
     return transcript unless transcript[:success]
 
     # Finally generate summary
-    result = Ai::ChatGptService.new.process_task(video_id, transcript[:transcript_full], metadata)
+    result = Ai::LlmSummaryService.new(:gemini).process_task(video_id, transcript[:transcript_full], metadata)
 
     # Cache the summary result atomically
-    Ai::ChatGptService.write_cached(video_id, result, expires_in: nil)
+    Ai::LlmSummaryService.write_cached(video_id, result, namespace: "chat_gpt_services", expires_in: nil)
   end
 end

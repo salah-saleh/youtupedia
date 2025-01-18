@@ -78,3 +78,8 @@ gpt-config.txt
 
 # Sorbet
 /sorbet
+
+# Python virtual environment
+/venv
+__pycache__/
+*.pyc
