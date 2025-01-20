@@ -28,7 +28,7 @@ class SummariesController < ApplicationController
 
     # Build summary data
     # If transcript is not successful, return nil initially
-    @summary_data = build_summary_data(@video_id, @metadata, @transcript[:error]? nil:@transcript , @summary)
+    @summary_data = build_summary_data(@video_id, @metadata, @transcript, @summary)
   end
 
   def index

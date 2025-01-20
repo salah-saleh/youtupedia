@@ -94,3 +94,6 @@ gem "dotenv-rails", groups: [ :development, :test ]
 
 # Email
 gem "postmark-rails"
+
+# Memory
+gem "puma_worker_killer"

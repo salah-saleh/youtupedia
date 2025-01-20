@@ -31,7 +31,11 @@ module Cacheable
       begin
         # Write to MongoDB first
         cache = cache_service(cache_namespace)
-        cache.write(key, data)
+        if cache
+          cache.write(key, data)
+        else
+          log_error "Cache service not available for write", context: { namespace: cache_namespace }
+        end
 
         # Then cache in Memcached
         Rails.cache.write(memcache_key, data, expires_in: expires_in)
@@ -101,8 +105,8 @@ module Cacheable
         log_info "Memcached miss, checking MongoDB", context: { key: key, namespace: cache_namespace }
 
         result = nil
+        cache = cache_service(cache_namespace)
         unless force_block_execution
-          cache = cache_service(cache_namespace)
           result = cache.read(key)
           log_info "Result from MongoDB", context: { result: result }
         end
@@ -149,7 +153,16 @@ module Cacheable
     private
 
     def cache_service(namespace = nil)
-      Cache::CacheFactory.build(namespace || default_cache_namespace)
+      @cache_services ||= {}
+      @cache_services[namespace] ||= begin
+        Cache::CacheFactory.build(namespace || default_cache_namespace)
+      rescue => e
+        log_error "Failed to build cache service", context: {
+          error: e.message,
+          namespace: namespace
+        }
+        nil
+      end
     end
 
     def default_cache_namespace

@@ -127,10 +127,23 @@ GEM
       multipart-post (~> 2)
     faraday-net_http (3.4.0)
       net-http (>= 0.5.0)
+    ffi (1.17.1-aarch64-linux-gnu)
+    ffi (1.17.1-aarch64-linux-musl)
+    ffi (1.17.1-arm-linux-gnu)
+    ffi (1.17.1-arm-linux-musl)
+    ffi (1.17.1-arm64-darwin)
+    ffi (1.17.1-x86-linux-gnu)
+    ffi (1.17.1-x86-linux-musl)
+    ffi (1.17.1-x86_64-darwin)
+    ffi (1.17.1-x86_64-linux-gnu)
+    ffi (1.17.1-x86_64-linux-musl)
     foreman (0.88.1)
     fugit (1.11.1)
       et-orbi (~> 1, >= 1.2.11)
       raabro (~> 1.4)
+    get_process_mem (1.0.0)
+      bigdecimal (>= 2.0)
+      ffi (~> 1.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
     google-apis-core (0.15.1)
@@ -263,6 +276,10 @@ GEM
     public_suffix (6.0.1)
     puma (6.4.3)
       nio4r (~> 2.0)
+    puma_worker_killer (1.0.0)
+      bigdecimal (>= 2.0)
+      get_process_mem (>= 0.2)
+      puma (>= 2.7)
     raabro (1.4.0)
     racc (1.8.1)
     rack (3.1.8)
@@ -511,6 +528,7 @@ DEPENDENCIES
   postmark-rails
   propshaft
   puma (>= 5.0)
+  puma_worker_killer
   rails (~> 8.0.0)
   redcarpet
   rubocop-rails-omakase

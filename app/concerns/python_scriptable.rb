@@ -30,8 +30,36 @@ module PythonScriptable
   extend ActiveSupport::Concern
 
   included do
+    # Memory Management Configuration
+    #
+    # Dyno Size Reference & Recommended Settings:
+    # Basic (512MB):
+    #   MAX_MEMORY_PER_PROCESS=460MB (90% of total)
+    #   MALLOC_ARENA_MAX=2
+    #   MMAP_THRESHOLD=131072
+    #
+    # Standard-1X (1GB):
+    #   MAX_MEMORY_PER_PROCESS=920MB
+    #   MALLOC_ARENA_MAX=4
+    #   MMAP_THRESHOLD=262144
+    #
+    # Standard-2X/Performance-M (2.5GB):
+    #   MAX_MEMORY_PER_PROCESS=2300MB
+    #   MALLOC_ARENA_MAX=8
+    #   MMAP_THRESHOLD=524288
+    #
+    # Performance-L (14GB):
+    #   MAX_MEMORY_PER_PROCESS=12800MB
+    #   MALLOC_ARENA_MAX=16
+    #   MMAP_THRESHOLD=1048576
+
     # Default timeout for Python script execution
     SCRIPT_TIMEOUT = 60  # seconds
+
+    # Maximum memory per process (MB)
+    # Default: 460MB (90% of Basic dyno)
+    # Formula: (Dyno Memory * 0.9) to leave room for system
+    MAX_MEMORY_MB = ENV.fetch("MAX_MEMORY_PER_PROCESS", 460).to_i
   end
 
   class_methods do
@@ -41,48 +69,87 @@ module PythonScriptable
     end
   end
 
-
   # Executes a Python script with proper resource management
   #
   # @param script_name [String] Name of the Python script to execute
   # @param input_data [] Data to pass to the Python script
   # @param timeout [Integer] Timeout in seconds (defaults to SCRIPT_TIMEOUT)
   # @return [Hash] Result of script execution with success status
-  def run_python_script(script_name, input_data, timeout: SCRIPT_TIMEOUT)
+  def run_python_script(script_name, input_data, timeout: PythonScriptConfig.script_timeout)
     script_path = Rails.root.join("lib", "python", script_name)
-    command = "#{ENV['PYTHON_PATH']} #{script_path}"
-    status = nil  # Define status in outer scope for ensure block
+    command = "#{ENV["PYTHON_PATH"]} #{script_path}"
+    status = nil
 
-    # Convert input data to JSON for Python
-    stdin_data = input_data.to_json
+    # Check memory before starting new process
+    check_memory_usage
 
-    Timeout.timeout(timeout) do
-      log_info "Running Python script", context: { script_path: script_path, input_data: input_data }
-      # Use capture3 for better stream handling and resource management
-      output, error, status = Open3.capture3(command, stdin_data: stdin_data)
+    begin
+      Tempfile.create(["python_input", ".json"]) do |stdin_file|
+        stdin_file.write(input_data.to_json)
+        stdin_file.flush
 
-      if status.success?
-        JSON.parse(output, symbolize_names: true)
-      else
-        { success: false, error: error.presence || "Python script failed" }
+        Timeout.timeout(timeout) do
+          log_info "Running Python script", context: { 
+            script_path: script_path,
+            memory_mb: current_memory_mb
+          }
+
+          # Use popen3 with explicit resource limits
+          Open3.popen3(
+            {
+              "PYTHONPATH" => ENV["PYTHONPATH"],
+              # MALLOC_ARENA_MAX: Limits the number of memory pools
+              # - Lower = Less memory fragmentation but potentially slower
+              # - Higher = Better performance but more memory usage
+              # Formula: log2(MAX_MEMORY_MB/256), minimum 2              
+              "MALLOC_ARENA_MAX" => PythonScriptConfig.malloc_arena_max.to_s,
+              # MMAP_THRESHOLD: Size threshold for using mmap
+              # - Lower = Less memory fragmentation
+              # - Higher = Better performance for large allocations
+              # Formula: MAX_MEMORY_MB * 256, minimum 128KB              
+              "MMAP_THRESHOLD" => PythonScriptConfig.mmap_threshold.to_s
+            },
+            command
+          ) do |stdin, stdout, stderr, wait_thread|
+            stdin.write(input_data.to_json)
+            stdin.close
+
+            output = stdout.read
+            error = stderr.read
+            status = wait_thread.value
+
+            # Check memory after process completion
+            check_memory_usage
+
+            if status.success?
+              JSON.parse(output, symbolize_names: true)
+            else
+              { 
+                success: false, 
+                error: error.presence || "Python script failed" 
+              }
+            end
+          end
+        end
       end
+    rescue Timeout::Error
+      kill_process_tree(status&.pid)
+      { success: false, error: "Python script timed out after #{timeout} seconds" }
+    rescue MemoryLimitExceededError => e
+      kill_process_tree(status&.pid)
+      { success: false, error: "Memory limit exceeded: #{e.message}" }
+    rescue => e
+      { success: false, error: "Failed to run Python script: #{e.message}" }
+    ensure
+      if status&.pid
+        kill_process_tree(status.pid)
+        log_info "Cleaned up Python process", context: { 
+          pid: status.pid,
+          memory_mb: current_memory_mb
+        }
+      end
+      GC.start
     end
-  rescue Timeout::Error
-    kill_process_tree(status&.pid)
-    { success: false, error: "Python script timed out after #{timeout} seconds" }
-  rescue JSON::ParserError => e
-    { success: false, error: "Failed to parse Python output: #{e.message}" }
-  rescue => e
-    { success: false, error: "Failed to run Python script: #{e.message}" }
-  ensure
-    # Cleanup phase - extremely important for resource management
-    if status&.pid
-      kill_process_tree(status.pid)
-      log_info "Cleaned up Python process", context: { pid: status.pid }
-    end
-
-    # Force garbage collection to clean up any remaining references
-    GC.start
   end
 
   # Safely terminates a process and all its children
@@ -99,4 +166,21 @@ module PythonScriptable
       nil
     end
   end
+
+  private
+
+  def check_memory_usage
+    memory_mb = current_memory_mb
+    if memory_mb > PythonScriptConfig.max_memory_mb
+      log_error "Memory limit exceeded", context: { memory_mb: memory_mb }
+      raise MemoryLimitExceededError, 
+        "Process using #{memory_mb}MB exceeds limit of #{PythonScriptConfig.max_memory_mb}MB"
+    end
+  end
+
+  def current_memory_mb
+    (`ps -o rss= -p #{Process.pid}`.to_i / 1024.0).round(2)
+  end
+
+  class MemoryLimitExceededError < StandardError; end
 end
