@@ -21,12 +21,14 @@ class SummariesController < ApplicationController
     @summary = @transcript&.dig(:success) ? Ai::LlmSummaryService.fetch_summary(@video_id) : nil
 
     # If no data exists, try to schedule a job
+    # If transcript is not successful, retry by running the job again
     SummaryJob.schedule(@video_id) if !@transcript || !@transcript[:success] || !@summary
 
     UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id) if Current.user
 
     # Build summary data
-    @summary_data = build_summary_data(@video_id, @metadata, @transcript, @summary)
+    # If transcript is not successful, return nil initially
+    @summary_data = build_summary_data(@video_id, @metadata, @transcript[:error]? nil:@transcript , @summary)
   end
 
   def index
