@@ -21,7 +21,7 @@ class SummariesController < ApplicationController
     @summary = @transcript&.dig(:success) ? Ai::LlmSummaryService.fetch_summary(@video_id) : nil
 
     # If no data exists, try to schedule a job
-    SummaryJob.schedule(@video_id) if !@transcript || !@summary
+    SummaryJob.schedule(@video_id) if !@transcript || !@transcript[:success] || !@summary
 
     UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id) if Current.user
 
