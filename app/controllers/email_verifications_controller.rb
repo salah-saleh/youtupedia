@@ -23,7 +23,7 @@ class EmailVerificationsController < PublicController
 
     if user && !user.email_verified?
       user.send_verification_email
-      redirect_to root_path, notice: "Verification email sent. Please check your inbox."
+      redirect_to root_path, notice: "Verification email sent. Please check your inbox and spam folder."
     else
       redirect_to root_path, alert: "Unable to send verification email. Please contact support."
     end

@@ -22,7 +22,7 @@ class RegistrationsController < PublicController
         if Rails.configuration.require_email_verification
           # If email sending fails, it will rollback the transaction
           @user.send_verification_email
-          redirect_to root_path, notice: "Thanks for signing up! Please check your email to verify your account."
+          redirect_to root_path, notice: "Thanks for signing up! Please check your email (and spam folder) to verify your account."
         else
           # Auto-verify if not required
           @user.verify_email!

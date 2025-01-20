@@ -66,17 +66,28 @@ def get_transcript_with_retry(video_id, max_retries=2, initial_delay=1):
     }
 
 if __name__ == "__main__":
-    # Check if video ID is provided
-    if len(sys.argv) != 2:
+    try:
+        # Read input from stdin
+        input_data = json.loads(sys.stdin.read())
+        video_id = input_data.get('video_id')
+        
+        if not video_id:
+            print(json.dumps({
+                'success': False,
+                'error': 'Please provide a video_id'
+            }))
+            sys.exit(1)
+
+        # Get and print transcript with retries
+        result = get_transcript_with_retry(video_id)
+        print(json.dumps(result))
+    except json.JSONDecodeError as e:
         print(json.dumps({
             'success': False,
-            'error': 'Please provide a YouTube video ID'
+            'error': f'Invalid JSON input: {str(e)}'
         }))
-        sys.exit(1)
-
-    # Get video ID from command line argument
-    video_id = sys.argv[1]
-
-    # Get and print transcript with retries
-    result = get_transcript_with_retry(video_id)
-    print(json.dumps(result))
+    except Exception as e:
+        print(json.dumps({
+            'success': False,
+            'error': f'Unexpected error: {str(e)}'
+        }))

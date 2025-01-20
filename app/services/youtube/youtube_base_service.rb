@@ -4,8 +4,6 @@ module Youtube
     include Cacheable
 
     class << self
-      protected
-
       def youtube_client
         @client ||= begin
           client = Google::Apis::YoutubeV3::YouTubeService.new
@@ -17,6 +15,10 @@ module Youtube
       def handle_youtube_error(error)
         handle_error(error, "YouTube API Error")
       end
+    end
+
+    def handle_youtube_error(error)
+      self.class.handle_youtube_error(error)
     end
   end
 end

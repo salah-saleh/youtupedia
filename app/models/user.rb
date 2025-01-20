@@ -43,7 +43,7 @@ class User < ApplicationRecord
     begin
       # Log the authentication attempt (filtering sensitive data)
       log_info "Authentication attempt", context: {
-        email: attributes[:email_address]&.gsub(/.{0,4}@/, '****@')
+        email: attributes[:email_address]&.gsub(/.{0,4}@/, "****@")
       }
 
       return nil if attributes[:email_address].blank? || attributes[:password].blank?
@@ -77,7 +77,7 @@ class User < ApplicationRecord
 
       if Rails.configuration.try(:require_email_verification) && !user.email_verified?
         log_info "Email not verified", context: { user_id: user.id }
-        user.errors.add(:base, "Please verify your email address. Check your inbox for verification instructions.")
+        user.errors.add(:base, "Please verify your email address. Check your inbox (and spam folder) for verification instructions.")
         return user
       end
 
@@ -226,12 +226,12 @@ class User < ApplicationRecord
   end
 
   def clean_expired_sessions
-    sessions.where('expires_at < ?', Time.current).destroy_all
+    sessions.where("expires_at < ?", Time.current).destroy_all
   end
 
   def active_sessions
     clean_expired_sessions
-    sessions.where('expires_at >= ?', Time.current)
+    sessions.where("expires_at >= ?", Time.current)
   end
 
   private

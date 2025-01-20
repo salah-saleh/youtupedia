@@ -14,8 +14,8 @@
 # - Tokens are signed and verified
 # - One-time use tokens (cleared after successful reset)
 class PasswordsController < PublicController
-  before_action :set_user_by_token, only: [:edit, :update]
-  before_action :require_unauthenticated, only: [:new]
+  before_action :set_user_by_token, only: [ :edit, :update ]
+  before_action :require_unauthenticated, only: [ :new ]
 
   # GET /passwords/new
   # Shows the password reset request form
@@ -36,9 +36,9 @@ class PasswordsController < PublicController
       user.send_password_reset_email
 
       if Current.user
-        redirect_to settings_path, notice: "Check your email for reset instructions"
+        redirect_to settings_path, notice: "Check your email (and spam folder) for reset instructions"
       else
-        redirect_to new_password_path, notice: "Check your email for reset instructions"
+        redirect_to new_password_path, notice: "Check your email (and spam folder) for reset instructions"
       end
     else
       redirect_to new_password_path, alert: "Email address not found"
