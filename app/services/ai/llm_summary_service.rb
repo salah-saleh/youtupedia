@@ -10,7 +10,7 @@ module Ai
 
     class << self
       def fetch_summary(video_id)
-        fetch_cached(video_id, namespace: "chat_gpt_services", expires_in: nil)
+        fetch_cached(video_id, expires_in: nil)
       end
     end
 

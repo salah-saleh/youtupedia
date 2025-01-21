@@ -22,6 +22,6 @@ class SummaryJob < ApplicationJob
     result = Ai::LlmSummaryService.new(:gemini).process_task(video_id, transcript[:transcript_full], metadata)
 
     # Cache the summary result atomically
-    Ai::LlmSummaryService.write_cached(video_id, result, namespace: "chat_gpt_services", expires_in: nil)
+    Ai::LlmSummaryService.write_cached(video_id, result, expires_in: nil)
   end
 end
