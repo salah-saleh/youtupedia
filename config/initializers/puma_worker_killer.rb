@@ -57,7 +57,36 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
     # Enable detailed logging of worker kills
     # Useful for debugging memory issues
     config.reaper_status_logs = true
+
+    # Enhanced memory logging with consistent format
+    config.pre_term = lambda do |worker|
+      memory_before = PumaWorkerKiller.ram
+      worker_memory = `ps -o rss= -p #{worker.pid}`.to_i / 1024.0
+      
+      Rails.logger.info "Terminating worker", 
+        worker_pid: worker.pid,
+        worker_memory: worker_memory.round(2),
+        total_memory: memory_before,
+        memory_limit: (config.ram * config.percent_usage).round(2)
+    end
+
+    config.post_term = lambda do |worker|
+      memory_after = PumaWorkerKiller.ram
+      memory_freed = memory_after - PumaWorkerKiller.ram
+      
+      Rails.logger.info "Worker terminated", 
+        worker_pid: worker.pid,
+        memory_freed: memory_freed.round(2),
+        total_memory: memory_after.round(2)
+    end
   end
+
+  # Log when PumaWorkerKiller starts
+  Rails.logger.info "PumaWorkerKiller configured", 
+    ram_limit: PumaWorkerKiller.config.ram,
+    percent_usage: PumaWorkerKiller.config.percent_usage,
+    frequency: PumaWorkerKiller.config.frequency,
+    rolling_restart: PumaWorkerKiller.config.rolling_restart_frequency
 
   PumaWorkerKiller.start
 end 
