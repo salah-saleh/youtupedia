@@ -59,17 +59,11 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
     # Enable detailed logging of worker kills
     PumaWorkerKiller.reaper_status_logs = true
 
-    # Log when PumaWorkerKiller starts
-    Rails.logger.info("PumaWorkerKiller configured: " + {
-      ram_limit: PumaWorkerKiller.ram,
-      percent_usage: PumaWorkerKiller.percent_usage,
-      frequency: PumaWorkerKiller.frequency,
-      rolling_restart: PumaWorkerKiller.rolling_restart_frequency
-    }.inspect)
+    # Start PumaWorkerKiller with rolling restart enabled
+    PumaWorkerKiller.start
 
     # Handle graceful shutdowns
     at_exit do
-      # Stop PumaWorkerKiller threads before exit
       if Thread.list.size > 1
         Thread.list.each do |thread|
           next if thread == Thread.current
@@ -77,8 +71,5 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
         end
       end
     end
-
-    # Start PumaWorkerKiller
-    PumaWorkerKiller.start
   end
 end 
