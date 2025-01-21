@@ -35,7 +35,7 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
     # - High traffic: 30 seconds
     # - Medium traffic: 60 seconds
     # - Low traffic: 120 seconds
-    PumaWorkerKiller.frequency = 60
+    PumaWorkerKiller.frequency = 30 # Check every 30 seconds instead of 60
 
     # Percentage of RAM at which to start killing workers
     # Default: 0.98 (98%)
@@ -77,9 +77,6 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
         end
       end
     end
-
-    # Configure reap cycle before starting
-    PumaWorkerKiller.reap_cycle_in_seconds = 30 # Default is 60
 
     # Start PumaWorkerKiller
     PumaWorkerKiller.start
