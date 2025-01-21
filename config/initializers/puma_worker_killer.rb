@@ -6,6 +6,11 @@
 # 2. Workers are killed if total memory exceeds threshold
 # 3. Rolling restarts prevent memory bloat over time
 #
+# Note: PumaWorkerKiller uses two background threads:
+# - One thread for memory monitoring and worker killing
+# - One thread for rolling restarts
+# These threads are normal and required for proper operation.
+
 # Dyno Size Reference:
 # - Basic: 512MB  -> MAX_MEMORY_PER_PROCESS=460MB, TOTAL_MEMORY=512MB
 # - Standard 1X: 1GB  -> MAX_MEMORY_PER_PROCESS=920MB, TOTAL_MEMORY=1024MB
@@ -62,12 +67,16 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
     # Start PumaWorkerKiller with rolling restart enabled
     PumaWorkerKiller.start
 
-    # Handle graceful shutdowns
+    # Clean up threads during shutdown
     at_exit do
-      if Thread.list.size > 1
-        Thread.list.each do |thread|
-          next if thread == Thread.current
-          thread.kill if thread.backtrace&.first&.include?('puma_worker_killer')
+      # Give threads time to finish their current cycle
+      sleep 1
+
+      Thread.list.each do |thread|
+        next if thread == Thread.current
+        if thread.backtrace&.first&.include?('puma_worker_killer')
+          thread.kill
+          thread.join(0.5) # Wait up to 0.5 seconds for thread to finish
         end
       end
     end

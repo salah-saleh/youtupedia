@@ -71,16 +71,15 @@ end
 # Increase worker timeout to prevent frequent restarts
 worker_timeout 3600 if ENV.fetch("RAILS_ENV", "development") == "development"
 
-# Graceful shutdown configuration
-on_worker_shutdown do |index|
-  # Clean up any remaining threads
-  if Thread.list.size > 1
-    Thread.list.each do |thread|
-      next if thread == Thread.current
-      thread.kill if thread.backtrace&.first&.include?('puma_worker_killer')
-    end
-  end
-end
+# Note: The following thread warnings are expected and normal:
+# - PumaWorkerKiller memory monitoring thread
+# - PumaWorkerKiller rolling restart thread
+# These threads are required for proper memory management.
 
-# Lower the timeout for worker shutdown
+# Lower the timeout for worker shutdown but give enough time for threads to clean up
 worker_shutdown_timeout 25 # Give workers 25 seconds to finish, less than Heroku's 30s timeout
+
+on_worker_shutdown do |index|
+  # Give PumaWorkerKiller threads time to finish their current cycle
+  sleep 1 if defined?(PumaWorkerKiller)
+end
