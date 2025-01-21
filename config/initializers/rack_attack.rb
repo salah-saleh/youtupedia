@@ -10,33 +10,46 @@ class Rack::Attack
   ### Blocklist Rules ###
   
   # Block WordPress scan attempts
-  blocklist("block wordpress scans") do |req|
-    req.path.match?(/\b(wp-includes|xmlrpc\.php|wordpress|wp-admin|wp-login)\b/)
+  blocklist("block wordpress scans") do |request|
+    # Match common WordPress paths more precisely
+    wordpress_path = request.path.to_s.downcase
+    wordpress_path.include?("wordpress") ||
+      wordpress_path.include?("wp-admin") ||
+      wordpress_path.include?("wp-login") ||
+      wordpress_path.include?("wp-includes") ||
+      wordpress_path.include?("xmlrpc.php")
   end
 
   # Block common exploit scanners
-  blocklist("block exploit scanners") do |req|
-    req.user_agent.to_s.downcase.match?(/\b(sqlmap|nikto|nmap|masscan|nessus|acunetix)\b/)
+  blocklist("block exploit scanners") do |request|
+    # Match scanner user agents more precisely
+    user_agent = request.user_agent.to_s.downcase
+    user_agent.include?("sqlmap") ||
+      user_agent.include?("nikto") ||
+      user_agent.include?("nmap") ||
+      user_agent.include?("masscan") ||
+      user_agent.include?("nessus") ||
+      user_agent.include?("acunetix")
   end
 
   ### Throttle Rules ###
 
   # Limit all requests by IP
-  throttle("req/ip", limit: 300, period: 5.minutes) do |req|
-    req.ip unless req.path.start_with?("/assets/")
+  throttle("req/ip", limit: 300, period: 5.minutes) do |request|
+    request.ip unless request.path.start_with?("/assets/")
   end
 
   # Limit login attempts
-  throttle("logins/ip", limit: 5, period: 20.seconds) do |req|
-    if req.path == "/login" && req.post?
-      req.ip
+  throttle("logins/ip", limit: 5, period: 20.seconds) do |request|
+    if request.path == "/login" && request.post?
+      request.ip
     end
   end
 
   # Exponential backoff for repeated blocked requests
-  blocklist("fail2ban") do |req|
-    Rack::Attack::Allow2Ban.filter(req.ip, maxretry: 10, findtime: 1.minutes, bantime: 1.hour) do
-      req.env["rack.attack.matched"]
+  blocklist("fail2ban") do |request|
+    Rack::Attack::Allow2Ban.filter(request.ip, maxretry: 10, findtime: 1.minutes, bantime: 1.hour) do
+      request.env["rack.attack.matched"]
     end
   end
 
@@ -44,11 +57,13 @@ class Rack::Attack
   
   # Configure blocked request response
   blocklisted_responder = ->(env) do
-    # Log blocked requests
-    Rails.logger.info("Blocked request: " + {
+    # Log blocked requests with more detail
+    Rails.logger.info("Blocked malicious request: " + {
       ip: env["action_dispatch.remote_ip"].to_s,
       path: env["PATH_INFO"],
-      matched_by: env["rack.attack.matched"]
+      matched_by: env["rack.attack.matched"],
+      user_agent: env["HTTP_USER_AGENT"],
+      request_id: env["action_dispatch.request_id"]
     }.inspect)
 
     [403, {"Content-Type" => "text/plain"}, ["Access Denied"]]
