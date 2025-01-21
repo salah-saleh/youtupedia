@@ -9,6 +9,12 @@ class Rack::Attack
 
   ### Blocklist Rules ###
   
+  # Block requests to invalid hostnames
+  blocklist("block invalid hosts") do |request|
+    valid_hosts = ["youtupedia.ai", "www.youtupedia.ai"]
+    !valid_hosts.include?(request.host.downcase)
+  end
+
   # Block PHP and WordPress scan attempts
   blocklist("block php scans") do |request|
     path = request.path.to_s.downcase
