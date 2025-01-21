@@ -9,15 +9,19 @@ class Rack::Attack
 
   ### Blocklist Rules ###
   
-  # Block WordPress scan attempts
-  blocklist("block wordpress scans") do |request|
-    # Match common WordPress paths more precisely
-    wordpress_path = request.path.to_s.downcase
-    wordpress_path.include?("wordpress") ||
-      wordpress_path.include?("wp-admin") ||
-      wordpress_path.include?("wp-login") ||
-      wordpress_path.include?("wp-includes") ||
-      wordpress_path.include?("xmlrpc.php")
+  # Block PHP and WordPress scan attempts
+  blocklist("block php scans") do |request|
+    path = request.path.to_s.downcase
+    
+    # Block any PHP file access attempts
+    path.end_with?('.php', '.php7') ||
+      # Block WordPress-specific paths
+      path.include?('wp-content') ||
+      path.include?('wp-includes') ||
+      path.include?('wordpress') ||
+      path.include?('wp-admin') ||
+      path.include?('wp-login') ||
+      path.include?('xmlrpc.php')
   end
 
   # Block common exploit scanners
