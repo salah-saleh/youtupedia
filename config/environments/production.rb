@@ -115,12 +115,16 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
+  # Only allow our main domains and specific subdomains in production
+  config.hosts = [
+    "youtupedia.ai",
+    "www.youtupedia.ai",
+    # Allow specific subdomains with more restrictive regex
+    /^[\w-]+\.youtupedia\.ai$/,  # Only allows letters, numbers, hyphens
+    # Skip DNS rebinding protection for health checks
+    { exclude: ->(request) { request.path == "/up" } }
+  ]
+
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

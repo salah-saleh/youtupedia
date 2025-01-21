@@ -125,4 +125,20 @@ Rails.application.configure do
   # config.action_mailer.delivery_method = :postmark
   # config.action_mailer.postmark_settings = { api_token: ENV["POSTMARK_API_KEY"] }
   config.action_mailer.perform_caching = false
+
+  # Allow test domains for Rack::Attack testing
+  config.hosts << "y2si.com"
+  config.hosts << "test.com"
+
+  # Allow our main domain and development hosts
+  config.hosts = [
+    "youtupedia.ai",
+    "www.youtupedia.ai",
+    "localhost",
+    "127.0.0.1",
+    "::1",
+    "0.0.0.0",
+    IPAddr.new("0.0.0.0/0"),        # Allow all IPv4 
+    IPAddr.new("::/0"),             # Allow all IPv6
+  ]
 end
