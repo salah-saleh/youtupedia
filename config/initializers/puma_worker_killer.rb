@@ -19,51 +19,54 @@
 # - Rolling restart: Every 12 hours to prevent memory bloat
 # - Check frequency: Every 60 seconds (adjust based on traffic)
 if defined?(PumaWorkerKiller) && Rails.env.production?
-  # Total RAM available to the dyno
-  # Default: 512MB (Basic dyno)
-  # Adjust based on dyno size: set to actual dyno memory in MB
-  PumaWorkerKiller.ram = ENV.fetch("TOTAL_MEMORY_MB", 512).to_i
+  # Only run in master process to avoid duplicate threads
+  if Process.const_defined?(:CLOCK_MONOTONIC) && Process.pid == 2 # Master PID is 2 on Heroku
+    # Total RAM available to the dyno
+    # Default: 512MB (Basic dyno)
+    # Adjust based on dyno size: set to actual dyno memory in MB
+    PumaWorkerKiller.ram = ENV.fetch("TOTAL_MEMORY_MB", 512).to_i
 
-  # How often to check memory usage
-  # Default: 60 seconds
-  # - Lower for faster response to memory issues
-  # - Higher for less overhead
-  # Recommendation:
-  # - High traffic: 30 seconds
-  # - Medium traffic: 60 seconds
-  # - Low traffic: 120 seconds
-  PumaWorkerKiller.frequency = 60
+    # How often to check memory usage
+    # Default: 60 seconds
+    # - Lower for faster response to memory issues
+    # - Higher for less overhead
+    # Recommendation:
+    # - High traffic: 30 seconds
+    # - Medium traffic: 60 seconds
+    # - Low traffic: 120 seconds
+    PumaWorkerKiller.frequency = 60
 
-  # Percentage of RAM at which to start killing workers
-  # Default: 0.98 (98%)
-  # - Lower means more aggressive memory management
-  # - Higher means more risk of hitting dyno limits
-  # Recommendation:
-  # - Basic/Standard-1X: 0.98
-  # - Standard-2X/Performance: 0.95
-  PumaWorkerKiller.percent_usage = 0.98
+    # Percentage of RAM at which to start killing workers
+    # Default: 0.98 (98%)
+    # - Lower means more aggressive memory management
+    # - Higher means more risk of hitting dyno limits
+    # Recommendation:
+    # - Basic/Standard-1X: 0.98
+    # - Standard-2X/Performance: 0.95
+    PumaWorkerKiller.percent_usage = 0.98
 
-  # How often to restart all workers
-  # Default: 12 hours
-  # - Lower for more aggressive memory cleanup
-  # - Higher for less disruption
-  # Recommendation:
-  # - High memory usage: 6 hours
-  # - Normal usage: 12 hours
-  # - Low memory usage: 24 hours
-  PumaWorkerKiller.rolling_restart_frequency = 12 * 3600 # 12 hours
+    # How often to restart all workers
+    # Default: 12 hours
+    # - Lower for more aggressive memory cleanup
+    # - Higher for less disruption
+    # Recommendation:
+    # - High memory usage: 6 hours
+    # - Normal usage: 12 hours
+    # - Low memory usage: 24 hours
+    PumaWorkerKiller.rolling_restart_frequency = 12 * 3600 # 12 hours
 
-  # Enable detailed logging of worker kills
-  PumaWorkerKiller.reaper_status_logs = true
+    # Enable detailed logging of worker kills
+    PumaWorkerKiller.reaper_status_logs = true
 
-  # Log when PumaWorkerKiller starts
-  Rails.logger.info("PumaWorkerKiller configured: " + {
-    ram_limit: PumaWorkerKiller.ram,
-    percent_usage: PumaWorkerKiller.percent_usage,
-    frequency: PumaWorkerKiller.frequency,
-    rolling_restart: PumaWorkerKiller.rolling_restart_frequency
-  }.inspect)
+    # Log when PumaWorkerKiller starts
+    Rails.logger.info("PumaWorkerKiller configured: " + {
+      ram_limit: PumaWorkerKiller.ram,
+      percent_usage: PumaWorkerKiller.percent_usage,
+      frequency: PumaWorkerKiller.frequency,
+      rolling_restart: PumaWorkerKiller.rolling_restart_frequency
+    }.inspect)
 
-  # Start PumaWorkerKiller
-  PumaWorkerKiller.start
+    # Start PumaWorkerKiller
+    PumaWorkerKiller.start
+  end
 end 

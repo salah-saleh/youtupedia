@@ -29,6 +29,16 @@
 module PythonScriptable
   extend ActiveSupport::Concern
 
+  # Constants are being redefined because the module is being included multiple times
+  # Let's define them only if they're not already defined
+  unless const_defined?(:SCRIPT_TIMEOUT)
+    SCRIPT_TIMEOUT = ENV.fetch("PYTHON_SCRIPT_TIMEOUT", 30).to_i
+  end
+
+  unless const_defined?(:MAX_MEMORY_MB)
+    MAX_MEMORY_MB = ENV.fetch("PYTHON_MAX_MEMORY_MB", 500).to_i
+  end
+
   included do
     # Memory Management Configuration
     #
