@@ -20,7 +20,7 @@
 # - Check frequency: Every 60 seconds (adjust based on traffic)
 if defined?(PumaWorkerKiller) && Rails.env.production?
   # Configure PumaWorkerKiller
-  PumaWorkerKiller.configure do |config|
+  PumaWorkerKiller.config do |config|
     # Total RAM available to the dyno
     # Default: 512MB (Basic dyno)
     # Adjust based on dyno size: set to actual dyno memory in MB
