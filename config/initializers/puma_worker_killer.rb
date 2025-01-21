@@ -78,7 +78,10 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
       end
     end
 
-    # Start PumaWorkerKiller with a shorter reap cycle in production
-    PumaWorkerKiller.start(reap_cycle_in_seconds: 30) # Default is 60
+    # Configure reap cycle before starting
+    PumaWorkerKiller.reap_cycle_in_seconds = 30 # Default is 60
+
+    # Start PumaWorkerKiller
+    PumaWorkerKiller.start
   end
 end 
