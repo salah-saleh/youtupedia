@@ -42,17 +42,20 @@ class Rack::Attack
 
   ### Response Configuration ###
   
-  self.blocklisted_response = lambda do |env|
+  # Configure blocked request response
+  blocklisted_responder = ->(env) do
     # Log blocked requests
-    Rails.logger.info "Blocked request", 
+    Rails.logger.info("Blocked request: " + {
       ip: env["action_dispatch.remote_ip"].to_s,
       path: env["PATH_INFO"],
       matched_by: env["rack.attack.matched"]
+    }.inspect)
 
     [403, {"Content-Type" => "text/plain"}, ["Access Denied"]]
   end
 
-  self.throttled_response = lambda do |env|
+  # Configure rate limit exceeded response
+  throttled_responder = ->(env) do
     now = Time.now
     match_data = env["rack.attack.match_data"]
     retry_after = (match_data[:period] - (now.to_i % match_data[:period])).to_s
@@ -66,4 +69,8 @@ class Rack::Attack
       ["Rate Limit Exceeded. Retry in #{retry_after} seconds"]
     ]
   end
+
+  # Set the responders
+  self.blocklisted_responder = blocklisted_responder
+  self.throttled_responder = throttled_responder
 end 

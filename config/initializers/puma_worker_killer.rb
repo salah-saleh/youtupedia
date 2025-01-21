@@ -57,11 +57,12 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
   PumaWorkerKiller.reaper_status_logs = true
 
   # Log when PumaWorkerKiller starts
-  Rails.logger.info "PumaWorkerKiller configured", 
+  Rails.logger.info("PumaWorkerKiller configured: " + {
     ram_limit: PumaWorkerKiller.ram,
     percent_usage: PumaWorkerKiller.percent_usage,
     frequency: PumaWorkerKiller.frequency,
     rolling_restart: PumaWorkerKiller.rolling_restart_frequency
+  }.inspect)
 
   # Start PumaWorkerKiller
   PumaWorkerKiller.start
