@@ -227,6 +227,7 @@ GEM
     net-imap (0.5.1)
       date
       net-protocol
+    net-ntp (2.1.3)
     net-pop (0.1.2)
       net-protocol
     net-protocol (0.2.2)
@@ -526,6 +527,7 @@ DEPENDENCIES
   kamal
   letter_opener (~> 1.10)
   mongoid
+  net-ntp
   pg
   postmark-rails
   propshaft

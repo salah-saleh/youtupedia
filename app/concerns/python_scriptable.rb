@@ -62,14 +62,6 @@ module PythonScriptable
     #   MAX_MEMORY_PER_PROCESS=12800MB
     #   MALLOC_ARENA_MAX=16
     #   MMAP_THRESHOLD=1048576
-
-    # Default timeout for Python script execution
-    SCRIPT_TIMEOUT = 60  # seconds
-
-    # Maximum memory per process (MB)
-    # Default: 460MB (90% of Basic dyno)
-    # Formula: (Dyno Memory * 0.9) to leave room for system
-    MAX_MEMORY_MB = ENV.fetch("MAX_MEMORY_PER_PROCESS", 460).to_i
   end
 
   class_methods do
