@@ -1,8 +1,11 @@
 # Rack::Attack configuration for security
 # Provides protection against malicious requests and rate limiting
+
+# Configure Redis cache for rate limiting
 class Rack::Attack
   ### Configure Cache ###
-  Rack::Attack.cache.store = Rails.cache
+  # Use Rails cache (Memcached) for rate limiting
+  Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
 
   ### Blocklist Rules ###
   

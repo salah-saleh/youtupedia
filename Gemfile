@@ -97,3 +97,6 @@ gem "postmark-rails"
 
 # Memory
 gem "puma_worker_killer"
+
+# Rate limiting
+gem "rack-attack", "~> 6.7"
