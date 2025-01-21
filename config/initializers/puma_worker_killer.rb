@@ -19,7 +19,8 @@
 # - Rolling restart: Every 12 hours to prevent memory bloat
 # - Check frequency: Every 60 seconds (adjust based on traffic)
 if defined?(PumaWorkerKiller) && Rails.env.production?
-  PumaWorkerKiller.config do |config|
+  # Configure PumaWorkerKiller
+  PumaWorkerKiller.configure do |config|
     # Total RAM available to the dyno
     # Default: 512MB (Basic dyno)
     # Adjust based on dyno size: set to actual dyno memory in MB
@@ -66,5 +67,6 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
     frequency: PumaWorkerKiller.config.frequency,
     rolling_restart: PumaWorkerKiller.config.rolling_restart_frequency
 
+  # Start PumaWorkerKiller
   PumaWorkerKiller.start
 end 
