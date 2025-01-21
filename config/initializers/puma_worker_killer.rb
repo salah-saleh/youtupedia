@@ -67,7 +67,18 @@ if defined?(PumaWorkerKiller) && Rails.env.production?
       rolling_restart: PumaWorkerKiller.rolling_restart_frequency
     }.inspect)
 
-    # Start PumaWorkerKiller
-    PumaWorkerKiller.start
+    # Handle graceful shutdowns
+    at_exit do
+      # Stop PumaWorkerKiller threads before exit
+      if Thread.list.size > 1
+        Thread.list.each do |thread|
+          next if thread == Thread.current
+          thread.kill if thread.backtrace&.first&.include?('puma_worker_killer')
+        end
+      end
+    end
+
+    # Start PumaWorkerKiller with a shorter reap cycle in production
+    PumaWorkerKiller.start(reap_cycle_in_seconds: 30) # Default is 60
   end
 end 

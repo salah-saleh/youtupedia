@@ -52,6 +52,14 @@ if ENV["RAILS_ENV"] == "production"
   # Before forking the application, disconnect from connected services
   before_fork do
     ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+
+    # Stop PumaWorkerKiller threads before forking
+    if defined?(PumaWorkerKiller)
+      Thread.list.each do |thread|
+        next if thread == Thread.current
+        thread.kill if thread.backtrace&.first&.include?('puma_worker_killer')
+      end
+    end
   end
 
   # After forking, reconnect to services
@@ -62,3 +70,17 @@ end
 
 # Increase worker timeout to prevent frequent restarts
 worker_timeout 3600 if ENV.fetch("RAILS_ENV", "development") == "development"
+
+# Graceful shutdown configuration
+on_worker_shutdown do |index|
+  # Clean up any remaining threads
+  if Thread.list.size > 1
+    Thread.list.each do |thread|
+      next if thread == Thread.current
+      thread.kill if thread.backtrace&.first&.include?('puma_worker_killer')
+    end
+  end
+end
+
+# Lower the timeout for worker shutdown
+worker_shutdown_timeout 25 # Give workers 25 seconds to finish, less than Heroku's 30s timeout
