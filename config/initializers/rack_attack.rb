@@ -11,8 +11,31 @@ class Rack::Attack
   
   # Block requests to invalid hostnames
   blocklist("block invalid hosts") do |request|
-    valid_hosts = ["youtupedia.ai", "www.youtupedia.ai"]
-    !valid_hosts.include?(request.host.downcase)
+    begin
+      # List of valid hostnames for our application
+      valid_hosts = [
+        "youtupedia.ai",
+        "www.youtupedia.ai"
+      ]
+
+      host = request.host.to_s.downcase
+      is_blocked = !valid_hosts.include?(host)
+
+      # Log the decision for debugging
+      if is_blocked
+        Rails.logger.info("Blocking invalid host: " + {
+          host: host,
+          valid_hosts: valid_hosts,
+          request_id: request.env["action_dispatch.request_id"]
+        }.inspect)
+      end
+
+      is_blocked
+    rescue => e
+      # Log any errors in the hostname checking
+      Rails.logger.error("Error in hostname check: #{e.message}")
+      false  # Don't block if there's an error
+    end
   end
 
   # Block PHP and WordPress scan attempts
@@ -71,6 +94,7 @@ class Rack::Attack
     Rails.logger.info("Blocked malicious request: " + {
       ip: env["action_dispatch.remote_ip"].to_s,
       path: env["PATH_INFO"],
+      host: env["HTTP_HOST"],  # Add hostname to logging
       matched_by: env["rack.attack.matched"],
       user_agent: env["HTTP_USER_AGENT"],
       request_id: env["action_dispatch.request_id"]
