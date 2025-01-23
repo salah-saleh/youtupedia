@@ -1,0 +1,24 @@
+<%# Footer Component
+    Provides footer links and content
+    
+    Features:
+    - Responsive design (hidden on mobile)
+    - Dark mode support
+    - Links rendered in mobile nav
+%>
+
+<footer class="hidden lg:block mt-auto">
+  <div class="max-w-7xl mx-auto py-6 px-8">
+    <div class="flex justify-between items-center">
+      <%# Left side - Links %>
+      <nav class="flex space-x-6">
+        <%= render "shared/footer_links" %>
+      </nav>
+
+      <%# Right side - Copyright %>
+      <div class="text-sm text-gray-500 dark:text-gray-400">
+        © <%= Time.current.year %> Youtupedia
+      </div>
+    </div>
+  </div>
+</footer> 

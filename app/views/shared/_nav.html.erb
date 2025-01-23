@@ -80,8 +80,16 @@
 
     <!-- Mobile navigation -->
     <div class="py-2 hidden border-t border-gray-200 dark:border-gray-700" data-nav-toggle-target="menu">
-      <nav class="flex flex-col space-y-1">
-        <%= render "shared/nav_links" %>
+      <nav class="flex flex-col">
+        <%# Main Navigation Links %>
+        <div class="space-y-1">
+          <%= render "shared/nav_links" %>
+        </div>
+
+        <%# Footer Links - Only visible on mobile %>
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <%= render "shared/footer_links", mobile: true %>
+        </div>
       </nav>
     </div>
   </div>

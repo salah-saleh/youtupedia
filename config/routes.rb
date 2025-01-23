@@ -46,4 +46,9 @@ Rails.application.routes.draw do
       get :create_from_url
     end
   end
+
+  # Static pages
+  get "about", to: "pages#about"  
+  get "contact", to: "pages#contact"
 end
+

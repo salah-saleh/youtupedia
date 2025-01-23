@@ -3,13 +3,10 @@
 %>
 
 <%= link_to root_path,
-    class: "block px-3 py-2 text-sm text-gray-700 dark:text-gray-300
-            hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md
+    class: "flex items-center px-2 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-md
             #{current_page?(root_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
-  <div class="flex items-center">
-    <%= render_icon :home, class: "w-5 h-5 mr-3" %>
-    <span>Home</span>
-  </div>
+  <%= render_icon :home, class: "mr-4 h-5 w-5" %>
+  <span>Home</span>
 <% end %>
 
 <%= link_to summaries_path,

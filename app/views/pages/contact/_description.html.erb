@@ -1,0 +1,26 @@
+<%# Contact Page Description %>
+
+<div class="space-y-6">
+  <p>
+    Have questions or suggestions? Want to report a bug? 
+  </p>
+  <p class="flex items-center gap-2 text-sm">
+    We'd love to hear from you! Please write us at 
+    <span data-controller="email-reveal" class="inline-flex items-center">
+      <button data-email-reveal-target="hidden"
+              data-action="email-reveal#reveal"
+              class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors">
+        (click to reveal email)
+      </button>
+      <span data-email-reveal-target="visible"
+            class="hidden text-purple-600 dark:text-purple-400"></span>
+      
+      <button data-email-reveal-target="copy"
+              data-action="email-reveal#copy"
+              class="hidden ml-2 inline-flex items-center gap-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+        <span data-copy-icon><%= render_icon :clipboard, class: "w-3 h-3" %></span>
+        <span data-copy-text>Copy</span>
+      </button>
+    </span>
+  </p>
+</div> 
