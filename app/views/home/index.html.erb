@@ -20,7 +20,7 @@
       <%= form_with url: parse_youtube_url_path, method: :post, class: "relative", data: { turbo: false } do |f| %>
         <div class="relative">
           <%= f.text_field :url,
-              placeholder: "Link here...",
+              placeholder: "e.g https://www.youtube.com/watch?v=XyhhwVJB9Z4",
               class: "block w-full sm:text-red px-4 py-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800  text-lg",
               autofocus: true %>
 
@@ -32,8 +32,49 @@
       <% end %>
     </div>
 
+    <!-- Example Channels -->
+    <div class="mt-8">
+      <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
+        Popular Channels
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <%= link_to channel_path("joerogan"),
+              class: "flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" do %>
+          <div class="flex-shrink-0">
+            <%= render_icon :channel, class: "w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" %>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+              Joe Rogan Podcast
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              View channel insights and summaries
+            </p>
+          </div>
+        <% end %>
+
+        <%= link_to channel_path("TheDiaryOfACEO"),
+              class: "flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" do %>
+          <div class="flex-shrink-0">
+            <%= render_icon :channel, class: "w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" %>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+              The Diary Of A CEO
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              View channel insights and summaries
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
     <!-- Recent Suggestions -->
     <div class="mt-8">
+      <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
+        Quick Links
+      </h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <%= link_to summaries_path, class: "flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200" do %>
           <%= render_icon :video_camera, class: "w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" %>
