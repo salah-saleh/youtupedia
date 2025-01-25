@@ -25,7 +25,7 @@ class ChannelsController < ApplicationController
     end
 
     UserServices::UserDataService.add_item(Current.user.id, :channels, @channel_name) if Current.user
-    UserServices::UserDataService.add_item("user_master", :channels, @channel_name)
+    UserServices::UserDataService.add_item("master", :channels, @channel_name)
 
     # Get the current page token from params
     @current_token = params[:page_token]
