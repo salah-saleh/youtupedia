@@ -25,6 +25,7 @@ class SummariesController < ApplicationController
     SummaryJob.schedule(@video_id) if !@transcript || !@transcript[:success] || !@summary
 
     UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id) if Current.user
+    UserServices::UserDataService.add_item("user_master", :summaries, @video_id)
 
     # Build summary data
     # If transcript is not successful, return nil initially

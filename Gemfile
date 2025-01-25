@@ -103,3 +103,6 @@ gem "rack-attack", "~> 6.7"
 
 # Time synchronization
 gem "net-ntp", require: false
+
+# Sitemap
+gem "sitemap_generator", "~> 6.3.0"

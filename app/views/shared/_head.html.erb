@@ -1,13 +1,34 @@
 <head>
-  <title><%= content_for?(:title) ? yield(:title) : "Youtupedia" %></title>
+  <title><%= content_for?(:title) ? yield(:title) + " | Youtupedia" : "Youtupedia - YouTube Video Summaries and Channel Insights" %></title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  
+  <%# SEO Meta Tags %>
+  <meta name="description" content="<%= content_for?(:description) ? yield(:description) : 'Discover and explore YouTube content through AI-powered summaries and channel insights. Get detailed analysis of your favorite YouTube videos and channels.' %>">
+  <meta name="keywords" content="youtube summaries, video analysis, channel insights, youtube content, video summaries">
+  <meta name="author" content="Youtupedia">
+  
+  <%# Open Graph Meta Tags for Social Sharing %>
+  <meta property="og:title" content="<%= content_for?(:title) ? yield(:title) + ' | Youtupedia' : 'Youtupedia - YouTube Video Summaries and Channel Insights' %>">
+  <meta property="og:description" content="<%= content_for?(:description) ? yield(:description) : 'Discover and explore YouTube content through AI-powered summaries and channel insights.' %>">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="<%= request.original_url %>">
+  <meta property="og:image" content="<%= asset_url('youtupedia-bg.png') %>">
+  
+  <%# Twitter Card Meta Tags %>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= content_for?(:title) ? yield(:title) + ' | Youtupedia' : 'Youtupedia - YouTube Video Summaries and Channel Insights' %>">
+  <meta name="twitter:description" content="<%= content_for?(:description) ? yield(:description) : 'Discover and explore YouTube content through AI-powered summaries and channel insights.' %>">
+  <meta name="twitter:image" content="<%= asset_url('youtupedia-bg.png') %>">
 
   <%# Favicon settings %>
   <%= favicon_link_tag 'youtupedia-bg.png' %>
   <link rel="apple-touch-icon" sizes="180x180" href="<%= asset_path 'youtupedia-bg.png' %>">
   <link rel="icon" type="image/png" sizes="32x32" href="<%= asset_path 'youtupedia-bg.png' %>">
   <link rel="icon" type="image/png" sizes="16x16" href="<%= asset_path 'youtupedia-bg.png' %>">
+  
+  <%# Canonical URL %>
+  <link rel="canonical" href="<%= request.original_url %>" />
 
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
@@ -16,12 +37,12 @@
   <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   <%= javascript_importmap_tags %>
   <link href="https://fonts.googleapis.com/css2?family=Pacifico" rel="stylesheet">
-    <script>
-      // On page load or when changing themes, best to add inline in `head` to avoid FOUC
-      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark')
-      } else {
-        document.documentElement.classList.remove('dark')
-      }
-    </script>
+  <script>
+    // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  </script>
 </head>
