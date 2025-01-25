@@ -129,11 +129,7 @@ GEM
       net-http (>= 0.5.0)
     ffi (1.17.1-aarch64-linux-gnu)
     ffi (1.17.1-aarch64-linux-musl)
-    ffi (1.17.1-arm-linux-gnu)
-    ffi (1.17.1-arm-linux-musl)
     ffi (1.17.1-arm64-darwin)
-    ffi (1.17.1-x86-linux-gnu)
-    ffi (1.17.1-x86-linux-musl)
     ffi (1.17.1-x86_64-darwin)
     ffi (1.17.1-x86_64-linux-gnu)
     ffi (1.17.1-x86_64-linux-musl)
@@ -199,7 +195,7 @@ GEM
       childprocess (~> 5.0)
     letter_opener (1.10.0)
       launchy (>= 2.2, < 4)
-    logger (1.6.1)
+    logger (1.6.5)
     loofah (2.23.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -243,11 +239,7 @@ GEM
     nio4r (2.7.4)
     nokogiri (1.16.7-aarch64-linux)
       racc (~> 1.4)
-    nokogiri (1.16.7-arm-linux)
-      racc (~> 1.4)
     nokogiri (1.16.7-arm64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.16.7-x86-linux)
       racc (~> 1.4)
     nokogiri (1.16.7-x86_64-darwin)
       racc (~> 1.4)
@@ -339,7 +331,7 @@ GEM
       trailblazer-option (>= 0.1.1, < 0.2.0)
       uber (< 0.2.0)
     retriable (3.1.2)
-    rexml (3.3.9)
+    rexml (3.4.0)
     rubocop (1.68.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -380,9 +372,9 @@ GEM
       faraday (>= 1)
       faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
-    rubyzip (2.3.2)
+    rubyzip (2.4.1)
     securerandom (0.3.2)
-    selenium-webdriver (4.26.0)
+    selenium-webdriver (4.28.0)
       base64 (~> 0.2)
       logger (~> 1.4)
       rexml (~> 3.2, >= 3.2.5)
@@ -427,11 +419,7 @@ GEM
       thor (>= 0.19.2)
     sqlite3 (2.3.0-aarch64-linux-gnu)
     sqlite3 (2.3.0-aarch64-linux-musl)
-    sqlite3 (2.3.0-arm-linux-gnu)
-    sqlite3 (2.3.0-arm-linux-musl)
     sqlite3 (2.3.0-arm64-darwin)
-    sqlite3 (2.3.0-x86-linux-gnu)
-    sqlite3 (2.3.0-x86-linux-musl)
     sqlite3 (2.3.0-x86_64-darwin)
     sqlite3 (2.3.0-x86_64-linux-gnu)
     sqlite3 (2.3.0-x86_64-linux-musl)
@@ -451,7 +439,6 @@ GEM
       tailwindcss-ruby
     tailwindcss-ruby (3.4.15)
     tailwindcss-ruby (3.4.15-aarch64-linux)
-    tailwindcss-ruby (3.4.15-arm-linux)
     tailwindcss-ruby (3.4.15-arm64-darwin)
     tailwindcss-ruby (3.4.15-x86_64-darwin)
     tailwindcss-ruby (3.4.15-x86_64-linux)
@@ -502,13 +489,7 @@ PLATFORMS
   aarch64-linux
   aarch64-linux-gnu
   aarch64-linux-musl
-  arm-linux
-  arm-linux-gnu
-  arm-linux-musl
   arm64-darwin
-  x86-linux
-  x86-linux-gnu
-  x86-linux-musl
   x86_64-darwin
   x86_64-linux
   x86_64-linux-gnu
