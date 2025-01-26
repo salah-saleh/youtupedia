@@ -3,6 +3,8 @@
 TODO BEFORE LAUNCH:
 - stats: limit number of videos per user per day for start
 - nginx https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nginx 
+- schedular [text](https://devcenter.heroku.com/articles/scheduler)
+- memcached limit for memory on heroku
 - clear session on login
 - iteration on summaries page by agent
 - takeaways to be extended

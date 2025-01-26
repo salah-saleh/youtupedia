@@ -17,6 +17,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_01_06_233501) do
     t.datetime "expires_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_sessions_on_expires_at"
     t.index ["token"], name: "index_sessions_on_token"
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end

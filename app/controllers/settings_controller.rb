@@ -25,11 +25,14 @@ class SettingsController < ApplicationController
   # - Admin toggling for users (admin only)
   # - User impersonation (admin only)
   # - Exit impersonation
+  # - User deletion (admin only)
   def create
     if params[:exit_impersonation]
       handle_exit_impersonation
     elsif params[:switch_to_user] && admin_access?
       handle_user_switch
+    elsif params[:delete_user] && Current.user&.admin?
+      handle_user_deletion
     elsif params[:user_id] && params[:admin_action] && Current.user&.admin?
       handle_admin_toggle
     else
@@ -128,5 +131,24 @@ class SettingsController < ApplicationController
     session.delete(:admin_impersonation)
 
     redirect_to settings_path, notice: "Exited admin impersonation mode"
+  end
+
+  # Handles deleting a user
+  # Only accessible by actual admins
+  def handle_user_deletion
+    return unless Current.user&.admin?
+
+    user = User.find_by(id: params[:delete_user])
+    return if user == Current.user # Prevent admin from deleting themselves
+
+    if user&.destroy
+      # Clean up any sessions
+      Session.where(user_id: user.id).delete_all
+      flash[:notice] = "User #{user.email_address} has been deleted"
+    else
+      flash[:alert] = "Unable to delete user"
+    end
+
+    redirect_to settings_path
   end
 end

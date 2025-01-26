@@ -45,6 +45,7 @@ class SessionsController < PublicController
 
   # Creates a new session and sets the login cookie
   def create_session_and_login
+    Session.cleanup_expired  # Clean up expired sessions before creating a new one
     session = @user.sessions.create!(
       expires_at: session_expiry
     )

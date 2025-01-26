@@ -10,6 +10,10 @@ class Session < ApplicationRecord
     expires_at < Time.current
   end
 
+  def self.cleanup_expired
+    where("expires_at < ?", Time.current).delete_all
+  end
+
   private
 
   def generate_unique_token
