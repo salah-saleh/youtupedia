@@ -2,11 +2,6 @@ module Cache
   # MongoDB-based cache implementation with retry mechanism
   # Handles BSON document conversion and provides resilient caching operations
   class MongoCacheService < BaseCacheService
-    # Include IndexableConcern first
-    include IndexableConcern
-    # Then include SearchableConcern which depends on it
-    include SearchableConcern
-
     # Maximum retry attempts for MongoDB operations
     MAX_RETRIES = 3
     # Delay between retries (seconds)
