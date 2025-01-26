@@ -1,3 +1,16 @@
+<%# Pagination Component
+    Provides consistent pagination controls with support for both standard and YouTube-style pagination.
+
+    Parameters:
+    - current_page: Integer - Current page number
+    - total_pages: Integer - Total number of pages
+    - path: String - Base path for pagination links
+    Optional Parameters:
+    - youtube_pagination: Boolean - Whether to use YouTube-style pagination (default: false)
+    - next_token: String - YouTube API next page token
+    - prev_token: String - YouTube API previous page token
+%>
+
 <%# Pagination component that can be reused across the application %>
 <%# Required local variables for standard pagination: %>
 <%# - current_page: Current page number %>
@@ -19,104 +32,95 @@
   turbo_frame_id ||= 'summaries_content'
 
   # Helper to build pagination URL with params
-  def build_pagination_url(path, params: {}, page_token: nil)
+  def build_pagination_url(path, params: {}, page: nil, page_token: nil)
     url_params = params.dup
+    url_params[:page] = page if page
     url_params[:page_token] = page_token if page_token
     path + "?" + url_params.to_query
   end
+
+  # Common link classes
+  link_classes = "inline-flex items-center border-t-2 border-transparent px-4 pt-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300"
+  active_classes = "inline-flex items-center border-t-2 border-indigo-500 dark:border-indigo-400 px-4 pt-4 text-sm font-medium text-indigo-600 dark:text-indigo-400"
 %>
 
-<nav class="flex items-center justify-between px-4 sm:px-0 pt-3 <%= class_names %>" aria-label="Pagination">
-  <div class="flex flex-1 justify-between sm:justify-end gap-x-3">
+<nav class="flex items-center justify-between border-t border-gray-200 dark:border-gray-700 px-4 sm:px-0 mt-4" aria-label="Pagination">
+  <%# Previous page link %>
+  <div class="-mt-px flex w-0 flex-1">
     <% if youtube_pagination %>
-      <%# YouTube-style pagination with just prev/next %>
-      <div class="flex gap-x-2">
-        <% if prev_token.present? %>
-          <%= link_to build_pagination_url(path, page_token: prev_token, params: params), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", data: { turbo_frame: turbo_frame_id, turbo_action: "advance" } do %>
-            <svg class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-            </svg>
-            Previous
-          <% end %>
+      <% if prev_token.present? %>
+        <%= link_to build_pagination_url(path, params: params, page_token: prev_token), 
+              class: link_classes,
+              data: { turbo_frame: turbo_frame_id } do %>
+          <svg class="mr-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z" clip-rule="evenodd" />
+          </svg>
+          Previous
         <% end %>
-
-        <% if next_token.present? %>
-          <%= link_to build_pagination_url(path, page_token: next_token, params: params), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", data: { turbo_frame: turbo_frame_id, turbo_action: "advance" } do %>
-            Next
-            <svg class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-            </svg>
-          <% end %>
-        <% end %>
-      </div>
+      <% end %>
     <% else %>
-      <%# Standard pagination with page numbers %>
-      <div class="flex gap-x-2">
-        <%# First page button %>
-        <% if current_page > 1 %>
-          <%= link_to build_pagination_url(path, params: params.merge(page: 1)), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-2 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", title: "First page", data: { turbo_frame: turbo_frame_id, turbo_action: "advance" } do %>
-            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M15.79 14.77a.75.75 0 01-1.06.02L10.232 10l4.938-3.71a.75.75 0 111.04 1.08l-3.57 3.37 3.57 3.37a.75.75 0 01-.02 1.06zm-6 0a.75.75 0 01-1.06.02L4.232 10l4.938-3.71a.75.75 0 111.04 1.08L6.64 10l3.57 3.37a.75.75 0 01-.02 1.06z" clip-rule="evenodd" />
-            </svg>
+      <% if current_page > 1 %>
+        <%= link_to build_pagination_url(path, params: params, page: current_page - 1), 
+              class: link_classes,
+              data: { turbo_frame: turbo_frame_id } do %>
+          <svg class="mr-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z" clip-rule="evenodd" />
+          </svg>
+          Previous
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%# Page numbers %>
+  <div class="hidden md:-mt-px md:flex">
+    <% if youtube_pagination %>
+      <%= link_to build_pagination_url(path, params: params.except(:page)),
+            class: link_classes,
+            data: { turbo_frame: turbo_frame_id } do %>
+        Top
+      <% end %>
+    <% else %>
+      <% (1..total_pages).each do |page| %>
+        <% if page == current_page %>
+          <span class="<%= active_classes %>">
+            <%= page %>
+          </span>
+        <% else %>
+          <%= link_to build_pagination_url(path, params: params, page: page),
+                class: link_classes,
+                data: { turbo_frame: turbo_frame_id } do %>
+            <%= page %>
           <% end %>
         <% end %>
+      <% end %>
+    <% end %>
+  </div>
 
-        <%# Previous page button %>
-        <% if current_page > 1 %>
-          <%= link_to build_pagination_url(path, params: params.merge(page: current_page - 1)), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", data: { turbo_frame: turbo_frame_id, turbo_action: "advance" } do %>
-            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
-            </svg>
-            Previous
-          <% end %>
+  <%# Next page link %>
+  <div class="-mt-px flex w-0 flex-1 justify-end">
+    <% if youtube_pagination %>
+      <% if next_token.present? %>
+        <%= link_to build_pagination_url(path, params: params, page_token: next_token),
+              class: link_classes,
+              data: { turbo_frame: turbo_frame_id } do %>
+          Next
+          <svg class="ml-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd" />
+          </svg>
         <% end %>
-
-        <%# Page numbers %>
-        <div class="hidden sm:flex gap-x-2">
-          <% start_page = [1, current_page - 2].max %>
-          <% end_page = [start_page + 4, total_pages].min %>
-          <% start_page = [1, end_page - 4].max if end_page - start_page < 4 %>
-
-          <% if start_page > 1 %>
-            <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">...</span>
-          <% end %>
-
-          <% (start_page..end_page).each do |page| %>
-            <% if page == current_page %>
-              <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-purple-600 dark:bg-purple-500 rounded-md">
-                <%= page %>
-              </span>
-            <% else %>
-              <%= link_to build_pagination_url(path, params: params.merge(page: page)), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", data: { turbo_frame: turbo_frame_id, turbo_action: "advance" } do %>
-                <%= page %>
-              <% end %>
-            <% end %>
-          <% end %>
-
-          <% if end_page < total_pages %>
-            <span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300">...</span>
-          <% end %>
-        </div>
-
-        <%# Next page button %>
-        <% if current_page < total_pages %>
-          <%= link_to build_pagination_url(path, params: params.merge(page: current_page + 1)), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", data: { turbo_frame: turbo_frame_id, turbo_action: "advance" } do %>
-            Next
-            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-            </svg>
-          <% end %>
+      <% end %>
+    <% else %>
+      <% if current_page < total_pages %>
+        <%= link_to build_pagination_url(path, params: params, page: current_page + 1),
+              class: link_classes,
+              data: { turbo_frame: turbo_frame_id } do %>
+          Next
+          <svg class="ml-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd" />
+          </svg>
         <% end %>
-
-        <%# Last page button %>
-        <% if current_page < total_pages %>
-          <%= link_to build_pagination_url(path, params: params.merge(page: total_pages)), class: "relative inline-flex items-center rounded-md bg-white dark:bg-gray-800 px-2 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700", title: "Last page", data: { turbo_frame: turbo_frame_id, turbo_action: "advance" } do %>
-            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M4.21 14.77a.75.75 0 01.02-1.06L8.168 10 4.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02zm6 0a.75.75 0 01.02-1.06L14.168 10 10.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-            </svg>
-          <% end %>
-        <% end %>
-      </div>
+      <% end %>
     <% end %>
   </div>
 </nav>

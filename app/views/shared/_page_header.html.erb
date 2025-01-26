@@ -4,6 +4,10 @@
     Parameters:
     - title: String - The header title
     - subtitle: String (optional) - Additional context text
+    - search: Hash (optional) - Search configuration
+      - route: String - The search route to submit to
+      - placeholder: String - Placeholder text for search input
+      - param_name: String - Name of the search parameter (defaults to 'q')
 %>
 
 <section class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700">
@@ -16,6 +20,24 @@
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           <%= subtitle %>
         </p>
+      <% elsif local_assigns[:search].present? %>
+        <div class="mt-2">
+          <%= form_tag local_assigns[:search][:route], method: :get, data: { turbo_frame: "_top" } do %>
+            <div class="relative">
+              <%= text_field_tag local_assigns[:search][:param_name] || "q",
+                                params[local_assigns[:search][:param_name] || "q"],
+                                class: "block w-full rounded-xl border-0 py-1.5 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 dark:focus:ring-indigo-500 sm:text-sm sm:leading-6",
+                                placeholder: local_assigns[:search][:placeholder] %>
+              <%= button_tag type: "submit", 
+                            name: nil,
+                            class: "absolute inset-y-0 right-0 flex items-center px-2.5 rounded-r-xl text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none" do %>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
       <% end %>
     </div>
 

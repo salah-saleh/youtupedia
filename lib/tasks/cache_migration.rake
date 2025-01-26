@@ -35,11 +35,9 @@ namespace :cache do
     SERVICES = [
       Youtube::YoutubeChannelService,
       Youtube::YoutubeVideoMetadataService,
-      Youtube::YoutubeVideoTranscriptService + "_full",
-      Youtube::YoutubeVideoTranscriptService + "_segmented",
-      Ai::ChatGptService,
-      Ai::ChatThreadService,
-      UserServices::UserDataService
+      Youtube::YoutubeVideoTranscriptService,
+      UserServices::UserDataService,
+      Ai::LlmSummaryService
     ]
 
     namespaces = SERVICES.map { |service|

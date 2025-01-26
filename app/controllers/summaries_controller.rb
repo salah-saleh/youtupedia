@@ -33,15 +33,22 @@ class SummariesController < ApplicationController
   end
 
   def index
-    video_ids = UserServices::UserDataService.user_items(Current.user.id, :summaries)
+    # Get video IDs based on search or user's collection
+    video_ids = if params[:q].present?
+      Search::VideoSearchService.search_video_ids(params[:q], Current.user.id)
+    else
+      UserServices::UserDataService.user_items(Current.user.id, :summaries)
+    end
+
     return @summaries = [] if video_ids.empty?
 
-    # Apply pagination to video_ids
+    # Apply pagination to video IDs
     paginated_video_ids = paginate(video_ids)
 
-    # Fetch all metadata in one batch
+    # Fetch metadata for paginated IDs
     metadata_results = Youtube::YoutubeVideoMetadataService.fetch_metadata_batch(paginated_video_ids)
 
+    # Format results
     @summaries = metadata_results.map do |video_id, metadata|
       next unless metadata[:success]
 

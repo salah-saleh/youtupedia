@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   resources :summaries, only: [ :show, :index ] do
     collection do
       get :create_from_url
+      get :search
     end
     member do
       get :check_status

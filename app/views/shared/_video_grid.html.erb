@@ -5,17 +5,21 @@
     - path: Path for pagination links
     Optional local variables:
     - subtitle: String for the section subtitle (defaults to video count)
+    - search: Search form partial to render
     - empty_message: String for empty state message
     - youtube_pagination: Boolean to indicate if using YouTube API pagination (default: false)
+    - params: Hash of parameters to preserve in pagination links
 %>
 
 <%
   youtube_pagination = local_assigns.fetch(:youtube_pagination, false)
+  params = local_assigns.fetch(:params, {})
 %>
 
 <%= render "shared/page_header",
       title: title,
-      subtitle: local_assigns.fetch(:subtitle, pluralize(videos&.length, "video")) do %>
+      subtitle: local_assigns[:subtitle],
+      search: local_assigns[:search] do %>
   <% if videos.any? %>
     <%= render "shared/grid" do %>
       <% videos.each do |video| %>
@@ -30,6 +34,7 @@
               current_page: @page,
               total_pages: @total_pages,
               path: path,
+              params: params,
               next_token: @next_token,
               prev_token: @prev_token,
               youtube_pagination: youtube_pagination %>

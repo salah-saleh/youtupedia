@@ -1,5 +1,11 @@
 <%= render "shared/video_grid",
       videos: @summaries,
       title: "Your Videos",
+      search: {
+            route: summaries_path,
+            placeholder: "Search videos...",
+            param_name: "q" # optional, defaults to "q"
+      },
       path: summaries_path,
+      params: request.query_parameters,
       empty_message: "No summaries yet. Add your first video above!" %>
