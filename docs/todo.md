@@ -2,6 +2,7 @@
 
 TODO BEFORE LAUNCH:
 - stats: limit number of videos per user per day for start
+- make actual sitemap page
 - nginx https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nginx 
 - schedular [text](https://devcenter.heroku.com/articles/scheduler)
 - iteration on summaries page by agent

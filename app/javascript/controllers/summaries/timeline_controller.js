@@ -9,6 +9,79 @@ export default class extends Controller {
     this.contentTargets.forEach(content => {
       content.classList.remove('h-0', 'invisible', 'mt-0', 'mb-0')
     })
+
+    // Create floating message element
+    this.floatingMessage = document.createElement('div')
+    this.floatingMessage.classList.add(
+      'absolute', 'z-10', 'bg-purple-600', 'text-white', 'px-3', 'py-2', 'rounded-lg',
+      'text-sm', 'shadow-lg', 'transform', 'transition-all', 'duration-200', 'ease-in-out',
+      'opacity-0', 'translate-y-2', 'pointer-events-none', 'dark:bg-purple-500',
+      'whitespace-nowrap'
+    )
+    this.floatingMessage.textContent = "Expand information"
+    
+    // Position it above the expand all button
+    const expandAllButton = this.expandAllButtonTarget
+    expandAllButton.parentElement.style.position = 'relative'
+    expandAllButton.parentElement.appendChild(this.floatingMessage)
+    
+    // Add highlight effect class
+    expandAllButton.classList.add('transition-all', 'duration-200')
+    
+    // Show message on hover
+    expandAllButton.addEventListener('mouseenter', () => this.showFloatingMessage())
+    expandAllButton.addEventListener('mouseleave', () => this.hideFloatingMessage())
+
+    // Show message and highlight button on page load
+    setTimeout(() => {
+      this.showFloatingMessage()
+      this.highlightButton()
+      // Hide after 3 seconds
+      setTimeout(() => {
+        this.hideFloatingMessage()
+        this.unhighlightButton()
+      }, 3000)
+    }, 500) // Small delay to ensure everything is loaded
+  }
+
+  highlightButton() {
+    const button = this.expandAllButtonTarget
+    // Add pulsing ring effect
+    button.classList.add('ring-4', 'ring-purple-300', 'dark:ring-purple-800', 'animate-pulse')
+    // Increase text and icon opacity
+    button.classList.add('text-purple-800', 'dark:text-purple-300')
+  }
+
+  unhighlightButton() {
+    const button = this.expandAllButtonTarget
+    // Remove highlight effects
+    button.classList.remove(
+      'ring-4', 'ring-purple-300', 'dark:ring-purple-800', 'animate-pulse',
+      'text-purple-800', 'dark:text-purple-300'
+    )
+  }
+
+  showFloatingMessage() {
+    // Position the message above the button
+    this.floatingMessage.style.bottom = 'calc(100% + 5px)'
+    this.floatingMessage.style.left = '50%'
+    this.floatingMessage.style.transform = 'translateX(-50%)'
+    
+    // Show with animation
+    this.floatingMessage.classList.remove('opacity-0', 'translate-y-2')
+    this.floatingMessage.classList.add('opacity-100', 'translate-y-0')
+
+    // Highlight the button
+    this.highlightButton()
+  }
+
+  hideFloatingMessage() {
+    // Hide with animation
+    this.floatingMessage.classList.remove('opacity-100', 'translate-y-0')
+    this.floatingMessage.classList.add('opacity-0', 'translate-y-2')
+
+    // Remove button highlight
+    this.unhighlightButton()
   }
 
   toggle(event) {
