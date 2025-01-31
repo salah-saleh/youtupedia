@@ -12,6 +12,8 @@ module Ai
             In some videos, the first section is usually a summary of what to expect in the video. If that is the case, be very careful not to base the timestamps of where the topics start on the first section if that is the case.
             Your response must be in valid JSON format.
 
+            Both summary and TLDR sections should mention the speakers, the channel name and the video title when possible.
+            Avoid sounding like a reporter or a journalist or a bot. Use more approachable and conversational language.
             Make sure your response is a valid JSON object with no trailing commas.
             Do not include any explanatory text outside the JSON structure.
             The response must contain exactly these fields:
@@ -37,9 +39,11 @@ module Ai
             Topics should be descriptive enough to be able to identify the takeaway.
             Summary should be at least 200 words when possible.
             TLDR should be around 80 words when possible.
+            Both summary and TLDR sections should mention the speakers, the channel name and the video title when possible.
 
             Make sure your response is a valid JSON object with no trailing commas.
             Do not include any explanatory text outside the JSON structure.
+            Avoid sounding like a reporter or a journalist or a bot. Use more approachable and conversational language.
           PROMPT
         end
 
@@ -50,6 +54,7 @@ module Ai
             Please answer strictly about the transcript content.
             If asked about any other topic, please say you can only answer about the transcript content.
             Your response must be in markdown format.
+            Avoid sounding like a reporter or a journalist or a bot. Use more approachable and conversational language.
           PROMPT
         end
 
@@ -64,6 +69,7 @@ module Ai
             }
             Use the provided transcript for additional context but focus on expanding the specific takeaway.
             Dont' start with "In this section" or "In this segment" or anything like that. Just go directly to the point.
+            Avoid sounding like a reporter or a journalist or a bot. Use more approachable and conversational language.
           PROMPT
         end
 
