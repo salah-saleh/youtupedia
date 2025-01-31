@@ -2,7 +2,7 @@ class SummariesController < ApplicationController
   include YoutubeUrlHelper
   include SummaryDataHelper
   include Paginatable
-  public_actions [ :show, :create_from_url, :check_status ]
+  public_actions [ :show, :create_from_url, :check_status, :expand_takeaway ]
 
   def create_from_url
     video_id = extract_video_id(params[:youtube_url])
@@ -79,6 +79,46 @@ class SummariesController < ApplicationController
     respond_to do |format|
       format.json { render json: build_status_response(result) }
       format.turbo_stream { render_status_stream(params[:frame_id], result) }
+    end
+  end
+
+  def expand_takeaway
+    video_id = params[:id]
+    index = params[:index].to_i
+
+    # Get the transcript and summary
+    transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
+    summary = Ai::LlmSummaryService.fetch_summary(video_id)
+
+    return head :not_found unless transcript&.dig(:success) && summary&.dig(:success)
+
+    # return if already expanded
+    if summary[:contents][index]&.dig(:expanded_takeaway)
+      render partial: "summaries/show/expanded_takeaway",
+        locals: { expanded: summary[:contents][index], index: index }
+      return
+    end
+
+    # Get the specific takeaway content
+    content = summary[:contents][index]
+    return head :not_found unless content
+
+    # Get expanded content
+    expanded = Ai::LlmTakeawayExpanderService.expand_takeaway(
+      video_id,
+      index,
+      transcript[:transcript_full],
+      content[:topic],
+      content[:takeaway]
+    )
+
+    if expanded[:success]
+      render partial: "summaries/show/expanded_takeaway",
+             locals: { expanded: expanded, index: index }
+    else
+      render turbo_stream: turbo_stream.update("expanded-takeaway-#{index}",
+        partial: "shared/error_message",
+        locals: { message: "Failed to expand takeaway. Please try again." })
     end
   end
 

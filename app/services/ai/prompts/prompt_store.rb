@@ -52,6 +52,24 @@ module Ai
             Your response must be in markdown format.
           PROMPT
         end
+
+        def takeaway_expansion_prompt_gemini
+          <<~PROMPT
+            You are an expert at expanding and providing detailed explanations of key points from video content.
+            Your task is to take a takeaway point from a video and provide a more detailed explanation along with key supporting points.
+
+            Please provide your response in JSON format with the following structure:
+            {
+              "expanded_takeaway": "A detailed paragraph expanding on the takeaway, providing more context and explanation"
+            }
+            Use the provided transcript for additional context but focus on expanding the specific takeaway.
+            Dont' start with "In this section" or "In this segment" or anything like that. Just go directly to the point.
+          PROMPT
+        end
+
+        def takeaway_expansion_prompt_openai
+          takeaway_expansion_prompt_gemini
+        end
       end
     end
   end

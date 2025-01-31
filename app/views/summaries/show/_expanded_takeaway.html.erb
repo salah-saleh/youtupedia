@@ -1,0 +1,7 @@
+# frozen_string_literal: true
+
+<%= turbo_frame_tag "expanded-takeaway-#{index}" do %>
+  <div class="text-gray-600 dark:text-gray-300 space-y-2" data-expanded-takeaway>
+    <%= expanded[:expanded_takeaway] %>
+  </div>
+<% end %>

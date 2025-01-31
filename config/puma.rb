@@ -25,6 +25,10 @@
 # be configured to provide at least as many connections as the number of
 # threads. This includes Active Record's `pool` parameter in `database.yml`.
 workers Integer(ENV.fetch("WEB_CONCURRENCY", 2))
+# Connection Management - Based on dyno type
+# Basic: 5 threads
+# Standard-1X/2X: 10 threads
+# Performance-M/L: 20 threads
 threads_count = Integer(ENV.fetch("RAILS_MAX_THREADS", 5))
 threads threads_count, threads_count
 

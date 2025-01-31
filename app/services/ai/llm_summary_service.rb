@@ -2,8 +2,9 @@ module Ai
   class LlmSummaryService < BaseService
     include AsyncProcessable
     include Cacheable
+    include LlmServiceBase
 
-    def initialize(client_type = :openai)
+    def initialize(client_type = :gemini)
       @client = client_for(client_type)
       @client_type = client_type
     end
@@ -18,21 +19,11 @@ module Ai
       return { success: false, error: "Video is too short" } if transcript.length < 100
 
       # Get appropriate prompt based on client type
-      prompt = case @client_type
-      when :openai
-        Prompts::PromptStore.summary_system_prompt_openai
-      when :gemini
-        Prompts::PromptStore.summary_system_prompt_gemini
-      end
-
+      prompt = get_prompt(@client_type, :summary_system_prompt)
       messages = build_messages(prompt, transcript, metadata)
 
-      response = @client.chat(
-        messages: messages
-      )
-      return { success: false, error: response[:error] } unless response[:success]
-
-      parse_summary_response(response[:content])
+      response = @client.chat(messages)
+      handle_llm_response(response)
     end
 
     private
@@ -55,9 +46,7 @@ module Ai
       end
     end
 
-    def parse_summary_response(content)
-      result = JSON.parse(content, symbolize_names: true)
-
+    def validate_response(result)
       unless result[:tldr] && result[:contents] && result[:summary]
         return { success: false, error: "Missing required fields in response" }
       end
@@ -68,9 +57,6 @@ module Ai
         contents: result[:contents],
         summary: result[:summary]
       }
-    rescue JSON::ParserError => e
-      log_error "JSON parsing error", context: { error: e.message, content: content }
-      { success: false, error: "Failed to parse summary: #{e.message}" }
     end
   end
 end

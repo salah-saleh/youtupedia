@@ -1,22 +1,32 @@
 <%# Timeline section with collapsible items %>
 <%= turbo_frame_tag "takeaways" do %>
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 lg:p-6 border border-gray-200 dark:border-gray-700"
-       data-controller="copy collapsible">
+       data-controller="copy timeline">
     <div class="flex items-center justify-between mb-6">
       <h3 class="text-xl lg:text-lg font-semibold text-gray-900 dark:text-white">Timeline</h3>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center">
         <!-- Toggle all button -->
         <button type="button"
-                data-action="click->collapsible#toggleAll"
+                data-action="click->timeline#toggleAll"
                 class="p-2 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors"
                 aria-label="Toggle all items">
           <svg class="w-5 h-5 transition-transform duration-200"
-               data-collapsible-target="globalIcon"
+               data-timeline-target="globalIcon"
                xmlns="http://www.w3.org/2000/svg"
                fill="none"
                viewBox="0 0 24 24"
                stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <!-- Expand all button -->
+        <button type="button"
+                data-timeline-target="expandAllButton"
+                data-action="click->timeline#expandAll"
+                class="p-2 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors"
+                aria-label="Expand all items">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
           </svg>
         </button>
         <!-- Copy all button -->
@@ -57,31 +67,28 @@
             <!-- Content -->
             <div class="space-y-2">
               <!-- Topic header with timestamp and actions -->
-              <div class="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                <!-- Timestamp -->
-                <% if false %>
-                  <%# disabled for now %>
-                  <button type="button"
-                      class="text-sm text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors font-mono w-[70px] text-left flex-shrink-0 p-2"
-                      data-action="click->youtube#seekToTime"
-                      data-time="<%= content[:timestamp] %>"
-                      aria-label="Jump to <%= content[:timestamp] %>">
-                    <%= content[:timestamp] %>
-                  </button>
-                <% end %>
-                <!-- Topic toggle button -->
-                <button type="button"
-                        class="group flex-1 text-left flex items-center gap-2 min-h-[44px] py-2 px-3 -mx-3 rounded-lg pl-5"
-                        data-action="click->collapsible#toggle"
-                        data-collapsible-target="itemToggle"
-                        aria-expanded="true"
-                        aria-controls="content-<%= index %>">
+              <div class="flex items-center gap-1 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <!-- Topic text -->
+                <div class="group flex-1 text-left flex items-center gap-2 min-h-[44px] py-2 px-3 -mx-3 rounded-lg pl-5"
+                     data-action="click->timeline#toggle"
+                     data-timeline-target="itemToggle"
+                     aria-expanded="true"
+                     aria-controls="content-<%= index %>">
                   <h4 class="text-base font-medium text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400"
                       data-timeline-topic>
                     <%= content[:topic] %>
                   </h4>
-                  <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-transform duration-200 transform flex-shrink-0"
-                       data-collapsible-target="icon"
+                </div>
+
+                <!-- Toggle item button -->
+                <button type="button"
+                        class="p-2 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors flex-shrink-0"
+                        data-action="click->timeline#toggle"
+                        data-timeline-target="itemToggle"
+                        aria-expanded="true"
+                        aria-controls="content-<%= index %>"
+                        aria-label="Toggle item">
+                  <svg class="w-4 h-4 transition-transform duration-200"
                        xmlns="http://www.w3.org/2000/svg"
                        fill="none"
                        viewBox="0 0 24 24"
@@ -89,6 +96,33 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
+
+                <!-- Expand button -->
+                <%= button_to expand_takeaway_summary_path(id: summary[:video_id], index: index),
+                      method: :post,
+                      form_class: "contents",
+                      class: "p-2 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors flex-shrink-0",
+                      data: { 
+                        turbo: true,
+                        turbo_frame: "expanded-takeaway-#{index}",
+                        turbo_method: :post,
+                        action: "click->timeline#startLoading",
+                        timeline_target: "button"
+                      },
+                      aria_label: "Expand this point" do %>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                  </svg>
+                <% end %>
+
+                <!-- Loading spinner -->
+                <div data-timeline-target="spinner" 
+                     class="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400 hidden">
+                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
 
                 <!-- Copy item button -->
                 <button type="button"
@@ -106,10 +140,25 @@
 
               <!-- Takeaway content -->
               <div id="content-<%= index %>"
-                   class="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 overflow-hidden transition-all duration-200 ease-in-out"
-                   data-timeline-takeaway
-                   data-collapsible-target="content">
-                <%= content[:takeaway] %>
+                   class="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 transition-[height,opacity,margin] duration-200 ease-in-out"
+                   data-timeline-target="content">
+                <div class="relative overflow-hidden">
+                  <div data-timeline-target="originalContent"
+                       class="transition-[opacity,transform] duration-200 ease-in-out">
+                    <%= content[:takeaway] %>
+                  </div>
+
+                  <%= turbo_frame_tag "expanded-takeaway-#{index}", 
+                        class: "hidden transition-[opacity,transform] duration-200 ease-in-out",
+                        data: { 
+                          timeline_target: "expandedContent",
+                          action: "turbo:frame-load->timeline#replaceContent turbo:frame-load->timeline#hideSpinner"
+                        } do %>
+                    <div data-expanded-takeaway>
+                      <!-- Content will be loaded here -->
+                    </div>
+                  <% end %>
+                </div>
               </div>
             </div>
           </div>
