@@ -13,6 +13,7 @@ module Ai
             Your response must be in valid JSON format.
 
             Both summary and TLDR sections should mention the speakers, the channel name and the video title when possible.
+            Dont' start with "In this section" or "In this segment" or anything like that. Just go directly to the point.
             Avoid sounding like a reporter or a journalist or a bot. Use more approachable and conversational language.
             Make sure your response is a valid JSON object with no trailing commas.
             Do not include any explanatory text outside the JSON structure.
@@ -40,6 +41,7 @@ module Ai
             Summary should be at least 200 words when possible.
             TLDR should be around 80 words when possible.
             Both summary and TLDR sections should mention the speakers, the channel name and the video title when possible.
+            Dont' start with "In this section" or "In this segment" or anything like that. Just go directly to the point.
 
             Make sure your response is a valid JSON object with no trailing commas.
             Do not include any explanatory text outside the JSON structure.
