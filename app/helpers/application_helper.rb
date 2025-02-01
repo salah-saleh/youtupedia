@@ -48,4 +48,10 @@ module ApplicationHelper
       "w-48"  # default to medium size
     end
   end
+
+  def split_into_sentences(text)
+    # Split on periods followed by a space or end of string, but keep the period
+    # Also handle other end-of-sentence punctuation like ! and ?
+    text.to_s.split(/(?<=[.!?])\s+|\z/).map(&:strip).reject(&:empty?)
+  end
 end

@@ -24,9 +24,15 @@ export default class extends Controller {
       // Get either expanded or original content
       const expandedContent = timelineItem.querySelector('[data-expanded-takeaway]');
       const originalContent = timelineItem.querySelector('[data-timeline-target="originalContent"]');
-      const takeaway = expandedContent && !expandedContent.classList.contains('hidden') ? 
-                      expandedContent.textContent.trim() : 
-                      originalContent?.textContent.trim() || button.dataset.takeaway;
+      let takeaway;
+      
+      if (expandedContent && !expandedContent.classList.contains('hidden')) {
+        // For expanded content, collect bullet points
+        const bullets = Array.from(expandedContent.querySelectorAll('li')).map(li => li.textContent.trim());
+        takeaway = bullets.join('\n  - ');
+      } else {
+        takeaway = originalContent?.textContent.trim() || button.dataset.takeaway;
+      }
       
       text = `- ${topic}\n  - ${takeaway}`;
     } else if (this.hasTextValue) {
@@ -38,19 +44,21 @@ export default class extends Controller {
       if (element.querySelector('[data-timeline-item]')) {
         const items = [];
         element.querySelectorAll('[data-timeline-item]').forEach(item => {
-          // Find the topic text within the h4 element
           const topicElement = item.querySelector('h4[data-timeline-topic]');
           const topic = topicElement?.textContent.trim() || '';
           
-          // Get the takeaway directly from the originalContent div
+          // Get the takeaway content
           const originalContent = item.querySelector('[data-timeline-target="originalContent"]');
-          let takeaway = originalContent?.textContent.trim() || '';
+          let takeaway = '';
           
-          // If there's an expanded content and it's visible, use that instead
+          // If there's an expanded content and it's visible, use bullet points
           const expandedContent = item.querySelector('[data-expanded-takeaway]');
           const expandedParent = expandedContent?.closest('[data-timeline-target="expandedContent"]');
           if (expandedContent && expandedParent && !expandedParent.classList.contains('hidden')) {
-            takeaway = expandedContent.textContent.trim();
+            const bullets = Array.from(expandedContent.querySelectorAll('li')).map(li => li.textContent.trim());
+            takeaway = bullets.join('\n  - ');
+          } else {
+            takeaway = originalContent?.textContent.trim() || '';
           }
           
           if (topic && takeaway) {

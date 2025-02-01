@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
 <%= turbo_frame_tag "expanded-takeaway-#{index}" do %>
-  <div class="text-gray-600 dark:text-gray-300 space-y-2" data-expanded-takeaway>
-    <%= expanded[:expanded_takeaway] %>
+  <div class="text-gray-600 dark:text-gray-300 my-[-0.7rem]" data-expanded-takeaway>
+    <ul class="list-disc pl-4 space-y-2">
+      <% split_into_sentences(expanded[:expanded_takeaway]).each do |sentence| %>
+        <li><%= sentence %></li>
+      <% end %>
+    </ul>
   </div>
 <% end %>

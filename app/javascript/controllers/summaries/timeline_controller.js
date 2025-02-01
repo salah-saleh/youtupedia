@@ -321,6 +321,10 @@ export default class extends Controller {
     const expandAllButton = this.expandAllButtonTarget
     const icon = expandAllButton?.querySelector('svg')
     
+    // Disable the button and add visual feedback
+    expandAllButton.disabled = true
+    expandAllButton.classList.add('opacity-50', 'cursor-not-allowed')
+    
     // Add transition class to icon
     if (icon) {
       icon.classList.add('transition-transform', 'duration-200', 'ease-in-out')
@@ -424,8 +428,10 @@ export default class extends Controller {
       }
     } finally {
       this.expanding = false
+      // Re-enable the button and remove visual feedback
       if (expandAllButton) {
         expandAllButton.disabled = false
+        expandAllButton.classList.remove('opacity-50', 'cursor-not-allowed')
       }
     }
   }
