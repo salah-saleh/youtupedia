@@ -67,7 +67,7 @@ module Ai
 
             Please provide your response in JSON format with the following structure:
             {
-              "expanded_takeaway": "A detailed paragraph expanding on the takeaway, providing more context and explanation"
+              "expanded_takeaway": "A detailed bulleted list expanding on the takeaway, providing more context and explanation. don't apply any formatting to the list. Just provide the list as one paragraph of multiple sentences."
             }
             Use the provided transcript for additional context but focus on expanding the specific takeaway.
             Dont' start with "In this section" or "In this segment" or anything like that. Just go directly to the point.
