@@ -29,3 +29,10 @@
 
 en:
   hello: "Hello world"
+  pages:
+    about:
+      title: "About"
+    contact:
+      title: "Contact"
+    discover:
+      title: "Discover"

@@ -14,9 +14,11 @@ module ApplicationHelper
     when @channel_name.present?
       @channel_name
     when params[:q].present?
-        "Search: #{params[:q]}"
+      "Search: #{params[:q]}"
+    when controller_name == "pages"
+      t(".title", default: action_name.titleize, scope: "pages")
     else
-        controller_name
+      controller_name.titleize
     end
 
     current_title.present? ? "#{current_title.titleize} - #{base_title}" : base_title
