@@ -1,6 +1,11 @@
 Rails.application.routes.draw do
   root "home#index"
 
+  # Public pages
+  get "discover", to: "pages#discover"
+  get "about", to: "pages#about"  
+  get "contact", to: "pages#contact"
+
   resources :summaries, only: [ :show, :index ] do
     collection do
       get :create_from_url
@@ -42,9 +47,5 @@ Rails.application.routes.draw do
   resource :settings, only: [ :show, :create ], controller: "settings" do
     get :index, on: :collection
   end
-
-  # Static pages
-  get "about", to: "pages#about"  
-  get "contact", to: "pages#contact"
 end
 
