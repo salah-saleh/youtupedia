@@ -5,13 +5,13 @@ module Search
   # Searches in MongoDB using text indexes and returns matching video IDs.
   class VideoSearchService < BaseService
     class << self
-      def search_video_ids(query, user_id)
+      def search_video_ids(query, user_id, type: :summaries)
         return [] if query.blank?
 
         log_info "[Search] Starting search for query", context: { query: query, user_id: user_id }
 
         # Get user's video IDs for filtering results
-        user_videos = UserServices::UserDataService.user_items(user_id, :summaries)
+        user_videos = UserServices::UserDataService.user_items(user_id, type)
         return [] if user_videos.empty?
 
         # Search in summaries (GPT-generated content)

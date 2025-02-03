@@ -10,9 +10,9 @@ class PagesController < PublicController
   def discover
     # Get video IDs based on search or user's collection
     video_ids = if params[:q].present?
-      Search::VideoSearchService.search_video_ids(params[:q], "master")
+      Search::VideoSearchService.search_video_ids(params[:q], "master", type: :summaries_sponsered)
     else
-      UserServices::UserDataService.user_items("master", :summaries)
+      UserServices::UserDataService.user_items("master", :summaries_sponsered)
     end
 
     return @summaries = [] if video_ids.empty?

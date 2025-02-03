@@ -2,10 +2,10 @@
       videos: @summaries,
       title: "Discover Latest Videos",
       search: {
-            route: summaries_path,
+            route: discover_path,
             placeholder: "Search videos...",
             param_name: "q" # optional, defaults to "q"
       },
-      path: summaries_path,
+      path: discover_path,
       params: request.query_parameters,
       empty_message: "Oops! No videos found." %>
