@@ -523,6 +523,7 @@ DEPENDENCIES
   debug
   dotenv-rails
   foreman
+  get_process_mem
   google-apis-youtube_v3
   importmap-rails
   jbuilder

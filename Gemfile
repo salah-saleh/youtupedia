@@ -106,3 +106,6 @@ gem "net-ntp", require: false
 
 # Sitemap
 gem "sitemap_generator", "~> 6.3.0"
+
+# Memory tracking
+gem "get_process_mem"
