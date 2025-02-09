@@ -3,7 +3,11 @@
   <%# Channels Grid %>
   <%= render "shared/page_header",
         title: "Your Channels",
-        subtitle: pluralize(@channels&.length, "channel") do %>
+        search: {
+          route: channels_path,
+          placeholder: "Search channels...",
+          param_name: "q" # optional, defaults to "q"
+        } do %>
 
     <%= render "channels/index/content" %>
   <% end %>

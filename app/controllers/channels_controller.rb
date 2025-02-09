@@ -3,7 +3,12 @@ class ChannelsController < ApplicationController
   public_actions :show
 
   def index
-    channel_names = UserServices::UserDataService.user_items(Current.user.id, :channels)
+    channel_names = if params[:q].present?
+      Search::ChannelSearchService.search_channel_names(params[:q], Current.user.id)
+    else
+      UserServices::UserDataService.user_items(Current.user.id, :channels)
+    end
+
     return @channels = [] if channel_names.empty?
 
     # Apply pagination to channel_names
