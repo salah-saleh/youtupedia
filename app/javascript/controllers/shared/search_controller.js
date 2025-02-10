@@ -10,6 +10,12 @@ export default class extends Controller {
     this.timeout = null
   }
 
+  disconnect() {
+    if (this.timeout) {
+      clearTimeout(this.timeout)
+    }
+  }
+
   search() {
     // Clear any existing timeout
     if (this.timeout) {
@@ -22,19 +28,12 @@ export default class extends Controller {
     }, this.delayValue)
   }
 
-  // Clear timeout if user submits manually
   submit(event) {
     event.preventDefault()
     if (this.timeout) {
       clearTimeout(this.timeout)
     }
     this.performSearch()
-  }
-
-  disconnect() {
-    if (this.timeout) {
-      clearTimeout(this.timeout)
-    }
   }
 
   async performSearch() {
@@ -44,25 +43,20 @@ export default class extends Controller {
     
     // Add form data to URL parameters
     for (const [key, value] of formData.entries()) {
-      url.searchParams.append(key, value)
+      url.searchParams.set(key, value)
     }
-    
-    // Add turbo stream format
-    url.searchParams.append("format", "turbo_stream")
+
+    // Update URL without page reload
+    window.history.pushState({}, "", url)
 
     try {
-      const response = await fetch(url, {
-        headers: {
-          "Accept": "text/vnd.turbo-stream.html"
-        }
-      })
+      // Submit the form through Turbo
+      Turbo.navigator.submitForm(form)
       
-      if (response.ok) {
-        const html = await response.text()
-        Turbo.renderStreamMessage(html)
-      }
+      // Keep focus on input
+      this.inputTarget.focus()
     } catch (error) {
-      console.error("Search error:", error)
+      console.error('Search error:', error)
     }
   }
 } 

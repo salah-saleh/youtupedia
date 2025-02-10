@@ -27,7 +27,8 @@
                        data: { 
                          controller: "shared--search",
                          action: "submit->shared--search#submit",
-                         shared__search_target: "form"
+                         shared__search_target: "form",
+                         turbo_frame: "discover_content"
                        } do %>
             <div class="relative">
               <%= text_field_tag local_assigns[:search][:param_name] || "q",
