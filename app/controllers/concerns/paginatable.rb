@@ -92,8 +92,13 @@ module Paginatable
     respond_to do |format|
       format.html
       format.json { render json: { data: yield, pagination: pagination_data } } if block_given?
-      if turbo_frame_id
-        format.turbo_stream { render turbo_stream: turbo_stream.update(turbo_frame_id, partial: yield) }
+      format.turbo_stream do
+        if turbo_frame_id && block_given?
+          render turbo_stream: turbo_stream.update(
+            turbo_frame_id,
+            partial: yield
+          )
+        end
       end
     end
   end

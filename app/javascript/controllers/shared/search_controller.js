@@ -8,11 +8,35 @@ export default class extends Controller {
 
   connect() {
     this.timeout = null
+    this.handleSearchParam()
+    // Listen for Turbo frame updates
+    document.addEventListener("turbo:frame-render", this.handleFrameUpdate.bind(this))
   }
 
   disconnect() {
     if (this.timeout) {
       clearTimeout(this.timeout)
+    }
+    document.removeEventListener("turbo:frame-render", this.handleFrameUpdate.bind(this))
+  }
+
+  handleFrameUpdate(event) {
+    // Only handle updates for our specific frame
+    const frameId = this.formTarget.dataset.turboFrame
+    if (event.target.id === frameId) {
+      this.handleSearchParam()
+    }
+  }
+
+  handleSearchParam() {
+    const url = new URL(window.location.href)
+    const searchQuery = url.searchParams.get('q')
+    if (searchQuery) {
+      requestAnimationFrame(() => {
+        this.inputTarget.focus()
+        // Place cursor at the end
+        this.inputTarget.setSelectionRange(searchQuery.length, searchQuery.length)
+      })
     }
   }
 
@@ -36,7 +60,7 @@ export default class extends Controller {
     this.performSearch()
   }
 
-  async performSearch() {
+  performSearch() {
     const form = this.formTarget
     const url = new URL(form.action)
     const formData = new FormData(form)
@@ -46,17 +70,26 @@ export default class extends Controller {
       url.searchParams.set(key, value)
     }
 
-    // Update URL without page reload
+    // Update browser URL
     window.history.pushState({}, "", url)
 
-    try {
-      // Submit the form through Turbo
-      Turbo.navigator.submitForm(form)
-      
-      // Keep focus on input
-      this.inputTarget.focus()
-    } catch (error) {
-      console.error('Search error:', error)
-    }
+    // Submit the request
+    fetch(url, {
+      headers: {
+        "Accept": "text/vnd.turbo-stream.html"
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error(response.statusText)
+      return response.text()
+    })
+    .then(html => {
+      Turbo.renderStreamMessage(html)
+    })
+    .catch(error => {
+      console.error("Search error:", error)
+      // On error, reload the page to recover
+      window.location.reload()
+    })
   }
 } 
