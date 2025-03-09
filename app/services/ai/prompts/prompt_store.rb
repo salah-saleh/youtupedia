@@ -42,6 +42,7 @@ module Ai
             TLDR should be around 80 words when possible.
             Both summary and TLDR sections should mention the speakers, the channel name and the video title when possible.
             Dont' start with "In this section" or "In this segment" or anything like that. Just go directly to the point.
+            Ignore any sections that discuss sponsors or advertisers.
 
             Make sure your response is a valid JSON object with no trailing commas.
             Do not include any explanatory text outside the JSON structure.
