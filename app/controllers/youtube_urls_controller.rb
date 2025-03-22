@@ -18,7 +18,8 @@ class YoutubeUrlsController < ApplicationController
     elsif video_url?(url)
       redirect_to create_from_url_summaries_path(youtube_url: url)
     else
-      redirect_to create_from_url_search_index_path(q: url)
+      # raise "Invalid YouTube URL format"
+      redirect_to root_path, alert: "Please enter a valid YouTube URL"
     end
   end
 end
