@@ -19,7 +19,8 @@
 <%= render "shared/page_header",
       title: title,
       subtitle: local_assigns[:subtitle],
-      search: local_assigns[:search] do %>
+      search: local_assigns[:search],
+      is_empty: videos.empty? do %>
   <% if videos.any? %>
     <%= render "shared/grid" do %>
       <% videos.each do |video| %>
@@ -43,6 +44,10 @@
   <% else %>
     <%= render "shared/empty_state",
           message: local_assigns.fetch(:empty_message, "No videos available."),
-          icon: :video %>
+          icon: :video,
+          action: {
+            text: "Start here",
+            href: root_path,
+          } %>
   <% end %>
 <% end %>

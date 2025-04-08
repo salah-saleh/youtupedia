@@ -3,7 +3,8 @@
 
     Parameters:
     - text: String - Button text
-    - type: String (optional) - Button type (default: 'button')
+    - type: String/Symbol (optional) - Button type (default: 'button', can be :link for anchor tags)
+    - href: String (optional) - URL for link buttons
     - variant: Symbol (optional) - Button style (:primary, :secondary, :outline) (default: :primary)
     - size: Symbol (optional) - Button size (:sm, :md, :lg) (default: :md)
     - loading: Boolean (optional) - Show loading state (default: false)
@@ -42,20 +43,38 @@
   end
 
   classes = [base_classes, variant_classes, size_classes, local_assigns[:class]].compact.join(" ")
+
+  # Default link options
+  link_options = {
+    class: classes,
+    data: local_assigns[:data]
+  }
+
+  # Add turbo options if not explicitly disabled
+  unless local_assigns[:data]&.dig(:turbo) == false
+    link_options[:data] ||= {}
+    link_options[:data][:turbo_frame] = "_top"
+  end
 %>
 
-<button type="<%= type %>"
-        class="<%= classes %>"
-        <%= "disabled" if disabled %>
-        <%= local_assigns[:data] %>
-        <%= local_assigns[:aria] %>>
-  <% if local_assigns[:icon] %>
-    <%= render_icon icon, class: "h-5 w-5 #{text.present? ? 'mr-2' : ''}" %>
+<% if type.to_sym == :link && local_assigns[:href].present? %>
+  <%= link_to local_assigns[:href], **link_options do %>
+    <% if local_assigns[:icon].present? %>
+      <%= render_icon local_assigns[:icon], class: "h-5 w-5 #{local_assigns[:text].present? ? 'mr-2' : ''}" %>
+    <% end %>
+    <%= local_assigns[:text] if local_assigns[:text].present? %>
+    <%= yield if block_given? %>
   <% end %>
-
-  <% if local_assigns[:text] %>
-    <%= text %>
-  <% end %>
-
-  <%= yield if block_given? %>
-</button>
+<% else %>
+  <button type="<%= type %>"
+          class="<%= classes %>"
+          <%= "disabled" if disabled %>
+          <%= local_assigns[:data] %>
+          <%= local_assigns[:aria] %>>
+    <% if local_assigns[:icon].present? %>
+      <%= render_icon local_assigns[:icon], class: "h-5 w-5 #{local_assigns[:text].present? ? 'mr-2' : ''}" %>
+    <% end %>
+    <%= local_assigns[:text] if local_assigns[:text].present? %>
+    <%= yield if block_given? %>
+  </button>
+<% end %>
