@@ -39,7 +39,9 @@ class Rack::Attack
       # List of valid hostnames for our application
       valid_hosts = [
         "youtupedia.ai",
-        "www.youtupedia.ai"
+        "www.youtupedia.ai",
+        "localhost",
+        "0.0.0.0"
       ]
 
       # Add development hosts

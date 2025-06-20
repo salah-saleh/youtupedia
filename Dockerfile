@@ -21,12 +21,17 @@ RUN apt-get update -qq && \
     sqlite3 \
     python3 \
     python3-pip \
+    python3-venv \
     build-essential \
     libpq-dev \
     && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install Python dependencies
-RUN pip3 install youtube-transcript-api requests
+COPY requirements.txt ./
+RUN python3 -m venv /venv && \
+    /venv/bin/pip install --upgrade pip && \
+    /venv/bin/pip install -r requirements.txt
+ENV PATH="/venv/bin:$PATH"
 
 # Set production environment
 ENV RAILS_ENV="production" \
@@ -77,5 +82,5 @@ USER 1000:1000
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start server via Thruster by default, this can be overwritten at runtime
-EXPOSE 80
-CMD ["./bin/thrust", "./bin/rails", "server"]
+EXPOSE 8080
+CMD ["sh", "-c", "./bin/thrust ./bin/rails server -b 0.0.0.0 -p $PORT"]

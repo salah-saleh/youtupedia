@@ -65,7 +65,7 @@ Rails.application.configure do
 
   # MemCachier configuration for production (multi-server setup)
   config.cache_store = :mem_cache_store,
-    ENV["MEMCACHIER_SERVERS"].split(","),  # Array of server addresses for distributed caching
+    (ENV["MEMCACHIER_SERVERS"] || "").split(","),  # Array of server addresses for distributed caching
     {
       # Authentication (required for MemCachier)
       username: ENV["MEMCACHIER_USERNAME"],  # MemCachier credential
@@ -129,7 +129,10 @@ Rails.application.configure do
     # Allow specific subdomains with more restrictive regex
     /^[\w-]+\.youtupedia\.ai$/,  # Only allows letters, numbers, hyphens
     # Skip DNS rebinding protection for health checks
-    { exclude: ->(request) { request.path == "/up" } }
+    { exclude: ->(request) { request.path == "/up" } },
+    "localhost",
+    "0.0.0.0",
+    IPAddr.new("0.0.0.0/0") # allows any IPv4 address
   ]
 
   # Skip DNS rebinding protection for the default health check endpoint.
