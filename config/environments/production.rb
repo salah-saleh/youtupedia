@@ -126,6 +126,7 @@ Rails.application.configure do
   config.hosts = [
     "youtupedia.ai",
     "www.youtupedia.ai",
+    "youtupedia-290655871106.europe-west1.run.app",
     # Allow specific subdomains with more restrictive regex
     /^[\w-]+\.youtupedia\.ai$/,  # Only allows letters, numbers, hyphens
     # Skip DNS rebinding protection for health checks

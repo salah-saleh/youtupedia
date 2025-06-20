@@ -40,6 +40,7 @@ class Rack::Attack
       valid_hosts = [
         "youtupedia.ai",
         "www.youtupedia.ai",
+        "youtupedia-290655871106.europe-west1.run.app",
         "localhost",
         "0.0.0.0"
       ]
