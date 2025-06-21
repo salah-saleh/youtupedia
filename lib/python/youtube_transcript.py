@@ -1,5 +1,6 @@
 import os
-from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
+from youtube_transcript_api.proxies import GenericProxyConfig
 import sys
 import json
 import time
@@ -14,8 +15,8 @@ def get_transcript_with_retry(video_id, max_retries=2, initial_delay=1):
     for attempt in range(max_retries):
         try:
             # Get proxy from environment variable
-            proxy = os.environ.get('YOUTUBE_TRANSCRIPT_API_PROXY')
-            if not proxy:
+            proxy_url = os.environ.get('YOUTUBE_TRANSCRIPT_API_PROXY')
+            if not proxy_url:
                 print(json.dumps({
                     'success': False,
                     'error': 'YOUTUBE_TRANSCRIPT_API_PROXY environment variable is not set'
@@ -25,22 +26,31 @@ def get_transcript_with_retry(video_id, max_retries=2, initial_delay=1):
                     'error': 'YOUTUBE_TRANSCRIPT_API_PROXY environment variable is not set'
                 }
 
-            # Get transcript list with proxy
-            transcript_list = YouTubeTranscriptApi.get_transcript(
-                video_id,
-                proxies={
-                    "http": proxy,
-                    "https": proxy
-                }
+            # Create a proxy config object
+            proxy_config = GenericProxyConfig(
+                http_url=proxy_url,
+                https_url=proxy_url
             )
 
+            # Instantiate the API with the proxy config
+            ytt_api = YouTubeTranscriptApi(proxy_config=proxy_config)
+
+            # Get transcript list with proxy
+            transcript_list = ytt_api.list_transcripts(video_id)
+
+            # Find the desired transcript (e.g., 'en')
+            transcript = transcript_list.find_transcript(['en'])
+
+            # Fetch the transcript data and convert to raw format
+            fetched_transcript = transcript.fetch()
+            
             # Format the transcript
             formatted_transcript = []
-            for entry in transcript_list:
+            for entry in fetched_transcript:
                 formatted_transcript.append({
-                    'text': entry['text'],
-                    'start': entry['start'],
-                    'duration': entry['duration']
+                    'text': entry.text,
+                    'start': entry.start,
+                    'duration': entry.duration
                 })
 
             return {
@@ -48,6 +58,11 @@ def get_transcript_with_retry(video_id, max_retries=2, initial_delay=1):
                 'transcript': formatted_transcript
             }
 
+        except TranscriptsDisabled:
+            return {
+                'success': False,
+                'error': 'Could not retrieve a transcript for the video.'
+            }
         except Exception as e:
             last_error = str(e)
             if "Could not retrieve a transcript for the video" in str(e):
