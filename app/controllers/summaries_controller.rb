@@ -17,7 +17,7 @@ class SummariesController < ApplicationController
     return redirect_to root_path, alert: "This video is not possible to summarize. #{@metadata[:error]}" unless @metadata[:success]
 
     # Try to get existing data from cache
-    @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id)
+    @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id, retry_on_failed: true)
     # Only fetch summary if we have a successful transcript
     @summary = @transcript&.dig(:success) ? Ai::LlmSummaryService.fetch_summary(@video_id) : nil
 

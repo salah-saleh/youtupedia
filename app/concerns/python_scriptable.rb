@@ -32,7 +32,7 @@ module PythonScriptable
   # Constants are being redefined because the module is being included multiple times
   # Let's define them only if they're not already defined
   unless const_defined?(:SCRIPT_TIMEOUT)
-    SCRIPT_TIMEOUT = ENV.fetch("PYTHON_SCRIPT_TIMEOUT", 30).to_i
+    SCRIPT_TIMEOUT = ENV.fetch("PYTHON_SCRIPT_TIMEOUT", 60).to_i
   end
 
   unless const_defined?(:MAX_MEMORY_MB)

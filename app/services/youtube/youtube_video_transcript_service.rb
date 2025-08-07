@@ -7,8 +7,12 @@ module Youtube
     include PythonScriptable
 
     class << self
-      def fetch_transcript(video_id)
-        fetch_cached(video_id, namespace: default_cache_namespace, expires_in: nil)
+      def fetch_transcript(video_id, retry_on_failed: false)
+        result = fetch_cached(video_id, namespace: default_cache_namespace, expires_in: nil)
+        if retry_on_failed && result&.dig(:success) == false
+          delete_cached(video_id, namespace: default_cache_namespace)
+        end
+        nil
       end
 
       def fetch_from_python(video_id)

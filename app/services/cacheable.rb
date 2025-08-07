@@ -51,6 +51,13 @@ module Cacheable
       end
     end
 
+    def delete_cached(key, namespace: nil)
+      cache_namespace = namespace || default_cache_namespace
+      memcache_key = "#{cache_namespace}_#{key}"
+      Rails.cache.delete(memcache_key)
+      cache_service(cache_namespace)&.delete(key)
+    end
+
     # Fetches data from cache or generates it using provided block
     # Uses Memcached for fast access and MongoDB for persistent storage
     #
