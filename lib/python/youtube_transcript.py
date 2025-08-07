@@ -68,7 +68,7 @@ def get_transcript_with_retry(video_id, max_retries=2, initial_delay=1):
             if "Could not retrieve a transcript for the video" in str(e):
                 return {
                     'success': False,
-                    'error': 'Could not retrieve a transcript for the video.'
+                    'error': 'Could not retrieve a transcript for the video. ' + last_error
                 }
             if attempt < max_retries - 1:
                 # Calculate delay with exponential backoff and jitter

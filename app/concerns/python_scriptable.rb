@@ -77,60 +77,62 @@ module PythonScriptable
   # @param input_data [] Data to pass to the Python script
   # @param timeout [Integer] Timeout in seconds (defaults to SCRIPT_TIMEOUT)
   # @return [Hash] Result of script execution with success status
-  def run_python_script(script_name, input_data, timeout: PythonScriptConfig.script_timeout)
+    def run_python_script(script_name, input_data, timeout: PythonScriptConfig.script_timeout)
     script_path = Rails.root.join("lib", "python", script_name)
-    command = "#{ENV["PYTHON_PATH"]} #{script_path}"
+    command = "#{PythonScriptConfig.python_path} #{script_path}"
     status = nil
 
     # Check memory before starting new process
     check_memory_usage
 
     begin
-      Tempfile.create(["python_input", ".json"]) do |stdin_file|
-        stdin_file.write(input_data.to_json)
-        stdin_file.flush
+      Timeout.timeout(timeout) do
+        log_info "Running Python script", context: {
+          script_path: script_path,
+          memory_mb: current_memory_mb
+        }
 
-        Timeout.timeout(timeout) do
-          log_info "Running Python script", context: { 
-            script_path: script_path,
-            memory_mb: current_memory_mb
-          }
+        # Use popen3 with explicit resource limits
+        Open3.popen3(
+          {
+            "PYTHONPATH" => ENV["PYTHONPATH"],
+            # MALLOC_ARENA_MAX: Limits the number of memory pools
+            # - Lower = Less memory fragmentation but potentially slower
+            # - Higher = Better performance but more memory usage
+            # Formula: log2(MAX_MEMORY_MB/256), minimum 2
+            "MALLOC_ARENA_MAX" => PythonScriptConfig.malloc_arena_max.to_s,
+            # MMAP_THRESHOLD: Size threshold for using mmap
+            # - Lower = Less memory fragmentation
+            # - Higher = Better performance for large allocations
+            # Formula: MAX_MEMORY_MB * 256, minimum 128KB
+            "MMAP_THRESHOLD" => PythonScriptConfig.mmap_threshold.to_s
+          },
+          command
+        ) do |stdin, stdout, stderr, wait_thread|
+          stdin.write(input_data.to_json)
+          stdin.close
 
-          # Use popen3 with explicit resource limits
-          Open3.popen3(
+          output = stdout.read
+          error = stderr.read
+          status = wait_thread.value
+
+          # Check memory after process completion
+          check_memory_usage
+
+          if status.success?
+            JSON.parse(output, symbolize_names: true)
+          else
+            log_error "Python script failed", context: {
+              script_name: script_name,
+              pid: wait_thread.pid,
+              exit_code: status.exitstatus,
+              stderr: error,
+              stdout: output
+            }
             {
-              "PYTHONPATH" => ENV["PYTHONPATH"],
-              # MALLOC_ARENA_MAX: Limits the number of memory pools
-              # - Lower = Less memory fragmentation but potentially slower
-              # - Higher = Better performance but more memory usage
-              # Formula: log2(MAX_MEMORY_MB/256), minimum 2              
-              "MALLOC_ARENA_MAX" => PythonScriptConfig.malloc_arena_max.to_s,
-              # MMAP_THRESHOLD: Size threshold for using mmap
-              # - Lower = Less memory fragmentation
-              # - Higher = Better performance for large allocations
-              # Formula: MAX_MEMORY_MB * 256, minimum 128KB              
-              "MMAP_THRESHOLD" => PythonScriptConfig.mmap_threshold.to_s
-            },
-            command
-          ) do |stdin, stdout, stderr, wait_thread|
-            stdin.write(input_data.to_json)
-            stdin.close
-
-            output = stdout.read
-            error = stderr.read
-            status = wait_thread.value
-
-            # Check memory after process completion
-            check_memory_usage
-
-            if status.success?
-              JSON.parse(output, symbolize_names: true)
-            else
-              { 
-                success: false, 
-                error: error.presence || "Python script failed" 
-              }
-            end
+              success: false,
+              error: error.presence || "Python script failed with exit code #{status.exitstatus}"
+            }
           end
         end
       end
@@ -145,7 +147,7 @@ module PythonScriptable
     ensure
       if status&.pid
         kill_process_tree(status.pid)
-        log_info "Cleaned up Python process", context: { 
+        log_info "Cleaned up Python process", context: {
           pid: status.pid,
           memory_mb: current_memory_mb
         }

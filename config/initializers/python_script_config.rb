@@ -42,6 +42,10 @@ module PythonScriptConfig
       @mmap_threshold ||= calculate_mmap_threshold
     end
 
+    def python_path
+      @python_path ||= ENV.fetch("PYTHON_PATH", "python3")
+    end
+
     private
 
     def calculate_malloc_arena_max
