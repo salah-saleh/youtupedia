@@ -11,8 +11,9 @@ module Youtube
         result = fetch_cached(video_id, namespace: default_cache_namespace, expires_in: nil)
         if retry_on_failed && result&.dig(:success) == false
           delete_cached(video_id, namespace: default_cache_namespace)
+          return nil
         end
-        nil
+        result
       end
 
       def fetch_from_python(video_id)

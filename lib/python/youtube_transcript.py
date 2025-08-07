@@ -35,14 +35,8 @@ def get_transcript_with_retry(video_id, max_retries=2, initial_delay=1):
             # Instantiate the API with the proxy config
             ytt_api = YouTubeTranscriptApi(proxy_config=proxy_config)
 
-            # Get transcript list with proxy
-            transcript_list = ytt_api.list_transcripts(video_id)
-
-            # Find the desired transcript (e.g., 'en')
-            transcript = transcript_list.find_transcript(['en'])
-
             # Fetch the transcript data and convert to raw format
-            fetched_transcript = transcript.fetch()
+            fetched_transcript = ytt_api.fetch(video_id)
             
             # Format the transcript
             formatted_transcript = []
