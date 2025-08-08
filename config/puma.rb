@@ -27,7 +27,7 @@
 # Run a single worker so Action Cable (async adapter) broadcasts
 # reach the same process that serves the websocket subscription. Multiple
 # workers require a pub/sub backend (e.g., Redis) for cross-process delivery.
-workers Integer(ENV.fetch("WEB_CONCURRENCY", 1))
+workers Integer(ENV.fetch("WEB_CONCURRENCY", 0))
 
 
 threads_count = Integer(ENV.fetch("RAILS_MAX_THREADS", 2))
