@@ -1,10 +1,11 @@
 <% content_for :container_width do %>max-w-6xl<% end %>
 
+<%= turbo_stream_from "summaries:#{@summary_data[:video_id]}" %>
+
 <div class="bg-white dark:bg-gray-800 space-y-8 rounded-lg p-4"
-     data-controller="youtube summary-loader"
+     data-controller="youtube"
      data-youtube-video-id-value="<%= @summary_data[:video_id] %>"
-     data-summary-loader-video-id-value="<%= @summary_data[:video_id] %>"
-     data-summary-loader-loading-value="<%= @summary_data[:loading] %>">
+>
 
   <!-- Video Header -->
   <%= render "summaries/show/video_header", summary: @summary_data %>

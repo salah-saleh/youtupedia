@@ -16,6 +16,7 @@ module Ai
     end
 
     def process_task(video_id, transcript, metadata)
+      log_info "Processing summary for video #{video_id}"
       return { success: false, error: "Video is too short" } if transcript.length < 100
 
       # Get appropriate prompt based on client type

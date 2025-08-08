@@ -59,14 +59,15 @@ module Logging
     # @param msg [String, Hash] The message to format
     # @return [String] The formatted log message
     def call(severity, timestamp, progname, msg)
-      timestamp_str = format_timestamp(timestamp)
+      # Not needing timestamp
+      # timestamp_str = format_timestamp(timestamp)
       severity_str = format_severity(severity)
       message_str = format_message(msg)
 
       # Format tags if present
       tags_str = format_tags(@tags) if @tags.any?
 
-      parts = [ timestamp_str, severity_str ]
+      parts = [ severity_str ]
       parts << tags_str if tags_str
       parts << message_str
 

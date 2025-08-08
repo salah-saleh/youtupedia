@@ -21,6 +21,7 @@
 │   │       └── shared/_empty_state
 │   │
 │   └── show.html.erb
+│       - Subscribes to Turbo Streams via `<%= turbo_stream_from "summaries:#{@summary_data[:video_id]}" %>`
 │       └── Partials:
 │           ├── shared/_container
 │           ├── shared/_video_player
@@ -133,11 +134,9 @@
 
 🔄 Controller Relationships for summaries/show:
 - youtube_controller.js: Controls video player functionality
-- chat_controller.js: Manages AI chat interactions
-- loading_controller.js: Handles loading states
-- summary_loader_controller.js: Manages summary generation process
-- collapsible_controller.js: Handles expandable sections
-- copy_controller.js: Manages copy functionality for summary content
+- loading_message_controller.js: Handles loading message in TLDR until content arrives
+- timeline_controller.js: Handles transcript/takeaways interactions
+- (Removed) summary_loader_controller.js (replaced by server-pushed Turbo Streams)
 
 💡 Additional Recommendations:
 1. Consider standardizing error and loading states across all views

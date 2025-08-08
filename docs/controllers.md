@@ -7,9 +7,10 @@
 │   │
 │   ├── summaries_controller.rb
 │   │   └── Services:
-│   │       ├── ChatGptService
-│   │       ├── YoutubeFetchService
-│   │       └── MongoCacheService
+│   │       ├── Youtube::YoutubeVideoMetadataService
+│   │       ├── Youtube::YoutubeVideoTranscriptService
+│   │       ├── Ai::LlmSummaryService
+│   │       └── UserServices::UserDataService
 │   │
 │   ├── channels_controller.rb
 │   │   └── Services:
@@ -95,27 +96,16 @@
    - Depends on: youtube_video_transcript_service
 
 🔍 Job Dependencies:
-1. summary_generation_job.rb
-   - Triggered by: summaries_controller
-   - Uses: ChatGptService, MongoCacheService
+1. SummaryJob (app/jobs/summary_job.rb)
+   - Triggered by: `SummariesController#show` when data is missing
+   - Uses: Youtube::YoutubeVideoMetadataService, Youtube::YoutubeVideoTranscriptService, Ai::LlmSummaryService
+   - Pushes UI updates via Turbo Streams broadcast to `"summaries:#{video_id}"` using the built-in `Turbo::StreamsChannel` (no custom channel class required)
 
-2. transcript_fetch_job.rb
-   - Triggered by: youtube_urls_controller
-   - Uses: YoutubeVideoTranscriptService
-
-3. channel_sync_job.rb
-   - Triggered by: channels_controller
-   - Uses: YoutubeChannelService
-
-4. cleanup_job.rb
+2. cleanup_job.rb
    - Scheduled task
    - Uses: MongoCacheService
 
-💡 Recommendations:
-1. Consider extracting common controller logic into concerns
-2. Look for opportunities to share helper methods across controllers
-3. Consider implementing service result objects for better error handling
-4. Review job retry strategies and error handling
-5. Consider implementing service interfaces for better abstraction
-6. Review cache invalidation strategies
-7. Consider implementing service metrics/monitoring
+Changes (2025-08-08):
+- Removed `SummariesController#check_status` and route. Live updates now use websockets (Turbo Streams).
+- `SummariesController#show` schedules `SummaryJob` only when data is missing/failing; otherwise it serves cached data.
+- Added `SummariesChannel` and `turbo_stream_from` usage in views.

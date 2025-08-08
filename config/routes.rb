@@ -12,7 +12,6 @@ Rails.application.routes.draw do
       get :search
     end
     member do
-      get :check_status
       post :ask_gpt
       post :expand_takeaway
     end

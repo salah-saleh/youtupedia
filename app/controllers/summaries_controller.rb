@@ -3,7 +3,7 @@ class SummariesController < ApplicationController
   include SummaryDataHelper
   include VideoSummariesHelper
   include Paginatable
-  public_actions [ :show, :create_from_url, :check_status, :expand_takeaway ]
+  public_actions [ :show, :create_from_url, :expand_takeaway ]
 
   def create_from_url
     video_id = extract_video_id(params[:youtube_url])
@@ -16,20 +16,18 @@ class SummariesController < ApplicationController
     @metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(@video_id)
     return redirect_to root_path, alert: "This video is not possible to summarize. #{@metadata[:error]}" unless @metadata[:success]
 
-    # Try to get existing data from cache
+    # Prefill any cached data
     @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id, retry_on_failed: true)
-    # Only fetch summary if we have a successful transcript
     @summary = @transcript&.dig(:success) ? Ai::LlmSummaryService.fetch_summary(@video_id) : nil
 
-    # If no data exists, try to schedule a job
-    # If transcript is not successful, retry by running the job again
-    SummaryJob.schedule(@video_id) if !@transcript || !@transcript[:success] || !@summary
+    # Schedule compute only when needed
+    needs_job = @transcript.nil? || @transcript[:success] == false || @summary.nil?
+    SummaryJob.schedule(@video_id) if needs_job
 
     UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id) if Current.user
     UserServices::UserDataService.add_item("master", :summaries, @video_id)
 
-    # Build summary data
-    # If transcript is not successful, return nil initially
+    # Build summary data used for initial paint
     @summary_data = build_summary_data(@video_id, @metadata, @transcript, @summary)
   end
 
@@ -39,20 +37,7 @@ class SummariesController < ApplicationController
     respond_with_pagination(turbo_frame_id: "summaries_content") { "summaries/index/content" }
   end
 
-  def check_status
-    video_id = params[:id]
-    metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
-    transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
-    # Only fetch summary if we have a successful transcript
-    summary = transcript&.dig(:success) ? Ai::LlmSummaryService.fetch_summary(video_id) : nil
-
-    result = build_summary_data(video_id, metadata, transcript, summary)
-
-    respond_to do |format|
-      format.json { render json: build_status_response(result) }
-      format.turbo_stream { render_status_stream(params[:frame_id], result) }
-    end
-  end
+  # Websocket updates will request turbo stream sections via dedicated endpoints
 
   def expand_takeaway
     video_id = params[:id]
