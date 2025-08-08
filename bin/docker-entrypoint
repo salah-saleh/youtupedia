@@ -6,16 +6,9 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# Always ensure databases are ready before starting the app in containerized prod
-# Cloud Run wraps the command, so checking the tail args is brittle. Keep this idempotent.
-if [ "${RAILS_ENV}" = "production" ] || [ -n "${ENSURE_DB_PREPARE}" ]; then
-  echo "[entrypoint] Running db:prepare..."
-  ./bin/rails db:prepare
-
-  echo "[entrypoint] Ensuring Solid Cable schema exists..."
-  # If solid_cable_messages table is missing, load the cable schema into the cable DB.
-  ./bin/rails runner 'ActiveRecord::Base.connected_to(database: :cable) { exit(0) if ActiveRecord::Base.connection.table_exists?(:solid_cable_messages); exit(1) }' \
-    || ./bin/rails db:schema:load:cable
+# If running the rails server then create or migrate existing database
+if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+  ./bin/rails db:prepare && ./bin/rails db:schema:load:cable
 fi
 
 exec "${@}"
