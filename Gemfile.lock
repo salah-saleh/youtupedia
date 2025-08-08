@@ -330,6 +330,7 @@ GEM
       logger
     rdoc (6.8.1)
       psych (>= 4.0.0)
+    recaptcha (5.20.1)
     redcarpet (3.6.0)
     regexp_parser (2.9.2)
     reline (0.5.11)
@@ -538,6 +539,7 @@ DEPENDENCIES
   puma_worker_killer
   rack-attack (~> 6.7)
   rails (~> 8.0.0)
+  recaptcha
   redcarpet
   rubocop-rails-omakase
   ruby-lsp

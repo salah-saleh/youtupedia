@@ -10,6 +10,7 @@
 # - POST /session (create session)
 # - DELETE /session (sign out)
 class SessionsController < PublicController
+  include CaptchaVerifiable
   include ActionView::Helpers::TextHelper
 
   skip_before_action :set_current_request_details, only: [ :create ]
@@ -19,6 +20,11 @@ class SessionsController < PublicController
   end
 
   def create
+    unless verify_recaptcha_if_enabled
+      flash.now[:alert] = "reCAPTCHA verification failed. Please try again."
+      return render :new, status: :unprocessable_entity
+    end
+
     @user = User.authenticate_by(
       email_address: params[:email_address],
       password: params[:password]

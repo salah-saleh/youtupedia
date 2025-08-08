@@ -35,6 +35,12 @@
       </div>
     </div>
 
+    <% if ENV["ENABLE_RECAPTCHA"].to_s.downcase == "true" %>
+      <div class="mt-4">
+        <%= recaptcha_tags %>
+      </div>
+    <% end %>
+
     <%= f.submit "Sign In",
         class: "w-full px-4 py-3 bg-purple-600 text-white text-base font-medium rounded-lg
                 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500

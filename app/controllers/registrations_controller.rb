@@ -8,12 +8,19 @@
 # - GET /registration/new (registration form)
 # - POST /registration (create account)
 class RegistrationsController < PublicController
+  include CaptchaVerifiable
   def new
     @user = User.new
   end
 
   # TODO verify password as it is typed in form
   def create
+    unless verify_recaptcha_if_enabled
+      @user = User.new(user_params)
+      @user.errors.add(:base, "reCAPTCHA verification failed. Please try again.")
+      return render :new, status: :unprocessable_entity
+    end
+
     @user = User.new(user_params)
 
     User.transaction do
