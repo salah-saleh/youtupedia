@@ -54,6 +54,3 @@ test:
 production:
   primary:
     <<: *production_postgres
-  cable:
-    <<: *production_postgres
-    migrations_paths: db/cable_migrate
