@@ -6,9 +6,14 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare && ./bin/rails db:schema:load:cable
-fi
+# Cloud Run wraps the command (e.g. `sh -c ...`), so arg inspection is brittle.
+# Always ensure databases are ready before starting the app. These tasks are idempotent.
+echo "[entrypoint] Running db:prepare..."
+./bin/rails db:prepare
+
+echo "[entrypoint] Ensuring Solid Cable schema exists..."
+# Load Solid Cable schema only if the table is missing in the cable database connection.
+./bin/rails runner 'ActiveRecord::Base.connected_to(database: :cable) { exit(0) if ActiveRecord::Base.connection.data_source_exists?(:solid_cable_messages); exit(1) }' \
+  || ./bin/rails db:schema:load:cable
 
 exec "${@}"
