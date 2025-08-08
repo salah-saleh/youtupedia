@@ -14,10 +14,4 @@ test:
   adapter: test
 
 production:
-  adapter: solid_cable
-  # Use the primary database connection for Solid Cable tables in production
-  connects_to:
-    database:
-      writing: primary
-  polling_interval: 0.1.seconds
-  message_retention: 1.day
+  adapter: async
