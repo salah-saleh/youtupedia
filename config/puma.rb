@@ -49,27 +49,31 @@ pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
 # Allow puma to be restarted by `rails restart` command.
 plugin :tmp_restart
 
-# Heroku specific settings
+# Production-specific settings
 if ENV["RAILS_ENV"] == "production"
   # Preload the application for better performance
   preload_app!
 
   # Before forking the application, disconnect from connected services
-  before_fork do
-    ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+  if Integer(ENV.fetch("WEB_CONCURRENCY", 0)) > 0
+    before_fork do
+      ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
 
-    # Stop PumaWorkerKiller threads before forking
-    if defined?(PumaWorkerKiller)
-      Thread.list.each do |thread|
-        next if thread == Thread.current
-        thread.kill if thread.backtrace&.first&.include?('puma_worker_killer')
+      # Stop PumaWorkerKiller threads before forking
+      if defined?(PumaWorkerKiller)
+        Thread.list.each do |thread|
+          next if thread == Thread.current
+          thread.kill if thread.backtrace&.first&.include?('puma_worker_killer')
+        end
       end
     end
   end
 
   # After forking, reconnect to services
-  on_worker_boot do
-    ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+  if Integer(ENV.fetch("WEB_CONCURRENCY", 0)) > 0
+    on_worker_boot do
+      ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+    end
   end
 end
 

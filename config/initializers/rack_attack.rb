@@ -166,10 +166,11 @@ class Rack::Attack
   end
 
   # Configure rate limit exceeded response
-  self.throttled_response = lambda do |env|
+  self.throttled_responder = lambda do |request|
+    period = request.env['rack.attack.match_data'][:period]
     [ 429,
-      {'Content-Type' => 'text/plain'},
-      ["Rate Limit Exceeded. Try again in #{env['rack.attack.match_data'][:period]} seconds\n"]
+      { 'Content-Type' => 'text/plain' },
+      ["Rate Limit Exceeded. Try again in #{period} seconds\n"]
     ]
   end
 
