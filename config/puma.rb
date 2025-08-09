@@ -88,7 +88,10 @@ worker_timeout 3600 if ENV.fetch("RAILS_ENV", "development") == "development"
 # Lower the timeout for worker shutdown but give enough time for threads to clean up
 worker_shutdown_timeout 25 # Give workers 25 seconds to finish, less than Heroku's 30s timeout
 
-on_worker_shutdown do |index|
-  # Give PumaWorkerKiller threads time to finish their current cycle
-  sleep 1 if defined?(PumaWorkerKiller)
+# Only register worker shutdown hook when running in cluster mode
+if Integer(ENV.fetch("WEB_CONCURRENCY", 0)) > 0
+  on_worker_shutdown do |index|
+    # Give PumaWorkerKiller threads time to finish their current cycle
+    sleep 1 if defined?(PumaWorkerKiller)
+  end
 end
