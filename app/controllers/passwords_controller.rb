@@ -14,6 +14,7 @@
 # - Tokens are signed and verified
 # - One-time use tokens (cleared after successful reset)
 class PasswordsController < PublicController
+  include CaptchaVerifiable
   before_action :set_user_by_token, only: [ :edit, :update ]
   before_action :require_unauthenticated, only: [ :new ]
 
@@ -31,18 +32,23 @@ class PasswordsController < PublicController
   # Params:
   # - email: Email address to send reset instructions to
   def create
-    if user = User.find_by(email_address: params[:email]&.downcase)
+    # Honeypot trap
+    if params[:website].present?
+      head :ok and return
+    end
+
+    unless verify_recaptcha_if_enabled
+      redirect_to new_password_path, alert: "reCAPTCHA verification failed. Please try again." and return
+    end
+
+    if (user = User.find_by(email_address: params[:email]&.downcase))
       user.generate_password_reset_token!
       user.send_password_reset_email
-
-      if Current.user
-        redirect_to settings_path, notice: "Check your email (and spam folder) for reset instructions"
-      else
-        redirect_to new_password_path, notice: "Check your email (and spam folder) for reset instructions"
-      end
-    else
-      redirect_to new_password_path, alert: "Email address not found"
     end
+
+    # Always respond the same to avoid user enumeration
+    target = Current.user ? settings_path : new_password_path
+    redirect_to target, notice: "If that email exists, we sent reset instructions. Please check your inbox and spam folder."
   end
 
   # GET /passwords/:token/edit

@@ -30,7 +30,7 @@
 workers Integer(ENV.fetch("WEB_CONCURRENCY", 0))
 
 
-threads_count = Integer(ENV.fetch("RAILS_MAX_THREADS", 2))
+threads_count = Integer(ENV.fetch("RAILS_MAX_THREADS", 3))
 threads threads_count, threads_count
 
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.

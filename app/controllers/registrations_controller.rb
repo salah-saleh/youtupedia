@@ -15,13 +15,20 @@ class RegistrationsController < PublicController
 
   # TODO verify password as it is typed in form
   def create
+    @user = User.new
+
+    # Honeypot trap
+    if params[:website].present?
+      head :ok and return
+    end
+
     unless verify_recaptcha_if_enabled
-      @user = User.new(user_params)
+      @user.assign_attributes(user_params) rescue nil
       @user.errors.add(:base, "reCAPTCHA verification failed. Please try again.")
       return render :new, status: :unprocessable_entity
     end
 
-    @user = User.new(user_params)
+    @user.assign_attributes(user_params)
 
     User.transaction do
       if @user.save
@@ -51,6 +58,7 @@ class RegistrationsController < PublicController
     @user.destroy if @user&.persisted?
 
     # Add a generic error message
+    @user ||= User.new
     @user.errors.add(:base, "We couldn't create your account at this time. Please try again later.")
     render :new, status: :unprocessable_entity
   end

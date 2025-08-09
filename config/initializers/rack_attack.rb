@@ -124,6 +124,25 @@ class Rack::Attack
     request.ip if request.path == "/session" && request.post?
   end
 
+  # Password reset rate limits (per IP)
+  throttle("password_reset/ip", limit: 3, period: 1.minute) do |request|
+    request.ip if request.path == "/passwords" && request.post?
+  end
+
+  # Password reset rate limits (per email)
+  throttle("password_reset/email", limit: 3, period: 10.minutes) do |request|
+    if request.path == "/passwords" && request.post?
+      email = Rack::Utils.parse_nested_query(request.body.read)["email"]&.downcase
+      request.body.rewind
+      email if email.present?
+    end
+  end
+
+  # Registration rate limits (per IP)
+  throttle("registration/ip", limit: 3, period: 1.minute) do |request|
+    request.ip if request.path == "/registration" && request.post?
+  end
+
   # API-specific rate limits
   throttle("api/ip", limit: 60, period: 1.minute) do |request|
     request.ip if request.path.start_with?('/api/')

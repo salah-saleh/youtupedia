@@ -42,6 +42,12 @@
         placeholder: "••••••••",
         error: @user.errors[:password_confirmation].first %>
 
+    <%# Honeypot field: hidden from users, bots often fill it %>
+    <div class="hidden">
+      <%= label_tag :website, "Website" %>
+      <%= text_field_tag :website, nil, autocomplete: "off" %>
+    </div>
+
     <%# Password Requirements - Only show in production or if strong passwords are required %>
     <% if Rails.configuration.require_strong_password %>
       <div class="rounded-md bg-gray-50 dark:bg-gray-800 p-4">
