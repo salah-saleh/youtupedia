@@ -17,6 +17,14 @@
 │   │       ├── YoutubeChannelService
 │   │       └── MongoCacheService
 │   │
+│   │   Flow (show):
+│   │   - Reads `@channel_name` from `params[:id]`
+│   │   - Fetches channel metadata via `Youtube::YoutubeChannelService.fetch_channel_metadata(@channel_name)`
+│   │     - Metadata now includes `uploads_playlist_id` sourced from `channels.list(contentDetails)`
+│   │   - Fetches videos via `Youtube::YoutubeChannelService.fetch_channel_videos(@channel_name, @channel[:channel_id], @per_page, @current_token)`
+│   │     - Under the hood, this uses the channel's uploads playlist and `playlistItems.list` for reliable pagination tokens
+│   │   - Sets `@next_token` and `@prev_token` for the pagination component
+│   │
 │   ├── youtube_urls_controller.rb
 │   │   └── Services:
 │   │       ├── YoutubeVideoMetadataService
@@ -109,3 +117,7 @@ Changes (2025-08-08):
 - Removed `SummariesController#check_status` and route. Live updates now use websockets (Turbo Streams).
 - `SummariesController#show` schedules `SummaryJob` only when data is missing/failing; otherwise it serves cached data.
 - Added `SummariesChannel` and `turbo_stream_from` usage in views.
+
+Changes (2025-08-10):
+- `Youtube::YoutubeChannelService` now requests `contentDetails` when fetching channel metadata and exposes `uploads_playlist_id`.
+- Channel video pagination switched from `search.list` to `playlistItems.list` using the uploads playlist for consistent `nextPageToken`/`prevPageToken` across all channels.

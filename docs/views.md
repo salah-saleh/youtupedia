@@ -47,6 +47,9 @@
 │       └── Partials:
 │           ├── shared/_icon
 │           └── shared/_container
+│       Notes:
+│       - Uses `shared/_video_grid` with `youtube_pagination: true`.
+│       - Pagination controls (`shared/_pagination`) now rely on `@next_token` / `@prev_token` coming from `playlistItems.list` via the uploads playlist, ensuring tokens are present when more pages exist.
 │
 ├── 🔍 search/index.html.erb
 │   └── Partials:

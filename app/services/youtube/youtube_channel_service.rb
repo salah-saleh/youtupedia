@@ -48,7 +48,7 @@ module Youtube
       begin
         # Try to get channel directly by handle first
         response = youtube_client.list_channels(
-          "snippet,statistics",
+          "snippet,statistics,contentDetails",
           for_handle: channel_name
         )
 
@@ -61,6 +61,7 @@ module Youtube
         end
 
         channel = response.items.first
+        uploads_playlist_id = channel&.content_details&.related_playlists&.uploads
         {
           success: true,
           channel_id: channel.id,
@@ -70,7 +71,8 @@ module Youtube
           thumbnail_url: channel.snippet.thumbnails.high.url,
           subscriber_count: channel.statistics&.subscriber_count,
           video_count: channel.statistics&.video_count,
-          view_count: channel.statistics&.view_count
+          view_count: channel.statistics&.view_count,
+          uploads_playlist_id: uploads_playlist_id
         }
       rescue => e
         handle_youtube_error(e)
@@ -86,11 +88,23 @@ module Youtube
     #   @option [Array<Hash>] :videos List of video metadata
     #   @option [String] :next_page_token Token for the next page
     #   @option [String] :prev_page_token Token for the previous page
+    # Fetches videos using the channel's uploads playlist for reliable pagination
+    # @param channel_id [String] YouTube channel ID
+    # @param page_size [Integer] Number of videos per page (max 50 for API, we use 9 by default)
+    # @param page_token [String, nil] Token for the next page returned from the previous call
+    # @return [Hash]
+    #   @option [Boolean] :success Operation status
+    #   @option [Array<Hash>] :videos List of formatted video metadata
+    #   @option [String, nil] :next_page_token Token for the next page
+    #   @option [String, nil] :prev_page_token Token for the previous page
     def self.fetch_videos_from_api(channel_id, page_size = 9, page_token = nil)
-      response = youtube_client.list_searches("snippet",
-        channel_id: channel_id,
-        order: "date",
-        type: "video",
+      # Resolve uploads playlist id (cached) and paginate via playlistItems for reliable tokens
+      uploads_playlist_id = fetch_uploads_playlist_id(channel_id)
+      return uploads_playlist_id if uploads_playlist_id.is_a?(Hash) && uploads_playlist_id[:success] == false
+
+      response = youtube_client.list_playlist_items(
+        "snippet,contentDetails",
+        playlist_id: uploads_playlist_id,
         max_results: page_size,
         page_token: page_token
       )
@@ -98,12 +112,13 @@ module Youtube
       {
         success: true,
         videos: response.items.map { |item|
+          video_id = item&.content_details&.video_id || item&.snippet&.resource_id&.video_id
           {
-            video_id: item.id.video_id,
+            video_id: video_id,
             title: item.snippet.title,
             description: item.snippet.description,
-            thumbnail: item.snippet.thumbnails.high.url,
-            published_at: item.snippet.published_at,
+            thumbnail: item.snippet.thumbnails&.high&.url || item.snippet.thumbnails&.default&.url,
+            published_at: item&.content_details&.video_published_at || item.snippet.published_at,
             channel_title: item.snippet.channel_title
           }
         },
@@ -112,6 +127,26 @@ module Youtube
       }
     rescue => e
       handle_youtube_error(e)
+    end
+
+    # Returns the uploads playlist ID for a channel
+    # - Uses cache for efficiency and no expiry to minimize quota usage
+    # - Falls back with a structured error if the channel cannot be found
+    # @param channel_id [String]
+    # @return [String] uploads playlist id or
+    #         [Hash] error hash with { success: false, error: String }
+    def self.fetch_uploads_playlist_id(channel_id)
+      fetch_cached(channel_id, namespace: default_cache_namespace + "_uploads_playlist", expires_in: nil) do
+        ch_response = youtube_client.list_channels("contentDetails", id: channel_id)
+        if ch_response.items.empty?
+          {
+            success: false,
+            error: "Channel not found for contentDetails"
+          }
+        else
+          ch_response.items.first.content_details.related_playlists.uploads
+        end
+      end
     end
 
     # Extracts channel name from a YouTube URL
