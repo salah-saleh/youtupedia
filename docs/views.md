@@ -135,11 +135,26 @@
    - _loading_state
    - _error_state
 
+Styling consistency (2025-08-10):
+- Summary page sections (`_tldr_section`, `_summary_section`, `_transcript_section`) now share the same container styles:
+  - `bg-gray-100 dark:bg-gray-900 rounded-lg shadow p-4 lg:p-6 border border-gray-200 dark:border-gray-700`
+  - Ensures parity between light/dark modes and consistent padding/borders.
+
 🔄 Controller Relationships for summaries/show:
 - youtube_controller.js: Controls video player functionality
 - loading_message_controller.js: Handles loading message in TLDR until content arrives
 - timeline_controller.js: Handles transcript/takeaways interactions
 - (Removed) summary_loader_controller.js (replaced by server-pushed Turbo Streams)
+
+Transcript Section (downloads) (2025-08-10)
+- Added download buttons for full and segmented transcripts in `summaries/show/_transcript_section.html.erb`.
+- Uses Stimulus controller `summaries/transcript_download_controller.js` wired via `data-controller="transcript-download"`.
+- Values passed:
+  - `data-transcript-download-full-value`: full transcript text used for the Full download (falls back to DOM if missing)
+  - `data-transcript-download-video-id-value`: used to generate file names
+- Buttons trigger actions:
+  - `transcript-download#downloadFull`
+  - `transcript-download#downloadSegmented`
 
 💡 Additional Recommendations:
 1. Consider standardizing error and loading states across all views
