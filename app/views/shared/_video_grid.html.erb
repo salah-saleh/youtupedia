@@ -14,13 +14,10 @@
 <%
   youtube_pagination = local_assigns.fetch(:youtube_pagination, false)
   params = local_assigns.fetch(:params, {})
+  wrap_in_header = local_assigns.fetch(:wrap_in_header, true)
 %>
 
-<%= render "shared/page_header",
-      title: title,
-      subtitle: local_assigns[:subtitle],
-      search: local_assigns[:search],
-      is_empty: videos.empty? do %>
+<% inner = capture do %>
   <% if videos.any? %>
     <%= render "shared/grid" do %>
       <% videos.each do |video| %>
@@ -28,7 +25,6 @@
       <% end %>
     <% end %>
 
-    <%# Pagination - support both standard and YouTube pagination %>
     <% if (youtube_pagination && (@next_token.present? || @prev_token.present?)) || (!youtube_pagination && @total_pages > 1) %>
       <div class="mt-3">
         <%= render "shared/pagination",
@@ -38,7 +34,8 @@
               params: params,
               next_token: @next_token,
               prev_token: @prev_token,
-              youtube_pagination: youtube_pagination %>
+              youtube_pagination: youtube_pagination,
+              turbo_frame_id: local_assigns[:turbo_frame_id] %>
       </div>
     <% end %>
   <% else %>
@@ -50,4 +47,16 @@
             href: root_path,
           } %>
   <% end %>
+<% end %>
+
+<% if wrap_in_header %>
+  <%= render "shared/page_header",
+        title: title,
+        subtitle: local_assigns[:subtitle],
+        search: local_assigns[:search],
+        is_empty: videos.empty? do %>
+    <%= inner %>
+  <% end %>
+<% else %>
+  <%= inner %>
 <% end %>

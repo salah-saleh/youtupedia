@@ -48,6 +48,9 @@
 │           ├── shared/_icon
 │           └── shared/_container
 │       Notes:
+│       - Includes a search bar (same style as channels/index) to search within the channel by title/description.
+│       - When `q` is present, the grid results come from `search.list` scoped to the channel and sorted by relevance.
+│       Notes:
 │       - Uses `shared/_video_grid` with `youtube_pagination: true`.
 │       - Pagination controls (`shared/_pagination`) now rely on `@next_token` / `@prev_token` coming from `playlistItems.list` via the uploads playlist, ensuring tokens are present when more pages exist.
 │

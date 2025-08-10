@@ -3,14 +3,24 @@
   <%# About Channel Section %>
   <%= render "shared/channel_about", channel: @channel %>
 
-  <%# Channel Videos Grid %>
-  <%= turbo_frame_tag "channel_videos_content", data: { turbo_action: "advance" } do %>
-    <%= render "shared/video_grid",
-          videos: @videos,
-          title: "Channel Videos",
-          path: channel_path(@channel_name),
-          empty_message: "No videos found for this channel",
-          youtube_pagination: true
-    %>
+  <%# Channel Videos Grid with search %>
+  <%= render "shared/page_header",
+        title: "Channel Videos",
+        search: {
+          route: channel_path(@channel_name),
+          placeholder: "Search this channel by title or description...",
+          param_name: "q",
+          turbo_frame: "channel_videos_content"
+        } do %>
+    <%= turbo_frame_tag "channel_videos_content", data: { turbo_action: "advance" } do %>
+      <%= render "shared/video_grid",
+            videos: @videos,
+            title: "",
+            path: channel_path(@channel_name),
+            empty_message: "No videos found for this channel",
+            youtube_pagination: true,
+            params: params.permit(:q, :page_token).to_h.symbolize_keys,
+            turbo_frame_id: "channel_videos_content" %>
+    <% end %>
   <% end %>
 </div>

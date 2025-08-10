@@ -32,6 +32,22 @@ module Youtube
       end
     end
 
+    # Fetches videos from a channel using YouTube search (supports query)
+    # Keeps the same return structure as fetch_channel_videos for drop-in usage
+    # @param channel_name [String]
+    # @param channel_id [String]
+    # @param query [String]
+    # @param page_size [Integer]
+    # @param page_token [String, nil]
+    # @return [Hash]
+    def self.fetch_channel_videos_search(channel_name, channel_id, query, page_size = 9, page_token = nil)
+      force_block_execution = page_token.nil? ? true : false
+      cache_key = "#{channel_name}_#{query}_#{page_token}"
+      fetch_cached(cache_key, namespace: default_cache_namespace + "_channel_videos_search", expires_in: nil, force_block_execution: force_block_execution) do
+        fetch_videos_search_from_api(channel_id, query, page_size, page_token)
+      end
+    end
+
     private
 
     # Fetches detailed channel information from YouTube API
@@ -124,6 +140,59 @@ module Youtube
         },
         next_page_token: response.next_page_token,
         prev_page_token: response.prev_page_token
+      }
+    rescue => e
+      handle_youtube_error(e)
+    end
+
+    # Fetch channel videos via search.list scoped to channel and query
+    def self.fetch_videos_search_from_api(channel_id, query, page_size = 9, page_token = nil)
+      collected = []
+      current_token = page_token
+      next_token = nil
+      prev_token = nil
+
+      # Fetch up to two pages to fill the requested page_size with valid video items
+      2.times do
+        response = youtube_client.list_searches(
+          "snippet",
+          channel_id: channel_id,
+          q: query,
+          order: "relevance",
+          type: "video",
+          max_results: page_size,
+          page_token: current_token
+        )
+
+        prev_token ||= response.prev_page_token
+        valid_items = response.items.select { |item| item.id&.video_id.present? }
+        collected.concat(valid_items)
+
+        next_token = response.next_page_token
+
+        break if collected.size >= page_size || next_token.nil?
+
+        # Continue to the next page to try to fill to page_size
+        current_token = next_token
+      end
+
+      # Trim to exactly page_size items for consistent grid rows
+      trimmed = collected.first(page_size)
+
+      {
+        success: true,
+        videos: trimmed.map { |item|
+          {
+            video_id: item.id.video_id,
+            title: item.snippet.title,
+            description: item.snippet.description,
+            thumbnail: item.snippet.thumbnails&.high&.url,
+            published_at: item.snippet.published_at,
+            channel_title: item.snippet.channel_title
+          }
+        },
+        next_page_token: next_token,
+        prev_page_token: prev_token
       }
     rescue => e
       handle_youtube_error(e)

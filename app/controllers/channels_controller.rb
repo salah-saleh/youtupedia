@@ -39,12 +39,22 @@ class ChannelsController < ApplicationController
     @total_pages = (@channel[:video_count].to_f / @per_page).ceil
 
     # Fetch videos for the current page
-    response = Youtube::YoutubeChannelService.fetch_channel_videos(
-      @channel_name,
-      @channel[:channel_id],
-      @per_page,
-      @current_token
-    )
+    if params[:q].present?
+      response = Youtube::YoutubeChannelService.fetch_channel_videos_search(
+        @channel_name,
+        @channel[:channel_id],
+        params[:q],
+        @per_page,
+        @current_token
+      )
+    else
+      response = Youtube::YoutubeChannelService.fetch_channel_videos(
+        @channel_name,
+        @channel[:channel_id],
+        @per_page,
+        @current_token
+      )
+    end
 
     if !response[:success] || response[:videos].empty?
       @videos = []
