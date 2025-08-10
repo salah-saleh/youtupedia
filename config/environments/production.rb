@@ -49,7 +49,7 @@ Rails.application.configure do
   # Set up console logger with custom formatter
   console_logger = ActiveSupport::Logger.new(STDOUT)
   console_logger.formatter = Logging::Formatter.new(
-    colorize: false,   # No colors in console for heroku production
+    colorize: false,
   )
   # console_logger = ActiveSupport::TaggedLogging.new(console_logger)
   console_logger.level = config.log_level

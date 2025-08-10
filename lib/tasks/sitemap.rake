@@ -1,7 +1,5 @@
 require "sitemap_generator"
 
-# if moved from heroku, we need to implement a cron and a worker
-# https://devcenter.heroku.com/articles/scheduler
 # to see the contents of the sitemap, run `RAILS_ENV=development bundle exec rake sitemap:generate`
 # gunzip -c public/sitemap.xml.gz | xmllint --format - | cat
 namespace :sitemap do

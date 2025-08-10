@@ -5,7 +5,6 @@ Project stack:
     - PostgreSQL
     - MongoDB
   - styling: Tailwind CSS
-  - hosting: Heroku
   - containerization: Docker (ensure flexibility in environment setup)
   - ui inspiration: Application is built for desktop, but should be mobile-friendly. Inspired by YouTube dashboard.
 

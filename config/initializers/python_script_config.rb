@@ -1,6 +1,5 @@
 # Configuration for Python script execution
 # Defines memory and resource limits based on dyno size
-# https://devcenter.heroku.com/articles/ruby-memory-use
 module PythonScriptConfig
   # Memory Management Configuration
   #

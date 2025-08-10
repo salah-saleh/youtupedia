@@ -86,7 +86,7 @@ worker_timeout 3600 if ENV.fetch("RAILS_ENV", "development") == "development"
 # These threads are required for proper memory management.
 
 # Lower the timeout for worker shutdown but give enough time for threads to clean up
-worker_shutdown_timeout 25 # Give workers 25 seconds to finish, less than Heroku's 30s timeout
+worker_shutdown_timeout 25 # Give workers 25 seconds to finish
 
 # Only register worker shutdown hook when running in cluster mode
 if Integer(ENV.fetch("WEB_CONCURRENCY", 0)) > 0

@@ -27,7 +27,6 @@ For more details about the product structure, see the [product.md](product.md) f
   - OpenAI GPT API
 - **Deployment**:
   - Docker
-  - Heroku
 
 ## Prerequisites
 
@@ -147,11 +146,6 @@ The app expects these environment variables:
 - `MEMCACHIER_SERVERS`: Comma-separated list of Memcached servers
 - `MEMCACHIER_USERNAME`: (Optional) Authentication username
 - `MEMCACHIER_PASSWORD`: (Optional) Authentication password
-
-#### Heroku Setup
-```bash
-heroku addons:create memcachier:dev
-```
 
 ### Cache Configuration
 

@@ -26,7 +26,7 @@
 if defined?(PumaWorkerKiller) && Rails.env.production?
   # Only run in master process to avoid duplicate threads
   # Note: You may still see thread warnings in development, but they won't affect production
-  if Process.const_defined?(:CLOCK_MONOTONIC) && Process.pid == 2 # Master PID is 2 on Heroku
+  if Process.const_defined?(:CLOCK_MONOTONIC) && Process.pid == 2
     # Total RAM available to the dyno
     # Default: 512MB (Basic dyno)
     # Adjust based on dyno size: set to actual dyno memory in MB

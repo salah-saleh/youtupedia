@@ -2,8 +2,6 @@
 
 TODO BEFORE LAUNCH:
 - stats: limit number of videos per user per day for start
-- nginx https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nginx 
-- schedular [text](https://devcenter.heroku.com/articles/scheduler)
 - [ ] more analytics on logged in users:admin and active users
 
 
@@ -30,10 +28,6 @@ costs:
     - youtupedia: 89euros/year
         - starter email: free
     - y2si: 16euros/year
-- Heroku:
-    - dyno standard: 5euros/month (needs to be upgraded soon)
-    - memcached (25MB/10connections): free (needs to be upgraded to 15euros/month )
-    - Postgress: 5euros/month
 - postmarkapp:
     - 100 emails/month: free (upgrade needed 15euros/month)
 - Mongodb:
