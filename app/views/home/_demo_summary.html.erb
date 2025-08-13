@@ -134,16 +134,27 @@
                   </button>
                 </div>
               </div>
-              <ul data-copy-target="source" class="space-y-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+              <div class="relative space-y-3 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-purple-100 dark:before:bg-purple-900" data-copy-target="source">
                 <% (@demo_summary_data&.dig(:contents) || []).each_with_index do |content, index| %>
-                  <li class="leading-relaxed">
-                    <span class="mr-2 rounded bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-1.5 py-0.5 text-[11px]">
-                      <%= content[:timestamp] || sprintf('%02d:00', index) %>
-                    </span>
-                    <%= content[:topic] %>
-                  </li>
+                  <div class="relative">
+                    <!-- Header row with bubble aligned to topic -->
+                    <div class="relative pl-10">
+                      <div class="absolute left-0 top-1/2 -translate-y-1/2 transform w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                        <div class="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full"></div>
+                      </div>
+
+                      <div class="text-sm leading-6 text-gray-700 dark:text-gray-300">
+                        <%= content[:topic] %>
+                      </div>
+                    </div>
+
+                    <!-- Takeaway text -->
+                    <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed ml-10 mt-2">
+                      <%= content[:takeaway] %>
+                    </div>
+                  </div>
                 <% end %>
-              </ul>
+              </div>
             </div>
 
             <!-- Transcript -->

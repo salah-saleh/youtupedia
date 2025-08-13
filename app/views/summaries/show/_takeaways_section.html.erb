@@ -59,23 +59,21 @@
       <div class="relative space-y-4 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-purple-100 dark:before:bg-purple-900"
            data-copy-target="source">
         <% summary[:contents].each_with_index do |content, index| %>
-          <div class="relative pl-10" data-timeline-item>
-            <!-- Timeline dot -->
-            <div class="absolute left-0 top-1.5 w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-              <span class="text-sm text-purple-600 dark:text-purple-400 font-medium"><%= index + 1 %></span>
-            </div>
+          <div class="relative" data-timeline-item>
+            <!-- Header row with bubble aligned to topic -->
+            <div class="relative pl-10">
+              <div class="absolute left-0 top-1/2 -translate-y-1/2 transform w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                <div class="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full"></div>
+              </div>
 
-            <!-- Content -->
-            <div class="space-y-2">
-              <!-- Topic header with timestamp and actions -->
               <div class="flex items-center gap-1 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 <!-- Topic text -->
-                <div class="group flex-1 text-left flex items-center gap-2 min-h-[44px] py-2 px-3 -mx-3 rounded-lg pl-5"
+                <div class="group flex-1 text-left flex items-center gap-2 min-h-[44px] py-2 px-3 -mx-3 rounded-lg"
                      data-action="click->timeline#toggle"
                      data-timeline-target="itemToggle"
                      aria-expanded="true"
                      aria-controls="content-<%= index %>">
-                  <h4 class="text-base font-medium text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400"
+                  <h4 class="text-base leading-6 font-medium text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400"
                       data-timeline-topic>
                     <%= content[:topic] %>
                   </h4>
@@ -138,28 +136,28 @@
                   </svg>
                 </button>
               </div>
+            </div>
 
-              <!-- Takeaway content -->
-              <div id="content-<%= index %>"
-                   class="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 transition-[height,opacity,margin] duration-200 ease-in-out"
-                   data-timeline-target="content">
-                <div class="relative overflow-hidden">
-                  <div data-timeline-target="originalContent"
-                       class="transition-[opacity,transform] duration-200 ease-in-out">
-                    <%= content[:takeaway] %>
-                  </div>
-
-                  <%= turbo_frame_tag "expanded-takeaway-#{index}", 
-                        class: "hidden transition-[opacity,transform] duration-200 ease-in-out",
-                        data: { 
-                          timeline_target: "expandedContent",
-                          action: "turbo:frame-load->timeline#replaceContent turbo:frame-load->timeline#hideSpinner"
-                        } do %>
-                    <div data-expanded-takeaway>
-                      <!-- Content will be loaded here -->
-                    </div>
-                  <% end %>
+            <!-- Takeaway content -->
+            <div id="content-<%= index %>"
+                 class="prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 transition-[height,opacity,margin] duration-200 ease-in-out ml-10 mt-2"
+                 data-timeline-target="content">
+              <div class="relative overflow-hidden">
+                <div data-timeline-target="originalContent"
+                     class="transition-[opacity,transform] duration-200 ease-in-out">
+                  <%= content[:takeaway] %>
                 </div>
+
+                <%= turbo_frame_tag "expanded-takeaway-#{index}", 
+                      class: "hidden transition-[opacity,transform] duration-200 ease-in-out",
+                      data: { 
+                        timeline_target: "expandedContent",
+                        action: "turbo:frame-load->timeline#replaceContent turbo:frame-load->timeline#hideSpinner"
+                      } do %>
+                  <div data-expanded-takeaway>
+                    <!-- Content will be loaded here -->
+                  </div>
+                <% end %>
               </div>
             </div>
           </div>
