@@ -1,6 +1,6 @@
 <%# Demo summary card: a static, lightweight showcase styled like summaries/show %>
 <section class="mt-8" aria-label="Demo summary preview">
-  <div class="bg-white/75 dark:bg-gray-800/75 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 h-[700px] overflow-y-auto lg:overflow-hidden">
+  <div class="bg-white/35 dark:bg-gray-800/35 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 h-[700px] overflow-y-auto lg:overflow-hidden">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg sm:text-xl text-gray-900 dark:text-white">
         <%= link_to(
@@ -76,7 +76,7 @@
 
             <!-- Summary (TL;DR above Details) -->
             <div class="space-y-4" data-tabs-target="panel" data-name="summary">
-              <div class="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4"
+          <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4"
                    data-controller="copy transcript-download"
                    data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:tldr) || "").to_s.gsub("\n", " ").gsub('"', '&quot;') %>"
                    data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
@@ -96,7 +96,7 @@
                 </div>
               </div>
 
-              <div class="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4"
+              <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4"
                    data-controller="copy transcript-download"
                    data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:summary) || "").to_s.gsub("\n", " ").gsub('"', '&quot;') %>"
                    data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
@@ -118,7 +118,7 @@
             </div>
 
             <!-- Timeline -->
-            <div class="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 hidden"
+            <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4 hidden"
                  data-tabs-target="panel" data-name="timeline"
                  data-controller="copy transcript-download"
                  data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:contents)&.map.with_index { |c,i| sprintf('%02d:00 %s', i, c[:topic]) } || []).join(' • ') %>"
@@ -147,7 +147,7 @@
             </div>
 
             <!-- Transcript -->
-            <div class="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 hidden"
+            <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4 hidden"
                  data-tabs-target="panel" data-name="transcript"
                  data-controller="copy transcript-download"
                  data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>"
