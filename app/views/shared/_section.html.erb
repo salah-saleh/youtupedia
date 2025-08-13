@@ -13,7 +13,7 @@
     - classes: String (optional) - Additional CSS classes
 %>
 
-<section class="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 <%= local_assigns[:classes] %>">
+<section class="bg-white/35 dark:bg-gray-800/35 backdrop-blur-sm shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 <%= local_assigns[:classes] %>">
   <div class="<%= local_assigns[:padding] || 'px-4 py-5 sm:p-6' %>">
     <% if local_assigns[:title].present? %>
       <div class="mb-4">

@@ -1,6 +1,6 @@
 <%# Transcript Section %>
 <%= turbo_frame_tag "transcript" do %>
-  <div class="bg-gray-100 dark:bg-gray-900 rounded-lg shadow p-4 lg:p-6 border border-gray-200 dark:border-gray-700"
+  <div class="bg-white/35 dark:bg-gray-800/35 backdrop-blur-sm rounded-lg shadow p-4 lg:p-6 border border-gray-200 dark:border-gray-700"
        data-controller="transcript-download"
        data-transcript-download-full-value="<%= summary[:transcript_full].to_s.gsub("\n", " ").gsub('"', '&quot;') %>"
        data-transcript-download-video-id-value="<%= summary[:video_id] %>">
