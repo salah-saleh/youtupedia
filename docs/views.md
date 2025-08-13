@@ -65,7 +65,17 @@
 ├── 🏠 home/
 │   │
 │   └── index.html.erb
-│       └── No shared partials. Redirects to summaries index page for signed in users. Otherwise, redirects to new_session_path.
+│       └── Partials:
+│           ├── shared/_teaser (feature teaser section under the search)
+│           ├── home/_demo_summary (static demo card styled like summaries/show)
+│           └── shared/_nav_links (via layout)
+│
+│   Notes (2025-08-12):
+│   - Background moved to layout: mesh gradient + geometric grid overlay now applied globally via `shared/_layout`.
+│   - `home/_demo_summary` updates:
+│     - Demo title hover no longer underlines; now slightly increases weight for emphasis.
+│     - Inside the Summary tab, TL;DR now appears above Details.
+│     - Right-hand tab content uses a non-sticky tab row and scrollable panels that fill the available height, constrained by a max card height of 950px.
 │
 ├── ⚙️ settings/index.html.erb
 │   └── Partials:
@@ -154,10 +164,14 @@ Transcript Section (downloads) (2025-08-10)
 - Uses Stimulus controller `summaries/transcript_download_controller.js` wired via `data-controller="transcript-download"`.
 - Values passed:
   - `data-transcript-download-full-value`: full transcript text used for the Full download (falls back to DOM if missing)
-  - `data-transcript-download-video-id-value`: used to generate file names
+  - `data-transcript-download-video-id-value`: used to generate file names (sourced from `summary[:video_id]`)
 - Buttons trigger actions:
   - `transcript-download#downloadFull`
   - `transcript-download#downloadSegmented`
+
+Note on Turbo Streams rendering (2025-08-13)
+- Sections updated over websockets are rendered via server-pushed Turbo Streams with `locals: { summary: payload }`.
+- Therefore, section partials like `_tldr_section`, `_summary_section`, `_transcript_section`, `_takeaways_section`, and `_chat_section` must exclusively reference the `summary` local (e.g., `summary[:video_id]`) and not controller instance variables such as `@summary_data`.
 
 💡 Additional Recommendations:
 1. Consider standardizing error and loading states across all views

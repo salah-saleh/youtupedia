@@ -1,0 +1,179 @@
+<%# Demo summary card: a static, lightweight showcase styled like summaries/show %>
+<section class="mt-8" aria-label="Demo summary preview">
+  <div class="bg-white/75 dark:bg-gray-800/75 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 h-[700px] overflow-y-auto lg:overflow-hidden">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg sm:text-xl text-gray-900 dark:text-white">
+        <%= link_to(
+              @demo_summary_data&.dig(:title) || "Example summary",
+              summary_path(id: @demo_summary_data&.dig(:video_id) || "BEWz4SXfyCQ"),
+              class: "transition font-medium hover:font-semibold hover:no-underline"
+            ) %>
+      </h2>
+      <div class="flex items-center gap-2">
+        <button class="p-2 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300" aria-label="Copy">
+          <%= render_icon :clipboard, class: "w-4 h-4" %>
+        </button>
+        <button class="p-2 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300" aria-label="Share">
+          <%= render_icon :share, class: "w-4 h-4" %>
+        </button>
+        <button class="p-2 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300" aria-label="Settings">
+          <%= render_icon :cog, class: "w-4 h-4" %>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch h-full">
+      <!-- Left: Video thumbnail + strip -->
+      <div class="pb-4">
+        <%= link_to summary_path(id: "BEWz4SXfyCQ"), class: "block" do %>
+          <div class="aspect-video w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700">
+            <%= image_tag "https://i.ytimg.com/vi/BEWz4SXfyCQ/hqdefault.jpg",
+                          alt: "Example video thumbnail",
+                          class: "w-full h-full object-cover" %>
+          </div>
+        <% end %>
+        <h3 class="mt-3 text-sm sm:text-base font-medium text-gray-900 dark:text-white line-clamp-2">
+          Example summary preview
+        </h3>
+        <div class="mt-3 grid grid-cols-3 gap-3">
+          <%= link_to summary_path(id: "Qv70RMUFlu0"), class: "block" do %>
+            <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-700">
+              <%= image_tag "https://i.ytimg.com/vi/Qv70RMUFlu0/hqdefault.jpg", alt: "Preview 1", class: "w-full h-full object-cover" %>
+            </div>
+          <% end %>
+          <%= link_to summary_path(id: "RtVs87Nd1MQ"), class: "block" do %>
+            <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-700">
+              <%= image_tag "https://i.ytimg.com/vi/RtVs87Nd1MQ/hqdefault.jpg", alt: "Preview 2", class: "w-full h-full object-cover" %>
+            </div>
+          <% end %>
+          <%= link_to summary_path(id: "2_6ad9URawc"), class: "block" do %>
+            <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-700">
+              <%= image_tag "https://i.ytimg.com/vi/2_6ad9URawc/hqdefault.jpg", alt: "Preview 3", class: "w-full h-full object-cover" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Right: Tabs preview (Summary/Timeline/Transcript), each copyable & downloadable -->
+      <div data-controller="tabs" data-tabs-active-value="summary" class="lg:h-full lg:min-h-0 flex flex-col">
+        <!-- Inner container with visual boundary -->
+        <div class="bg-gray-50/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-lg border border-gray-200/40 dark:border-gray-600/40 p-4 h-auto lg:h-[90%] flex flex-col lg:overflow-hidden">
+          <!-- Tab icons row (non-sticky) -->
+          <div class="flex items-center gap-2 pb-3 mb-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
+            <button type="button" data-tabs-target="tab" data-name="summary" data-action="click->tabs#show" class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white text-xs font-medium">
+              <%= render_icon :information_circle, class: "w-4 h-4" %> Summary
+            </button>
+            <button type="button" data-tabs-target="tab" data-name="timeline" data-action="click->tabs#show" class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-transparent text-gray-600 dark:text-gray-300 text-xs font-medium">
+              <%= render_icon :calendar, class: "w-4 h-4" %> Timeline
+            </button>
+            <button type="button" data-tabs-target="tab" data-name="transcript" data-action="click->tabs#show" class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-transparent text-gray-600 dark:text-gray-300 text-xs font-medium">
+              <%= render_icon :clipboard, class: "w-4 h-4" %> Transcript
+            </button>
+          </div>
+
+          <!-- Panels Scroll Container (applies common height/padding/overflow) -->
+          <div class="lg:flex-1 lg:min-h-0 lg:overflow-y-auto pb-4 space-y-4" data-tabs-target="container">
+
+            <!-- Summary (TL;DR above Details) -->
+            <div class="space-y-4" data-tabs-target="panel" data-name="summary">
+              <div class="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4"
+                   data-controller="copy transcript-download"
+                   data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:tldr) || "").to_s.gsub("\n", " ").gsub('"', '&quot;') %>"
+                   data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">TL;DR</h3>
+                  <div class="flex items-center gap-1">
+                    <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->copy#copy" data-copy-target="button" aria-label="Copy TL;DR">
+                      <%= render_icon :clipboard, class: "w-4 h-4" %>
+                    </button>
+                    <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->transcript-download#downloadFull" aria-label="Download TL;DR">
+                      <%= render_icon :arrow_down, class: "w-4 h-4" %>
+                    </button>
+                  </div>
+                </div>
+                <div data-copy-target="source" class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  <%= @demo_summary_data&.dig(:tldr).presence || "Key points appear here once ready." %>
+                </div>
+              </div>
+
+              <div class="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4"
+                   data-controller="copy transcript-download"
+                   data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:summary) || "").to_s.gsub("\n", " ").gsub('"', '&quot;') %>"
+                   data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Details</h3>
+                  <div class="flex items-center gap-1">
+                    <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->copy#copy" data-copy-target="button" aria-label="Copy details">
+                      <%= render_icon :clipboard, class: "w-4 h-4" %>
+                    </button>
+                    <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->transcript-download#downloadFull" aria-label="Download details">
+                      <%= render_icon :arrow_down, class: "w-4 h-4" %>
+                    </button>
+                  </div>
+                </div>
+                <div data-copy-target="source" class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  <%= @demo_summary_data&.dig(:summary).presence || "Summary is being prepared..." %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 hidden"
+                 data-tabs-target="panel" data-name="timeline"
+                 data-controller="copy transcript-download"
+                 data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:contents)&.map.with_index { |c,i| sprintf('%02d:00 %s', i, c[:topic]) } || []).join(' • ') %>"
+                 data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">Timeline</h3>
+                <div class="flex items-center gap-1">
+                  <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->copy#copy" data-copy-target="button" aria-label="Copy timeline">
+                    <%= render_icon :clipboard, class: "w-4 h-4" %>
+                  </button>
+                  <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->transcript-download#downloadFull" aria-label="Download timeline">
+                    <%= render_icon :arrow_down, class: "w-4 h-4" %>
+                  </button>
+                </div>
+              </div>
+              <ul data-copy-target="source" class="space-y-2 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                <% (@demo_summary_data&.dig(:contents) || []).each_with_index do |content, index| %>
+                  <li class="leading-relaxed">
+                    <span class="mr-2 rounded bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-1.5 py-0.5 text-[11px]">
+                      <%= content[:timestamp] || sprintf('%02d:00', index) %>
+                    </span>
+                    <%= content[:topic] %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+
+            <!-- Transcript -->
+            <div class="bg-gray-50/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 hidden"
+                 data-tabs-target="panel" data-name="transcript"
+                 data-controller="copy transcript-download"
+                 data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>"
+                 data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:transcript_full) || "").to_s.gsub("\n", ' ').gsub('"', '&quot;') %>">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">Transcript</h3>
+                <div class="flex items-center gap-1">
+                  <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->copy#copy" data-copy-target="button" aria-label="Copy transcript">
+                    <%= render_icon :clipboard, class: "w-4 h-4" %>
+                  </button>
+                  <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->transcript-download#downloadFull" aria-label="Download transcript">
+                    <%= render_icon :arrow_down, class: "w-4 h-4" %>
+                  </button>
+                </div>
+              </div>
+              <div data-copy-target="source" class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                <%= (@demo_summary_data&.dig(:transcript_full) || "Transcript loading...") %>
+              </div>
+            </div>
+
+          </div><!-- End Panels Scroll Container -->
+
+        </div><!-- End Inner Container -->
+      </div>
+    </div>
+  </div>
+</section>
+
+

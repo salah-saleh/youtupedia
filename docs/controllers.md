@@ -110,6 +110,7 @@
    - Triggered by: `SummariesController#show` when data is missing
    - Uses: Youtube::YoutubeVideoMetadataService, Youtube::YoutubeVideoTranscriptService, Ai::LlmSummaryService
    - Pushes UI updates via Turbo Streams broadcast to `"summaries:#{video_id}"` using the built-in `Turbo::StreamsChannel` (no custom channel class required)
+   - Renders section partials with `locals: { summary: payload }`. Partials must use the `summary` local, not controller instance variables.
 
 2. cleanup_job.rb
    - Scheduled task
@@ -123,3 +124,6 @@ Changes (2025-08-08):
 Changes (2025-08-10):
 - `Youtube::YoutubeChannelService` now requests `contentDetails` when fetching channel metadata and exposes `uploads_playlist_id`.
 - Channel video pagination switched from `search.list` to `playlistItems.list` using the uploads playlist for consistent `nextPageToken`/`prevPageToken` across all channels.
+
+Notes (2025-08-12):
+- No controller behavior changes for the home updates; all adjustments were view-layer only (background, demo card tabs behavior and ordering).

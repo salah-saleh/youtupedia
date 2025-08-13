@@ -26,23 +26,31 @@
 }
 </script>
 
-<main class="flex flex-col items-center pt-32 px-4 sm:px-6 lg:px-8">
-  <div class="w-full max-w-2xl space-y-8">
+<main class="relative flex flex-col items-center pt-5 px-4 sm:px-6 lg:px-8">
+
+  <div class="w-full max-w-6xl space-y-8 relative">
     <!-- Heading -->
-    <header class="text-center">
-      <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-        Got a Youtube video or channel URL to share with me?
+    <header class="text-center space-y-4">
+      <!-- Logo moved to top -->
+      <div class="flex items-center justify-center gap-2">
+        <%= image_tag "youtupedia-inverted.png", class: "h-10 w-10 hidden dark:block", alt: "Youtupedia Logo Dark Mode" %>
+        <%= image_tag "youtupedia.png", class: "h-10 w-10 block dark:hidden", alt: "Youtupedia Logo Light Mode" %>
+        <span class="text-lg font-semibold text-gray-900 dark:text-white">Youtupedia</span>
+      </div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+        Deep AI for YouTube — beyond transcripts and summaries
       </h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400">Paste any video or channel URL to get timestamps, TL;DRs, transcripts, and insights.</p>
     </header>
 
     <!-- Search Form -->
-    <section class="mt-10" aria-label="YouTube URL Search">
-      <%= form_with url: parse_youtube_url_path, method: :post, class: "relative", data: { turbo: false } do |f| %>
-        <div class="relative">
+    <section class="mt-8" aria-label="YouTube URL Search">
+      <%= form_with url: parse_youtube_url_path, method: :post, class: "relative flex justify-center", data: { turbo: false } do |f| %>
+        <div class="relative w-full max-w-2xl">
           <%= f.label :url, "Enter YouTube URL", class: "sr-only" %>
           <%= f.text_field :url,
               placeholder: "e.g https://www.youtube.com/watch?v=XyhhwVJB9Z4",
-              class: "block w-full sm:text-red px-4 py-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800  text-lg",
+              class: "block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/80 backdrop-blur text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 text-base shadow-sm",
               autofocus: true,
               "aria-label": "YouTube URL input" %>
 
@@ -55,75 +63,8 @@
       <% end %>
     </section>
 
-    <!-- Example Channels -->
-    <section class="mt-8" aria-label="Popular Channels">
-      <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
-        Popular Channels
-      </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <%= link_to channel_path("joerogan"),
-              class: "flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200",
-              aria: { label: "View Joe Rogan Podcast channel" } do %>
-          <div class="flex-shrink-0">
-            <%= render_icon :channel, class: "w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" %>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-              Joe Rogan Podcast
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              View channel insights and summaries
-            </p>
-          </div>
-        <% end %>
+    <%= render "home/demo_summary" %>
+    <%= render "shared/teaser" %>
 
-        <%= link_to channel_path("TheDiaryOfACEO"),
-              class: "flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200",
-              aria: { label: "View The Diary Of A CEO channel" } do %>
-          <div class="flex-shrink-0">
-            <%= render_icon :channel, class: "w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" %>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-              The Diary Of A CEO
-            </p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              View channel insights and summaries
-            </p>
-          </div>
-        <% end %>
-      </div>
-    </section>
-
-    <!-- Quick Links -->
-    <section class="mt-8" aria-label="Quick Links">
-      <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
-        Quick Links
-      </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <%= link_to summaries_path, 
-              class: "flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200",
-              aria: { label: "View all video summaries" } do %>
-          <%= render_icon :video_camera, class: "w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" %>
-          <span class="text-gray-700 dark:text-gray-300">View All Summaries</span>
-        <% end %>
-
-        <%= link_to channels_path, 
-              class: "flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200",
-              aria: { label: "Browse all channels" } do %>
-          <%= render_icon :channel, class: "w-5 h-5 text-gray-400 dark:text-gray-500 mr-3" %>
-          <span class="text-gray-700 dark:text-gray-300">Browse Channels</span>
-        <% end %>
-      </div>
-    </section>
-
-    <!-- Logo -->
-    <footer class="relative flex items-center justify-center">
-      <%= image_tag "youtupedia-inverted.png", class: "h-12 w-12 hidden dark:block", alt: "Youtupedia Logo Dark Mode" %>
-      <%= image_tag "youtupedia.png", class: "h-12 w-12 block dark:hidden", alt: "Youtupedia Logo Light Mode" %>
-      <div class="flex items-center space-x-1">
-        <span class="text-gray-900 dark:text-white">Youtupedia</span>
-      </div>
-    </footer>
   </div>
 </main>
