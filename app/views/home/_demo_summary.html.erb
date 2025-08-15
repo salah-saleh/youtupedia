@@ -9,7 +9,7 @@
               class: "transition font-medium hover:font-semibold hover:no-underline"
             ) %>
       </h2>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 hidden">
         <button class="p-2 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300" aria-label="Copy">
           <%= render_icon :clipboard, class: "w-4 h-4" %>
         </button>
@@ -174,8 +174,18 @@
                   </button>
                 </div>
               </div>
-              <div data-copy-target="source" class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                <%= (@demo_summary_data&.dig(:transcript_full) || "Transcript loading...") %>
+              <div class="space-y-2 max-h-[400px] overflow-y-auto pr-1" data-copy-target="source">
+                <% (@demo_summary_data&.dig(:transcript_segmented) || []).each do |seg| %>
+                  <% next if seg[:text].to_s.strip.blank? %>
+                  <div class="group flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <button class="flex-shrink-0 text-xs text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
+                      <%= format_duration(seg[:start]) %>
+                    </button>
+                    <div class="flex-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                      <%= seg[:text].strip %>
+                    </div>
+                  </div>
+                <% end %>
               </div>
             </div>
 
