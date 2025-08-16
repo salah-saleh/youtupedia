@@ -46,16 +46,22 @@
     <!-- Search Form -->
     <section class="mt-8" aria-label="YouTube URL Search">
       <%= form_with url: parse_youtube_url_path, method: :post, class: "relative flex justify-center", data: { turbo: false } do |f| %>
-        <div class="relative w-full max-w-2xl">
+        <div class="search-container relative w-full max-w-2xl" 
+             data-controller="home--search-animation"
+             data-action="focusin->home--search-animation#inputFocused focusout->home--search-animation#inputBlurred">
           <%= f.label :url, "Enter YouTube URL", class: "sr-only" %>
           <%= f.text_field :url,
               placeholder: "e.g https://www.youtube.com/watch?v=XyhhwVJB9Z4",
-              class: "block w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/80 backdrop-blur text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 text-base shadow-sm",
+              class: "search-input block w-full px-4 py-3 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none text-base shadow-sm transition-all duration-200",
               autofocus: true,
-              "aria-label": "YouTube URL input" %>
+              "aria-label": "YouTube URL input",
+              data: { 
+                "home--search-animation-target": "input",
+                action: "input->home--search-animation#inputChanged"
+              } %>
 
           <button type="submit"
-                  class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                  class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 z-10"
                   aria-label="Search">
             <%= render_icon :magnifying_glass, class: "w-6 h-6" %>
           </button>
