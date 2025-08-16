@@ -40,8 +40,14 @@ export default class extends Controller {
     } else if (this.hasSourceTarget) {
       const element = this.sourceTarget;
 
+      // If it's a segmented transcript list
+      if (element.querySelector('[data-youtube-target="segment"]')) {
+        const lines = Array.from(element.querySelectorAll('[data-youtube-target="segment"]'))
+          .map((seg) => seg.querySelector('.flex-1')?.textContent.trim())
+          .filter(Boolean)
+        text = lines.join('\n')
       // If it's a timeline section
-      if (element.querySelector('[data-timeline-item]')) {
+      } else if (element.querySelector('[data-timeline-item]')) {
         const items = [];
         element.querySelectorAll('[data-timeline-item]').forEach(item => {
           const topicElement = item.querySelector('h4[data-timeline-topic]');

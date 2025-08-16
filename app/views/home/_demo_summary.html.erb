@@ -74,120 +74,14 @@
           <!-- Panels Scroll Container (applies common height/padding/overflow) -->
           <div class="lg:flex-1 lg:min-h-0 lg:overflow-y-auto pb-4 space-y-4" data-tabs-target="container">
 
-            <!-- Summary (TL;DR above Details) -->
-            <div class="space-y-4" data-tabs-target="panel" data-name="summary">
-          <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4"
-                   data-controller="copy transcript-download"
-                   data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:tldr) || "").to_s.gsub("\n", " ").gsub('"', '&quot;') %>"
-                   data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
-                <div class="flex items-center justify-between mb-2">
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">TL;DR</h3>
-                  <div class="flex items-center gap-1">
-                    <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->copy#copy" data-copy-target="button" aria-label="Copy TL;DR">
-                      <%= render_icon :clipboard, class: "w-4 h-4" %>
-                    </button>
-                    <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->transcript-download#downloadFull" aria-label="Download TL;DR">
-                      <%= render_icon :arrow_down, class: "w-4 h-4" %>
-                    </button>
-                  </div>
-                </div>
-                <div data-copy-target="source" class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  <%= @demo_summary_data&.dig(:tldr).presence || "Key points appear here once ready." %>
-                </div>
-              </div>
+            <!-- Summary Tab Content -->
+            <%= render "home/demo/summary_section" %>
 
-              <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4"
-                   data-controller="copy transcript-download"
-                   data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:summary) || "").to_s.gsub("\n", " ").gsub('"', '&quot;') %>"
-                   data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
-                <div class="flex items-center justify-between mb-2">
-                  <h3 class="text-sm font-medium text-gray-900 dark:text-white">Details</h3>
-                  <div class="flex items-center gap-1">
-                    <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->copy#copy" data-copy-target="button" aria-label="Copy details">
-                      <%= render_icon :clipboard, class: "w-4 h-4" %>
-                    </button>
-                    <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->transcript-download#downloadFull" aria-label="Download details">
-                      <%= render_icon :arrow_down, class: "w-4 h-4" %>
-                    </button>
-                  </div>
-                </div>
-                <div data-copy-target="source" class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                  <%= @demo_summary_data&.dig(:summary).presence || "Summary is being prepared..." %>
-                </div>
-              </div>
-            </div>
+            <!-- Timeline Tab Content -->
+            <%= render "home/demo/timeline_section" %>
 
-            <!-- Timeline -->
-            <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4 hidden"
-                 data-tabs-target="panel" data-name="timeline"
-                 data-controller="copy transcript-download"
-                 data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:contents)&.map.with_index { |c,i| sprintf('%02d:00 %s', i, c[:topic]) } || []).join(' • ') %>"
-                 data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
-              <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">Timeline</h3>
-                <div class="flex items-center gap-1">
-                  <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->copy#copy" data-copy-target="button" aria-label="Copy timeline">
-                    <%= render_icon :clipboard, class: "w-4 h-4" %>
-                  </button>
-                  <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->transcript-download#downloadFull" aria-label="Download timeline">
-                    <%= render_icon :arrow_down, class: "w-4 h-4" %>
-                  </button>
-                </div>
-              </div>
-              <div class="relative space-y-3 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-purple-100 dark:before:bg-purple-900" data-copy-target="source">
-                <% (@demo_summary_data&.dig(:contents) || []).each_with_index do |content, index| %>
-                  <div class="relative">
-                    <!-- Header row with bubble aligned to topic -->
-                    <div class="relative pl-10">
-                      <div class="absolute left-0 top-1/2 -translate-y-1/2 transform w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                        <div class="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full"></div>
-                      </div>
-
-                      <div class="text-sm leading-6 text-gray-700 dark:text-gray-300">
-                        <%= content[:topic] %>
-                      </div>
-                    </div>
-
-                    <!-- Takeaway text -->
-                    <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed ml-10 mt-2">
-                      <%= content[:takeaway] %>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-
-            <!-- Transcript -->
-            <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4 hidden"
-                 data-tabs-target="panel" data-name="transcript"
-                 data-controller="copy transcript-download"
-                 data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>"
-                 data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:transcript_full) || "").to_s.gsub("\n", ' ').gsub('"', '&quot;') %>">
-              <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-medium text-gray-900 dark:text-white">Transcript</h3>
-                <div class="flex items-center gap-1">
-                  <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->copy#copy" data-copy-target="button" aria-label="Copy transcript">
-                    <%= render_icon :clipboard, class: "w-4 h-4" %>
-                  </button>
-                  <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" data-action="click->transcript-download#downloadFull" aria-label="Download transcript">
-                    <%= render_icon :arrow_down, class: "w-4 h-4" %>
-                  </button>
-                </div>
-              </div>
-              <div class="space-y-2 max-h-[400px] overflow-y-auto pr-1" data-copy-target="source">
-                <% (@demo_summary_data&.dig(:transcript_segmented) || []).each do |seg| %>
-                  <% next if seg[:text].to_s.strip.blank? %>
-                  <div class="group flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                    <button class="flex-shrink-0 text-xs text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
-                      <%= format_duration(seg[:start]) %>
-                    </button>
-                    <div class="flex-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      <%= seg[:text].strip %>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
-            </div>
+            <!-- Transcript Tab Content -->
+            <%= render "home/demo/transcript_section" %>
 
           </div><!-- End Panels Scroll Container -->
 

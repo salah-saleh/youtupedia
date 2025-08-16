@@ -64,10 +64,19 @@
 │
 ├── 🏠 home/
 │   │
+│   ├── demo/
+│   │   ├── _summary_section.html.erb (TL;DR and Details tabs)
+│   │   ├── _timeline_section.html.erb (Timeline tab with copy and download functionality)
+│   │   └── _transcript_section.html.erb (Transcript tab with copy and download functionality)
+│   │
 │   └── index.html.erb
 │       └── Partials:
 │           ├── shared/_teaser (feature teaser section under the search)
 │           ├── home/_demo_summary (static demo card styled like summaries/show)
+│           │   └── Sub-partials:
+│           │       ├── home/demo/_summary_section
+│           │       ├── home/demo/_timeline_section
+│           │       └── home/demo/_transcript_section
 │           └── shared/_nav_links (via layout)
 │
 │   Notes (2025-08-12):
@@ -76,6 +85,14 @@
 │     - Demo title hover no longer underlines; now slightly increases weight for emphasis.
 │     - Inside the Summary tab, TL;DR now appears above Details.
 │     - Right-hand tab content uses a non-sticky tab row and scrollable panels that fill the available height, constrained by a max card height of 950px.
+│     - Copy and download functionality now matches `summaries/show.html.erb` behavior:
+│       - Timeline: Individual copy buttons for each item using `data-copy-single-target`
+│       - Transcript: Proper segment structure with `data-youtube-target="segment"` and download functionality
+│       - All sections use consistent `data-copy-target="button"` and `data-copy-target="source"` structure
+│     - Modular structure: Broken down into smaller partials for better maintainability:
+│       - `_demo_summary_section.html.erb`: TL;DR and Details sections with copy/download functionality
+│       - `_demo_timeline_section.html.erb`: Timeline with individual item copy buttons and proper data structure
+│       - `_demo_transcript_section.html.erb`: Transcript with segmented content and download functionality
 │
 ├── ⚙️ settings/index.html.erb
 │   └── Partials:
@@ -152,6 +169,7 @@ Styling consistency (2025-08-10):
 - Summary page sections (`_tldr_section`, `_summary_section`, `_transcript_section`) now share the same container styles:
   - `bg-gray-100 dark:bg-gray-900 rounded-lg shadow p-4 lg:p-6 border border-gray-200 dark:border-gray-700`
   - Ensures parity between light/dark modes and consistent padding/borders.
+- Copy icons updated to use neutral colors: `text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100` across all sections for visual consistency.
 
 🔄 Controller Relationships for summaries/show:
 - youtube_controller.js: Controls video player functionality

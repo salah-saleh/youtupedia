@@ -1,0 +1,43 @@
+<%# Demo Transcript Section - Transcript tab with segmented content %>
+<div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4 hidden"
+     data-tabs-target="panel" data-name="transcript"
+     data-controller="copy transcript-download"
+     data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>"
+     data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:transcript_full) || "").to_s.gsub("\n", ' ').gsub('"', '&quot;') %>">
+  <div class="flex items-center justify-between mb-2">
+    <h3 class="text-sm font-medium text-gray-900 dark:text-white"></h3>
+    <div class="flex items-center gap-1">
+      <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" 
+              data-action="click->copy#copy" 
+              data-copy-target="button" 
+              aria-label="Copy transcript">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+        </svg>
+      </button>
+      <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" 
+              data-action="click->transcript-download#downloadSegmented" 
+              aria-label="Download transcript">
+        <%= render_icon :arrow_down, class: "w-4 h-4" %>
+      </button>
+    </div>
+  </div>
+  
+  <div class="space-y-2 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 pr-2" 
+       data-youtube-target="transcript"
+       data-copy-target="source">
+    <% (@demo_summary_data&.dig(:transcript_segmented) || []).each do |seg| %>
+      <% next if seg[:text].to_s.strip.blank? %>
+      <div class="group flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+           data-youtube-target="segment"
+           data-start="<%= seg[:start] %>">
+        <button class="flex-shrink-0 text-xs text-purple-500 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
+          <%= format_duration(seg[:start]) %>
+        </button>
+        <div class="flex-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+          <%= seg[:text].strip %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

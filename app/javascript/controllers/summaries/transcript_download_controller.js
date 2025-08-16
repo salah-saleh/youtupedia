@@ -12,7 +12,7 @@ export default class extends Controller {
 
   // Handles click on "Download Full"
   downloadFull() {
-    const text = this.fullValue || this.buildFullFromSegments()
+    const text = this.fullValue || this.buildFullFromDom()
     const baseName = this.videoIdValue || "transcript"
     this.downloadText(text, `${baseName}-full.txt`)
   }
@@ -40,6 +40,44 @@ export default class extends Controller {
       }
     })
     return lines.join("\n")
+  }
+
+  // Builds content from DOM - handles both transcript and timeline
+  buildFullFromDom() {
+    // Check if this is a timeline section
+    if (this.element.querySelector('[data-timeline-item]')) {
+      return this.buildTimelineFromDom()
+    }
+    // Otherwise treat as transcript
+    return this.buildFullFromSegments()
+  }
+
+  // Builds timeline content from DOM
+  buildTimelineFromDom() {
+    const items = [];
+    this.element.querySelectorAll('[data-timeline-item]').forEach(item => {
+      const topicElement = item.querySelector('h4[data-timeline-topic]');
+      const topic = topicElement?.textContent.trim() || '';
+      
+      // Get the takeaway content
+      const originalContent = item.querySelector('[data-timeline-target="originalContent"]');
+      let takeaway = '';
+      
+      // If there's an expanded content and it's visible, use bullet points
+      const expandedContent = item.querySelector('[data-expanded-takeaway]');
+      const expandedParent = expandedContent?.closest('[data-timeline-target="expandedContent"]');
+      if (expandedContent && expandedParent && !expandedParent.classList.contains('hidden')) {
+        const bullets = Array.from(expandedContent.querySelectorAll('li')).map(li => li.textContent.trim());
+        takeaway = bullets.join('\n  - ');
+      } else {
+        takeaway = originalContent?.textContent.trim() || '';
+      }
+      
+      if (topic && takeaway) {
+        items.push(`- ${topic}\n  - ${takeaway}`);
+      }
+    });
+    return items.join('\n\n');
   }
 
   // Fallback: builds a "full" transcript by concatenating segmented DOM

@@ -1,0 +1,58 @@
+<%# Demo Summary Section - TL;DR and Details tabs %>
+<div class="space-y-4" data-tabs-target="panel" data-name="summary">
+  <!-- TL;DR Section -->
+  <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4"
+       data-controller="copy transcript-download"
+       data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:tldr) || "").to_s.gsub("\n", " ").gsub('"', '&quot;') %>"
+       data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-medium text-gray-900 dark:text-white">TL;DR</h3>
+      <div class="flex items-center gap-1">
+        <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" 
+                data-action="click->copy#copy" 
+                data-copy-target="button" 
+                aria-label="Copy TL;DR">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+          </svg>
+        </button>
+        <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" 
+                data-action="click->transcript-download#downloadFull" 
+                aria-label="Download TL;DR">
+          <%= render_icon :arrow_down, class: "w-4 h-4" %>
+        </button>
+      </div>
+    </div>
+    <div data-copy-target="source" class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+      <%= @demo_summary_data&.dig(:tldr).presence || "Key points appear here once ready." %>
+    </div>
+  </div>
+
+  <!-- Details Section -->
+  <div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4"
+       data-controller="copy transcript-download"
+       data-transcript-download-full-value="<%= (@demo_summary_data&.dig(:summary) || "").to_s.gsub("\n", " ").gsub('"', '&quot;') %>"
+       data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-medium text-gray-900 dark:text-white">Details</h3>
+      <div class="flex items-center gap-1">
+        <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" 
+                data-action="click->copy#copy" 
+                data-copy-target="button" 
+                aria-label="Copy details">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+          </svg>
+        </button>
+        <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" 
+                data-action="click->transcript-download#downloadFull" 
+                aria-label="Download details">
+          <%= render_icon :arrow_down, class: "w-4 h-4" %>
+        </button>
+      </div>
+    </div>
+    <div data-copy-target="source" class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+      <%= @demo_summary_data&.dig(:summary).presence || "Summary is being prepared..." %>
+    </div>
+  </div>
+</div>

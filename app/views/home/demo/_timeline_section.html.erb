@@ -1,0 +1,49 @@
+<%# Demo Timeline Section - Timeline tab with collapsible items %>
+<div class="bg-gray-50/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/40 dark:border-gray-600/40 p-4 hidden"
+     data-tabs-target="panel" data-name="timeline"
+     data-controller="copy timeline transcript-download"
+     data-transcript-download-video-id-value="<%= @demo_summary_data&.dig(:video_id) %>">
+  <div class="flex items-center justify-between mb-2">
+    <h3 class="text-sm font-medium text-gray-900 dark:text-white"></h3>
+    <div class="flex items-center gap-1">
+      <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" 
+              data-action="click->copy#copy" 
+              data-copy-target="button" 
+              aria-label="Copy timeline">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+        </svg>
+      </button>
+      <button class="p-1.5 rounded-md bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300" 
+              data-action="click->transcript-download#downloadFull" 
+              aria-label="Download timeline">
+        <%= render_icon :arrow_down, class: "w-4 h-4" %>
+      </button>
+    </div>
+  </div>
+  
+  <div class="relative space-y-3 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-purple-100 dark:before:bg-purple-900" 
+       data-copy-target="source">
+    <% (@demo_summary_data&.dig(:contents) || []).each_with_index do |content, index| %>
+      <div class="relative" data-timeline-item>
+        <!-- Header row with bubble aligned to topic -->
+        <div class="relative pl-10">
+          <div class="absolute left-0 top-1/2 -translate-y-1/2 transform w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+            <div class="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full"></div>
+          </div>
+
+          <div class="text-sm leading-6 text-gray-700 dark:text-gray-300">
+            <h4 data-timeline-topic><%= content[:topic] %></h4>
+          </div>
+        </div>
+
+        <!-- Takeaway text -->
+        <div class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed ml-10 mt-2">
+          <div data-timeline-target="originalContent">
+            <%= content[:takeaway] %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
