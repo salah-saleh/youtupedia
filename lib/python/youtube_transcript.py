@@ -9,8 +9,25 @@ from random import uniform
 # https://github.com/jdepoix/youtube-transcript-api/issues/303
 # https://dashboard.nodemaven.com/
 
-def get_transcript_with_retry(video_id, max_retries=2, initial_delay=1):
+def get_transcript_with_retry(video_id, languages=None, max_retries=2, initial_delay=1):
+    """
+    Fetch YouTube transcript with retry logic and multi-language support.
+    
+    Args:
+        video_id (str): YouTube video ID
+        languages (list): List of language codes in priority order (e.g., ['es', 'en', 'auto'])
+                         If None, defaults to ['en', 'auto'] for backward compatibility
+        max_retries (int): Maximum number of retry attempts
+        initial_delay (int): Initial delay between retries in seconds
+    
+    Returns:
+        dict: Result dictionary with success status and transcript/error data
+    """
     last_error = None
+    
+    # Default to all languages popular languages
+    if languages is None:
+        languages = ['en', 'ar', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'pt', 'ru', 'zh']
 
     for attempt in range(max_retries):
         try:
@@ -36,8 +53,8 @@ def get_transcript_with_retry(video_id, max_retries=2, initial_delay=1):
             ytt_api = YouTubeTranscriptApi(proxy_config=proxy_config)
 
             # Fetch the transcript data and convert to raw format
-            fetched_transcript = ytt_api.fetch(video_id)
-            
+            fetched_transcript = ytt_api.fetch(video_id, languages=languages)
+
             # Format the transcript
             formatted_transcript = []
             for entry in fetched_transcript:
@@ -79,6 +96,7 @@ if __name__ == "__main__":
         # Read input from stdin
         input_data = json.loads(sys.stdin.read())
         video_id = input_data.get('video_id')
+        languages = input_data.get('languages')  # Optional languages parameter
         
         if not video_id:
             print(json.dumps({
@@ -87,8 +105,9 @@ if __name__ == "__main__":
             }))
             sys.exit(1)
 
-        # Get and print transcript with retries
-        result = get_transcript_with_retry(video_id)
+        # Get and print transcript with retries and language support
+        # If languages is None, function will use default to all popular languages
+        result = get_transcript_with_retry(video_id, languages=languages)
         print(json.dumps(result))
     except json.JSONDecodeError as e:
         print(json.dumps({
