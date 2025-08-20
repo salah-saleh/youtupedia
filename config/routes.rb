@@ -46,5 +46,9 @@ Rails.application.routes.draw do
   resource :settings, only: [ :show, :create ], controller: "settings" do
     get :index, on: :collection
   end
+
+  # Mission Control - Jobs for monitoring Solid Queue
+  # Only accessible to admin users
+  mount MissionControl::Jobs::Engine, at: "/jobs"
 end
 

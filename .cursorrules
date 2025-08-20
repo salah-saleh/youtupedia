@@ -1,3 +1,5 @@
+VIP: If you need to start a server for testing, always check if there is already a server running and use it if possible instead of starting a new one.
+
 Project stack:
   - framework: Ruby on Rails 8 which you are expert in
     architecture: MVC (Model-View-Controller) that combines both frontend and backend

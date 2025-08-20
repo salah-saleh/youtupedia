@@ -64,32 +64,12 @@ Rails.application.configure do
     config.active_support.report_deprecations = false
 
   # MemCachier configuration for production (multi-server setup)
-  config.cache_store = :mem_cache_store,
-    (ENV["MEMCACHIER_SERVERS"] || "").split(","),  # Array of server addresses for distributed caching
-    {
-      # Authentication (required for MemCachier)
-      username: ENV["MEMCACHIER_USERNAME"],  # MemCachier credential
-      password: ENV["MEMCACHIER_PASSWORD"],  # MemCachier credential
-
-      # Memory Optimization Settings
-      compress: true,              # Compress data to save memory
-      expires_in: 1.day,          # Default TTL to prevent memory leaks
-      
-      # High Availability Settings
-      failover: true,              # If a server is down, try the next one
-      socket_timeout: 3.0,         # Seconds to wait for socket operations
-      socket_failure_delay: 0.2,   # Seconds to wait before retrying a failed connection
-      down_retry_delay: 60,        # Seconds to wait before retrying a down server
-
-      # Connection Management - Based on dyno type
-      # Basic: 5 threads
-      # Standard-1X/2X: 10 threads
-      # Performance-M/L: 20 threads
-      pool_size:  5
-    }
+  config.cache_store = :solid_cache_store
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
-  # config.active_job.queue_adapter = :resque
+  config.active_job.queue_adapter = :solid_queue
+  config.solid_queue.connects_to = { database: { writing: :queue } }
+
 
   # Enable delivery error reporting in production
   # config.action_mailer.raise_delivery_errors = true

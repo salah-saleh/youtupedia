@@ -9,6 +9,7 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
 
+# SQLite configuration for production (not used)
 production_sql: &production_sql
   primary:
     <<: *default
@@ -26,21 +27,25 @@ production_sql: &production_sql
     database: storage/production_cable.sqlite3
     migrations_paths: db/cable_migrate
 
-# Define postgres defaults first
-production_postgres: &production_postgres
+# PostgreSQL configuration for development
+development_postgres: &development_postgres
   adapter: postgresql
   encoding: unicode
-  url: <%= ENV['DATABASE_URL'] %>
+  host: <%= ENV.fetch("POSTGRES_HOST") { "localhost" } %>
+  database: youtupedia_development
+  username: <%= ENV.fetch("POSTGRES_USER") { "postgres" } %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD") { "password" } %>
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
 development:
   primary:
-    <<: *default
-    database: storage/development.sqlite3
+    <<: *development_postgres
   cable:
-    <<: *default
-    database: storage/development_cable.sqlite3
-    migrations_paths: db/cable_migrate
+    <<: *development_postgres
+  queue:
+    <<: *development_postgres
+  cache:
+    <<: *development_postgres
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -49,8 +54,21 @@ test:
   <<: *default
   database: storage/test.sqlite3
 
+# Define postgres defaults first
+production_postgres: &production_postgres
+  adapter: postgresql
+  encoding: unicode
+  url: <%= ENV['DATABASE_URL'] %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>  
+
 # Store production database in the storage/ directory, which by default
 # is mounted as a persistent Docker volume in config/deploy.yml.
 production:
   primary:
+    <<: *production_postgres
+  cable:
+    <<: *production_postgres
+  queue:
+    <<: *production_postgres
+  cache:
     <<: *production_postgres

@@ -113,3 +113,6 @@ gem "get_process_mem"
 # reCAPTCHA v2 (Google). Helpers to render the widget and verify tokens server-side.
 # Set RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY in env.
 gem "recaptcha", require: "recaptcha/rails"
+
+# Mission Control - Jobs for monitoring Solid Queue
+gem "mission_control-jobs"

@@ -24,6 +24,7 @@ RUN apt-get update -qq && \
     python3-venv \
     build-essential \
     libpq-dev \
+    supervisor \
     && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install Python dependencies
@@ -71,6 +72,9 @@ FROM base
 # Copy built artifacts: gems, application
 COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
+# Copy supervisor configuration
+COPY supervisord.conf /etc/supervisor/conf.d/
+
 
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \
@@ -83,4 +87,5 @@ ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start server via Thruster by default, this can be overwritten at runtime
 EXPOSE 8080
-CMD ["sh", "-c", "./bin/thrust ./bin/rails server -b 0.0.0.0 -p $PORT"]
+# Start both web server and background jobs via supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
