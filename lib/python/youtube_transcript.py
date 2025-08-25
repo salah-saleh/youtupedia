@@ -9,7 +9,7 @@ from random import uniform
 # https://github.com/jdepoix/youtube-transcript-api/issues/303
 # https://dashboard.nodemaven.com/
 
-def get_transcript_with_retry(video_id, languages=None, max_retries=2, initial_delay=1):
+def get_transcript_with_retry(video_id, languages=None, max_retries=2, initial_delay=1, max_delay=5):
     """
     Fetch YouTube transcript with retry logic and multi-language support.
     
@@ -19,6 +19,7 @@ def get_transcript_with_retry(video_id, languages=None, max_retries=2, initial_d
                          If None, defaults to ['en', 'auto'] for backward compatibility
         max_retries (int): Maximum number of retry attempts
         initial_delay (int): Initial delay between retries in seconds
+        max_delay (int): Maximum delay between retries in seconds
     
     Returns:
         dict: Result dictionary with success status and transcript/error data
@@ -82,8 +83,8 @@ def get_transcript_with_retry(video_id, languages=None, max_retries=2, initial_d
                     'error': str(e)
                 }
             if attempt < max_retries - 1:
-                # Calculate delay with exponential backoff and jitter
-                delay = initial_delay * (2 ** attempt) + uniform(0, 0.1)
+                # Calculate delay with exponential backoff and jitter, but cap at max_delay
+                delay = min(initial_delay * (2 ** attempt) + uniform(0, 0.1), max_delay)
                 time.sleep(delay)
 
     return {

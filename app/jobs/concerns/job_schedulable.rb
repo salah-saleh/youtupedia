@@ -23,6 +23,11 @@
 module JobSchedulable
   extend ActiveSupport::Concern
 
+  included do
+    # Register the around_perform callback when the module is included
+    around_perform :cleanup_job_cache
+  end
+
   class_methods do
     # Schedule a job with duplicate prevention
     # @param args [Array] Arguments to pass to the job
@@ -39,6 +44,16 @@ module JobSchedulable
       Rails.cache.write(job_key, true, expires_in: 2.minutes)
       perform_later(*args)
       true
+    end
+
+    # Manually clear a stuck job cache key
+    # @param args [Array] Arguments that were passed to the job
+    # @return [Boolean] true if key was deleted, false if it didn't exist
+    def clear_job_cache(*args)
+      job_key = "#{name.underscore}:#{args.join(':')}"
+      deleted = Rails.cache.delete(job_key)
+      log_info "Manually cleared job cache key: #{job_key}, deleted: #{deleted}"
+      deleted
     end
 
     private
@@ -59,9 +74,14 @@ module JobSchedulable
 
   # Wrap job execution to ensure cleanup of cache key
   # This runs even if the job fails or raises an error
-  def around_perform(*args)
-    yield
-  ensure
-    Rails.cache.delete(job_key)
+  def cleanup_job_cache
+    log_info "Starting job with cache key: #{job_key}"
+    begin
+      yield
+    ensure
+      # Always clean up the cache key, regardless of success/failure
+      deleted = Rails.cache.delete(job_key)
+      log_info "Cleaned up job cache key: #{job_key}, deleted: #{deleted}"
+    end
   end
 end
