@@ -14,12 +14,16 @@ Rails.application.routes.draw do
     member do
       post :ask_gpt
       post :expand_takeaway
+      delete :remove_from_user
     end
   end
 
   resources :channels, only: [ :index, :show ] do
     collection do
       get :create_from_url
+    end
+    member do
+      delete :remove_from_user
     end
   end
   post "/parse_youtube_url", to: "youtube_urls#parse"

@@ -17,8 +17,11 @@
 │   │       ├── shared/_form_components/button
 │   │       ├── shared/_page_header
 │   │       ├── shared/_grid
-│   │       ├── shared/_video_card
+│   │       ├── shared/_video_card (with remove button support)
 │   │       └── shared/_empty_state
+│   │   Notes:
+│   │   - Video cards include remove buttons when show_remove_button: true
+│   │   - Uses remove_item_controller.js for AJAX removal
 │   │
 │   └── show.html.erb
 │       - Subscribes to Turbo Streams via `<%= turbo_stream_from "summaries:#{@summary_data[:video_id]}" %>`
@@ -40,8 +43,11 @@
 │   │       ├── shared/_form_components/button
 │   │       ├── shared/_page_header
 │   │       ├── shared/_grid
-│   │       ├── shared/_channel_card
+│   │       ├── shared/_channel_card (with remove button support)
 │   │       └── shared/_empty_state
+│   │   Notes:
+│   │   - Channel cards include remove buttons when show_remove_button: true
+│   │   - Uses remove_item_controller.js for AJAX removal
 │   │
 │   └── show.html.erb
 │       └── Partials:
@@ -199,3 +205,32 @@ Note on Turbo Streams rendering (2025-08-13)
 5. Look for opportunities to extract common patterns in home views into shared partials
 6. Consider creating a shared form layout since many views use similar form structures
 7. Review if some partials could be combined (e.g., _grid and _video_grid)
+
+🔧 JavaScript Controllers:
+├── shared/
+│   ├── remove_item_controller.js - Handles smooth animations when removing summaries and channels
+│   │   └── Features:
+│   │       ├── Smooth fade-out animations before Turbo Stream removal
+│   │       ├── Loading states with spinner
+│   │       ├── Empty state handling
+│   │       ├── Error handling with user feedback
+│   │       └── CSRF token support for Rails security
+│   │   └── Usage:
+│   │       ├── Video cards: data-controller="remove-item" data-remove-item-type-value="summary" data-remove-item-id-value="..."
+│   │       └── Channel cards: data-controller="remove-item" data-remove-item-type-value="channel" data-remove-item-id-value="..."
+│   │   └── Architecture:
+│   │       ├── JavaScript handles animations only
+│   │       └── Turbo Streams handle actual DOM removal
+│   │
+│   ├── toast_controller.js - Displays toast notifications
+│   ├── theme_controller.js - Handles light/dark mode switching
+│   └── copy_controller.js - Handles copy-to-clipboard functionality
+│
+├── summaries/
+│   ├── youtube_controller.js - Controls video player functionality
+│   ├── loading_message_controller.js - Handles loading message in TLDR until content arrives
+│   ├── timeline_controller.js - Handles transcript/takeaways interactions
+│   └── transcript_download_controller.js - Handles transcript download functionality
+│
+└── home/
+    └── search_animation_controller.js - Handles search animation effects

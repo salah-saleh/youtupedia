@@ -4,21 +4,37 @@
 <% if video.nil? %>
   <%= render "shared/card_skeleton" %>
 <% else %>
-  <%= render "shared/card",
-        href: summary_path(video[:video_id]),
-        link_data: { turbo_frame: "_top" } do %>
-    <%= render "shared/image", src: video[:thumbnail], alt: video[:title] %>
+  <div id="summary-card-<%= video[:video_id] %>" class="relative group">
+    <%# Remove button - positioned absolutely in top-right corner %>
+    <% if local_assigns[:show_remove_button] %>
+      <button class="absolute top-2 right-2 z-10 bg-purple-600 hover:bg-purple-700 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              data-controller="remove-item"
+              data-action="click->remove-item#remove"
+              data-remove-item-type-value="summary"
+              data-remove-item-id-value="<%= video[:video_id] %>"
+              title="Remove from your list">
+        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+    <% end %>
 
-    <div class="p-4">
-      <h3 class="font-medium mb-2 line-clamp-2 text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-        <%= video[:title] %>
-      </h3>
+    <%= render "shared/card",
+          href: summary_path(video[:video_id]),
+          link_data: { turbo_frame: "_top" } do %>
+      <%= render "shared/image", src: video[:thumbnail], alt: video[:title] %>
 
-      <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-2">
-        <span class="truncate"><%= video[:channel] || video[:channel_title] %></span>
-        <span class="text-gray-400 dark:text-gray-600 shrink-0">•</span>
-        <span class="shrink-0"><%= time_ago_in_words(video[:published_at]) %> ago</span>
+      <div class="p-4">
+        <h3 class="font-medium mb-2 line-clamp-2 text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+          <%= video[:title] %>
+        </h3>
+
+        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-2">
+          <span class="truncate"><%= video[:channel] || video[:channel_title] %></span>
+          <span class="text-gray-400 dark:text-gray-600 shrink-0">•</span>
+          <span class="shrink-0"><%= time_ago_in_words(video[:published_at]) %> ago</span>
+        </div>
       </div>
-    </div>
-  <% end %>
+    <% end %>
+  </div>
 <% end %>

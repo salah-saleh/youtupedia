@@ -91,4 +91,27 @@ class ChannelsController < ApplicationController
       format.turbo_stream { redirect_to channel_path(channel_name, channel_url: params[:channel_url]) }
     end
   end
+
+  # Removes a channel from the user's saved channels list
+  # @param id [String] The channel name to remove
+  def remove_from_user
+    channel_name = params[:id]
+    
+    # Remove from user's saved channels
+    UserServices::UserDataService.remove_item(Current.user.id, :channels, channel_name)
+    
+    # Return Turbo Stream response for immediate DOM removal
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.remove("channel-card-#{channel_name}"),
+          turbo_stream.prepend("flash-messages", partial: "shared/flash_message", 
+                              locals: { type: "notice", message: "Channel removed from your list" })
+        ]
+      end
+      format.html do
+        redirect_to channels_path, notice: "Channel removed from your list"
+      end
+    end
+  end
 end

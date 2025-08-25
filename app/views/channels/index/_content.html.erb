@@ -3,7 +3,7 @@
   <% if @channels.any? %>
     <%= render "shared/grid" do %>
       <% @channels.each do |channel| %>
-        <%= render "shared/channel_card", channel: channel %>
+        <%= render "shared/channel_card", channel: channel, show_remove_button: true %>
       <% end %>
     <% end %>
 

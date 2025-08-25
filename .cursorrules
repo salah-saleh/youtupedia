@@ -1,12 +1,12 @@
 VIP: If you need to start a server for testing, always check if there is already a server running and use it if possible instead of starting a new one.
 
 Project stack:
-  - framework: Ruby on Rails 8 which you are expert in
+  - framework: Ruby on Rails 8 which you are expert in (hotwire, turbo, stimulus, turbo streams and turbo frames. Solid cache, solid queue, solid cable)
     architecture: MVC (Model-View-Controller) that combines both frontend and backend
   - databases is a combination of:
     - PostgreSQL
     - MongoDB
-  - styling: Tailwind CSS
+  - styling: Tailwind CSS version 3.0
   - containerization: Docker (ensure flexibility in environment setup)
   - ui inspiration: Application is built for desktop, but should be mobile-friendly. Inspired by YouTube dashboard.
 

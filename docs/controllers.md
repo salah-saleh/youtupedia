@@ -11,11 +11,22 @@
 │   │       ├── Youtube::YoutubeVideoTranscriptService
 │   │       ├── Ai::LlmSummaryService
 │   │       └── UserServices::UserDataService
+│   │   └── Actions:
+│   │       ├── show - Display video summary with metadata and transcript
+│   │       ├── index - List user's saved video summaries with pagination
+│   │       ├── create_from_url - Create summary from YouTube URL
+│   │       ├── expand_takeaway - Expand specific takeaway with AI
+│   │       └── remove_from_user - Remove summary from user's saved list
 │   │
 │   ├── channels_controller.rb
 │   │   └── Services:
 │   │       ├── YoutubeChannelService
 │   │       └── MongoCacheService
+│   │   └── Actions:
+│   │       ├── index - List user's subscribed channels with pagination
+│   │       ├── show - Display channel details and videos
+│   │       ├── create_from_url - Add channel from YouTube URL
+│   │       └── remove_from_user - Remove channel from user's saved list
 │   │
 │   │   Flow (show):
 │   │   - Reads `@channel_name` from `params[:id]`

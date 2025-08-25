@@ -79,6 +79,29 @@ class SummariesController < ApplicationController
     end
   end
 
+  # Removes a summary from the user's saved summaries list
+  # @param id [String] The video ID to remove
+  def remove_from_user
+    video_id = params[:id]
+    
+    # Remove from user's saved summaries
+    UserServices::UserDataService.remove_item(Current.user.id, :summaries, video_id)
+    
+    # Return Turbo Stream response for immediate DOM removal
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.remove("summary-card-#{video_id}"),
+          turbo_stream.prepend("flash-messages", partial: "shared/flash_message", 
+                              locals: { type: "notice", message: "Video removed from your list" })
+        ]
+      end
+      format.html do
+        redirect_to summaries_path, notice: "Summary removed from your list"
+      end
+    end
+  end
+
   private
 
   def build_status_response(result)
