@@ -16,10 +16,6 @@ class BaseService
         error: "#{prefix}: #{error.message}"
       }
     end
-
-    def default_cache_namespace
-      name.demodulize.underscore.pluralize
-    end
   end
 
   def handle_error(error, prefix = "Error")

@@ -98,139 +98,147 @@
 │     - Modular structure: Broken down into smaller partials for better maintainability:
 │       - `_demo_summary_section.html.erb`: TL;DR and Details sections with copy/download functionality
 │       - `_demo_timeline_section.html.erb`: Timeline with individual item copy buttons and proper data structure
-│       - `_demo_transcript_section.html.erb`: Transcript with segmented content and download functionality
+│       - `_demo_transcript_section.html.erb`: Transcript with proper segment structure and download functionality
 │
-├── ⚙️ settings/index.html.erb
-│   └── Partials:
-│       ├── shared/_section
-│       ├── shared/_icon
-│       ├── shared/_form_components/button
-│       └── shared/_user_switcher
+├── 📧 mailers/
+│   ├── user_mailer/
+│   │   ├── email_verification.html.erb
+│   │   └── password_reset.html.erb
+│   │
+│   └── passwords_mailer/
+│       ├── reset.html.erb
+│       └── reset.text.erb
 │
-├── 🔐 auth/
-│   ├── passwords/
-│   │   ├── edit.html.erb
-│   │   │   └── Partials:
-│   │   │       └── shared/_container
-│   │   │
+├── 🔐 authentication/
+│   ├── sessions/
 │   │   └── new.html.erb
 │   │       └── Partials:
-│   │           └── shared/_container
+│   │           ├── shared/_auth_layout
+│   │           ├── shared/_form_components/auth_input
+│   │           └── shared/_form_components/button
 │   │
-│   ├── registrations/new.html.erb
-│   │   └── Partials:
-│   │       └── shared/_container
+│   ├── registrations/
+│   │   └── new.html.erb
+│   │       └── Partials:
+│   │           ├── shared/_auth_layout
+│   │           ├── shared/_form_components/auth_input
+│   │           └── shared/_form_components/button
 │   │
-│   └── sessions/new.html.erb
+│   └── passwords/
+│       ├── new.html.erb
+│       └── edit.html.erb
+│           └── Partials:
+│               ├── shared/_auth_layout
+│               ├── shared/_form_components/auth_input
+│               └── shared/_form_components/button
+│
+├── ⚙️ settings/
+│   └── index.html.erb
 │       └── Partials:
-│           └── shared/_container
+│           ├── shared/_container
+│           ├── shared/_section
+│           └── shared/_form_components/button
 │
-└── 🛠️ dev/users/
-    ├── index.html.erb
-    │   └── Partials:
-    │       └── shared/_user_switcher
-    │
-    └── new.html.erb
-        └── Partials:
-            └── shared/_container
-
-📊 Shared Partial Usage Frequency:
-1. _container.html.erb (7 uses)
-   - All auth views
-   - dev/users/new
-   - channels/show
-   - summaries/show
-
-2. _form_components/* (Multiple uses)
-   - button (5 uses)
-   - url_input (2 uses)
-   - search_input (1 use)
-
-3. _section.html.erb (2 uses)
-   - search/index
-   - settings/index
-
-4. _user_switcher.html.erb (2 uses)
-   - settings/index
-   - dev/users/index
-
-5. _empty_state.html.erb (2 uses)
-   - summaries/index
-   - channels/index
-
-6. _grid.html.erb (2 uses)
-   - summaries/index
-   - channels/index
-
-7. New Summary-specific components (1 use each)
-   - _video_player
-   - _summary_section
-   - _takeaways
-   - _transcript
-   - _chat_section
-   - _loading_state
-   - _error_state
-
-Styling consistency (2025-08-10):
-- Summary page sections (`_tldr_section`, `_summary_section`, `_transcript_section`) now share the same container styles:
-  - `bg-gray-100 dark:bg-gray-900 rounded-lg shadow p-4 lg:p-6 border border-gray-200 dark:border-gray-700`
-  - Ensures parity between light/dark modes and consistent padding/borders.
-- Copy icons updated to use neutral colors: `text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100` across all sections for visual consistency.
-
-🔄 Controller Relationships for summaries/show:
-- youtube_controller.js: Controls video player functionality
-- loading_message_controller.js: Handles loading message in TLDR until content arrives
-- timeline_controller.js: Handles transcript/takeaways interactions
-- (Removed) summary_loader_controller.js (replaced by server-pushed Turbo Streams)
-
-Transcript Section (downloads) (2025-08-10)
-- Added download buttons for full and segmented transcripts in `summaries/show/_transcript_section.html.erb`.
-- Uses Stimulus controller `summaries/transcript_download_controller.js` wired via `data-controller="transcript-download"`.
-- Values passed:
-  - `data-transcript-download-full-value`: full transcript text used for the Full download (falls back to DOM if missing)
-  - `data-transcript-download-video-id-value`: used to generate file names (sourced from `summary[:video_id]`)
-- Buttons trigger actions:
-  - `transcript-download#downloadFull`
-  - `transcript-download#downloadSegmented`
-
-Note on Turbo Streams rendering (2025-08-13)
-- Sections updated over websockets are rendered via server-pushed Turbo Streams with `locals: { summary: payload }`.
-- Therefore, section partials like `_tldr_section`, `_summary_section`, `_transcript_section`, `_takeaways_section`, and `_chat_section` must exclusively reference the `summary` local (e.g., `summary[:video_id]`) and not controller instance variables such as `@summary_data`.
-
-💡 Additional Recommendations:
-1. Consider standardizing error and loading states across all views
-2. Look for opportunities to reuse summary-specific components in other views
-3. Review if some summary partials could be generalized for broader use
-4. Consider standardizing home views to use shared components
-5. Look for opportunities to extract common patterns in home views into shared partials
-6. Consider creating a shared form layout since many views use similar form structures
-7. Review if some partials could be combined (e.g., _grid and _video_grid)
-
-🔧 JavaScript Controllers:
-├── shared/
-│   ├── remove_item_controller.js - Handles smooth animations when removing summaries and channels
-│   │   └── Features:
-│   │       ├── Smooth fade-out animations before Turbo Stream removal
-│   │       ├── Loading states with spinner
-│   │       ├── Empty state handling
-│   │       ├── Error handling with user feedback
-│   │       └── CSRF token support for Rails security
-│   │   └── Usage:
-│   │       ├── Video cards: data-controller="remove-item" data-remove-item-type-value="summary" data-remove-item-id-value="..."
-│   │       └── Channel cards: data-controller="remove-item" data-remove-item-type-value="channel" data-remove-item-id-value="..."
-│   │   └── Architecture:
-│   │       ├── JavaScript handles animations only
-│   │       └── Turbo Streams handle actual DOM removal
+├── 📄 pages/
+│   ├── about.html.erb
+│   │   └── Partials:
+│   │       ├── shared/_container
+│   │       ├── shared/_page_header
+│   │       └── pages/about/_description
 │   │
-│   ├── toast_controller.js - Displays toast notifications
-│   ├── theme_controller.js - Handles light/dark mode switching
-│   └── copy_controller.js - Handles copy-to-clipboard functionality
+│   ├── contact.html.erb
+│   │   └── Partials:
+│   │       ├── shared/_container
+│   │       ├── shared/_page_header
+│   │       └── pages/contact/_description
+│   │
+│   └── discover.html.erb
+│       └── Partials:
+│           ├── shared/_container
+│           ├── shared/_page_header
+│           ├── shared/_grid
+│           ├── shared/_video_card
+│           └── pages/discover/_content
 │
-├── summaries/
-│   ├── youtube_controller.js - Controls video player functionality
-│   ├── loading_message_controller.js - Handles loading message in TLDR until content arrives
-│   ├── timeline_controller.js - Handles transcript/takeaways interactions
-│   └── transcript_download_controller.js - Handles transcript download functionality
+├── 🚀 pwa/
+│   ├── manifest.json.erb
+│   └── service-worker.js
 │
-└── home/
-    └── search_animation_controller.js - Handles search animation effects
+└── 🔧 shared/
+    ├── _action_buttons.html.erb
+    ├── _auth_input.html.erb
+    ├── _auth_layout.html.erb
+    ├── _card_skeleton.html.erb
+    ├── _card.html.erb
+    ├── _centered_search_layout.html.erb
+    ├── _channel_about.html.erb
+    ├── _channel_card.html.erb
+    ├── _container.html.erb
+    ├── _empty_state.html.erb
+    ├── _error_message.html.erb
+    ├── _flash_message.html.erb
+    ├── _footer_links.html.erb
+    ├── _footer.html.erb
+    ├── _grid.html.erb
+    ├── _head.html.erb
+    ├── _image.html.erb
+    ├── _layout.html.erb
+    ├── _loading_context.html.erb
+    ├── _nav_links.html.erb
+    ├── _nav.html.erb
+    ├── _page_header.html.erb
+    ├── _pagination.html.erb
+    ├── _search_form.html.erb
+    ├── _search_results.html.erb
+    ├── _section.html.erb
+    ├── _sidebar.html.erb
+    ├── _skeleton.html.erb
+    ├── _spinner.html.erb
+    ├── _static_page.html.erb
+    ├── _teaser.html.erb
+    ├── _toast.html.erb
+    ├── _truncate.html.erb
+    ├── _user_switcher.html.erb
+    ├── _video_card.html.erb
+    ├── _video_grid.html.erb
+    └── form_components/
+        ├── _auth_input.html.erb
+        ├── _button.html.erb
+        ├── _input.html.erb
+        ├── _search_input.html.erb
+        └── _url_input.html.erb
+
+## Data Storage Architecture Updates
+
+The application now uses a standardized MongoDB-based data persistence approach:
+
+- **Persistable Concern** - Unified data storage interface with consistent API across all services
+- **Standardized Methods** - All services use `fetch_stored`, `write_stored`, `read_stored`, `stored?`, `delete_stored`
+- **Enhanced Error Handling** - Improved retry mechanism and graceful failure handling
+- **Namespace Support** - Flexible namespace management with service-specific defaults
+- **Force Execution** - Ability to bypass storage and regenerate data when needed
+- **Clear Naming** - Renamed from "cache" terminology to "storage" to reflect MongoDB as primary data store
+
+## Key View Features
+
+1. **Turbo Streams Integration** - Real-time updates via ActionCable
+2. **Responsive Design** - Mobile-friendly with Tailwind CSS
+3. **Dark/Light Mode** - Consistent theming across all components
+4. **Modular Partials** - Reusable components for maintainability
+5. **Form Components** - Consistent input styling and behavior
+6. **Loading States** - Skeleton loaders and spinners for better UX
+7. **Error Handling** - Graceful error display and recovery
+8. **Accessibility** - Proper ARIA labels and keyboard navigation
+
+## JavaScript Controllers
+
+- **Theme Controller** - Dark/light mode switching
+- **Copy Controller** - Text copying functionality
+- **Toast Controller** - Notification system
+- **Loading Controller** - Loading state management
+- **Search Controller** - Search functionality
+- **Tabs Controller** - Tab switching behavior
+- **Remove Item Controller** - Item removal with confirmation
+- **Email Reveal Controller** - Email address protection
+- **Nav Toggle Controller** - Mobile navigation
+- **Dropdown Controller** - Dropdown menu functionality

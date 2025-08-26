@@ -2,7 +2,6 @@
 
 module Ai
   class LlmTakeawayExpanderService < BaseService
-    include Cacheable
     include LlmServiceBase
 
     def initialize(client_type = :gemini)
@@ -28,8 +27,8 @@ module Ai
         # Update the contents array with the expanded takeaway
         summary_data[:contents][index][:expanded_takeaway] = expansion_result[:expanded_takeaway]
 
-        # Update the cache with the modified summary data
-        Ai::LlmSummaryService.write_cached(video_id, summary_data, expires_in: nil)
+        # Update the storage with the modified summary data
+        Ai::LlmSummaryService.write_stored(video_id, summary_data)
 
         # Return just the expansion result for the turbo frame
         expansion_result

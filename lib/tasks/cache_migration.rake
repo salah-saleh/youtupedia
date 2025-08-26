@@ -1,8 +1,8 @@
-namespace :cache do
-  desc "Migrate data from file cache to MongoDB"
+namespace :storage do
+  desc "Migrate data from file cache to MongoDB storage"
   task migrate_to_mongo: :environment do
     def migrate_namespace(namespace)
-      mongo_cache = Cache::MongoCacheService.new(namespace)
+      mongo_storage = Storage::MongoStorageService.new(namespace)
 
       cache_dir = Rails.root.join("tmp", "cache", namespace)
 
@@ -20,7 +20,7 @@ namespace :cache do
         begin
           puts "  Processing #{key}..."
           data = JSON.parse(File.read(file), symbolize_names: true)
-          mongo_cache.write(key, data)
+          mongo_storage.write(key, data)
           migrated += 1
           puts "  ✓ Migrated #{key}"
         rescue => e

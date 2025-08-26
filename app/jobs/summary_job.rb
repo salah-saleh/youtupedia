@@ -10,50 +10,41 @@
 #
 # The job is safe to schedule multiple times; each step is idempotent through caching.
 class SummaryJob < ApplicationJob
+  include JobSchedulable
+  
   queue_as :default
 
   def perform(video_id)
     log_info "Starting summary job for video #{video_id}"
     
-    begin
-      # First get metadata (required for the UI and LLM prompt)
-      # Add timeout protection for metadata fetching
-      metadata = fetch_metadata_with_timeout(video_id)
-      unless metadata[:success]
-        log_error "Metadata fetch failed, aborting job", context: { video_id: video_id, error: metadata[:error] }
-        return
-      end
+    # First get metadata (required for the UI and LLM prompt)
+    # Add timeout protection for metadata fetching
+    metadata = fetch_metadata_with_timeout(video_id)
+    return unless metadata[:success]
 
-      # Then get transcript (Python call). If it fails, cache the failure and still update the UI.
-      log_info "Getting transcript for video #{video_id}"
-      transcript = Youtube::YoutubeVideoTranscriptService.new.process_task(video_id)
-      unless transcript[:success]
-        log_error "Failed to get transcript", context: { video_id: video_id, error: transcript[:error] }
-        transcript[:error] = "Failed to summarize video. Please try again later."
-        Youtube::YoutubeVideoTranscriptService.write_cached(video_id, transcript, expires_in: nil)
-        update_sections(video_id)
-        return
-      end
-
-      # Cache the transcript result atomically
-      Youtube::YoutubeVideoTranscriptService.write_cached(video_id, transcript, expires_in: nil)
-
-      log_info "Transcript fetched for video #{video_id}"
-      # Finally generate summary
-      result = Ai::LlmSummaryService.new(:gemini).process_task(video_id, transcript[:transcript_full], metadata)
-
-      # Cache the summary result atomically
-      Ai::LlmSummaryService.write_cached(video_id, result, expires_in: nil)
-      # Broadcast turbo streams to update sections
+    # Then get transcript (Python call). If it fails, cache the failure and still update the UI.
+    log_info "Getting transcript for video #{video_id}"
+    transcript = Youtube::YoutubeVideoTranscriptService.new.process_task(video_id)
+    unless transcript[:success]
+      log_error "Failed to get transcript", context: { video_id: video_id, error: transcript[:error] }
+      transcript[:error] = "Failed to summarize video. Please try again later."
+      Youtube::YoutubeVideoTranscriptService.write_stored(video_id, transcript)
       update_sections(video_id)
-      log_info "Summary job completed for video #{video_id}"
-    rescue => e
-      log_error "Summary job failed with exception", context: { video_id: video_id, error: e.message, backtrace: e.backtrace.first(5) }
-      # Ensure the error is cached so we don't keep retrying
-      error_result = { success: false, error: "Job failed: #{e.message}" }
-      Youtube::YoutubeVideoTranscriptService.write_cached(video_id, error_result, expires_in: nil)
-      raise e  # Re-raise to ensure proper error handling
+      return
     end
+
+    # Store the transcript result atomically
+    Youtube::YoutubeVideoTranscriptService.write_stored(video_id, transcript)
+
+    log_info "Transcript fetched for video #{video_id}"
+    # Finally generate summary
+    result = Ai::LlmSummaryService.new(:gemini).process_task(video_id, transcript[:transcript_full], metadata)
+
+    # Store the summary result atomically
+    Ai::LlmSummaryService.write_stored(video_id, result)
+    # Broadcast turbo streams to update sections
+    update_sections(video_id)
+    log_info "Summary job completed for video #{video_id}"
   end
 
   private
@@ -86,9 +77,12 @@ class SummaryJob < ApplicationJob
   end
 
   def build_summary_payload(video_id)
+    # Fetch all data in one go to avoid redundant storage calls
     metadata = Youtube::YoutubeVideoMetadataService.fetch_metadata(video_id)
     transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(video_id)
     summary = transcript&.dig(:success) ? Ai::LlmSummaryService.fetch_summary(video_id) : nil
+    
+    # Build summary data using the fetched data
     SummariesController.new.send(:build_summary_data, video_id, metadata, transcript, summary)
   end
 end

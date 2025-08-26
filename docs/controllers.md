@@ -3,7 +3,7 @@
 │   ├── application_controller.rb
 │   │   └── Concerns:
 │   │       ├── authentication.rb
-│   │       └── error_handling.rb
+│   │       └── request_traceable.rb
 │   │
 │   ├── summaries_controller.rb
 │   │   └── Services:
@@ -20,8 +20,8 @@
 │   │
 │   ├── channels_controller.rb
 │   │   └── Services:
-│   │       ├── YoutubeChannelService
-│   │       └── MongoCacheService
+│   │       ├── Youtube::YoutubeChannelService
+│   │       └── Storage::MongoStorageService
 │   │   └── Actions:
 │   │       ├── index - List user's subscribed channels with pagination
 │   │       ├── show - Display channel details and videos
@@ -40,8 +40,8 @@
 │   │
 │   ├── youtube_urls_controller.rb
 │   │   └── Services:
-│   │       ├── YoutubeVideoMetadataService
-│   │       └── YoutubeVideoTranscriptService
+│   │       ├── Youtube::YoutubeVideoMetadataService
+│   │       └── Youtube::YoutubeVideoTranscriptService
 │   │
 │   ├── search_controller.rb
 │   │   └── Services:
@@ -67,74 +67,111 @@
 │
 ├── 🔄 jobs/
 │   ├── application_job.rb
-│   ├── summary_generation_job.rb
-│   │   └── Services:
-│   │       ├── ChatGptService
-│   │       └── MongoCacheService
+│   │   └── Concerns:
+│   │       └── job_schedulable.rb - Prevents duplicate job execution
 │   │
-│   ├── transcript_fetch_job.rb
+│   ├── summary_job.rb
 │   │   └── Services:
-│   │       └── YoutubeVideoTranscriptService
+│   │       ├── Youtube::YoutubeVideoMetadataService
+│   │       ├── Youtube::YoutubeVideoTranscriptService
+│   │       ├── Ai::LlmSummaryService
+│   │       └── Storage::MongoStorageService
 │   │
-│   ├── channel_sync_job.rb
-│   │   └── Services:
-│   │       └── YoutubeChannelService
+│   ├── async_job_processor.rb
+│   │   └── ❌ REMOVED - Unused async processing pattern
 │   │
 │   └── cleanup_job.rb
 │       └── Services:
-│           └── MongoCacheService
+│           └── Storage::MongoStorageService
 │
 ├── 🛠️ services/
 │   ├── cache/
 │   │   ├── base_cache_service.rb
-│   │   ├── mongo_cache_service.rb
-│   │   ├── indexable_concern.rb
-│   │   └── searchable_concern.rb
+│   │   └── mongo_cache_service.rb - MongoDB-based caching with retry mechanism
 │   │
-│   ├── chat/
+│   ├── ai/
 │   │   ├── chat_gpt_service.rb
-│   │   └── prompt_builder.rb
+│   │   ├── chat_thread_service.rb
+│   │   ├── llm_summary_service.rb
+│   │   ├── llm_takeaway_expander_service.rb
+│   │   ├── clients/
+│   │   │   ├── base_client.rb
+│   │   │   ├── openai_client.rb
+│   │   │   └── gemini_client.rb
+│   │   ├── llm_service_base.rb
+│   │   └── prompts/
+│   │       └── prompt_store.rb
 │   │
 │   ├── youtube/
+│   │   ├── youtube_base_service.rb
 │   │   ├── youtube_video_metadata_service.rb
 │   │   ├── youtube_video_transcript_service.rb
 │   │   └── youtube_channel_service.rb
 │   │
-│   └── user/
-│       └── user_data_service.rb
+│   ├── user_services/
+│   │   └── user_data_service.rb
+│   │
+│   ├── search/
+│   │   ├── channel_search_service.rb
+│   │   └── video_search_service.rb
+│   │
+│   ├── lock/
+│   │   └── request_lock_service.rb - MongoDB-based request locking
+│   │
+│   └── ❌ REMOVED - Unused async processing pattern
+│
+├── 📱 views/
+│   ├── summaries/
+│   │   ├── show.html.erb
+│   │   └── index.html.erb
+│   │
+│   ├── channels/
+│   │   ├── show.html.erb
+│   │   └── index.html.erb
+│   │
+│   └── shared/
+│       ├── _video_card.html.erb
+│       ├── _channel_card.html.erb
+│       └── _pagination.html.erb
+│
+└── 🔧 concerns/
+    ├── authentication.rb - User authentication and session management
+    ├── captcha_verifiable.rb - reCAPTCHA verification
+    ├── dev_route_protection.rb - Admin route protection
+    ├── paginatable.rb - Pagination functionality
+    ├── request_lockable.rb - Request locking for concurrent operations
+    ├── request_traceable.rb - Request tracking and logging
+    ├── summary_data_helper.rb - Summary data building
+    ├── video_summaries_helper.rb - Video summary handling
+    └── youtube_url_helper.rb - YouTube URL parsing
 
-🔄 Key Service Relationships:
-1. MongoCacheService
-   - Used by: summaries_controller, channels_controller, cleanup_job
-   - Depends on: indexable_concern, searchable_concern
+## Data Storage Architecture
 
-2. ChatGptService
-   - Used by: summaries_controller, summary_generation_job
-   - Depends on: prompt_builder
+The application uses a standardized MongoDB-based data persistence approach with consistent APIs:
 
-3. YoutubeServices
-   - Used by: youtube_urls_controller, channels_controller
-   - Depends on: youtube_video_transcript_service
+- **Persistable Concern** - Unified data storage interface across all services
+- **Storage::MongoStorageService** - MongoDB storage with retry mechanism and error handling
+- **Consistent API** - All services use `fetch_stored`, `write_stored`, `read_stored`, `stored?`, `delete_stored`
+- **Namespace Isolation** - Each service has its own storage namespace with support for custom namespaces
+- **Force Execution Support** - Ability to bypass storage and regenerate data when needed
 
-🔍 Job Dependencies:
-1. SummaryJob (app/jobs/summary_job.rb)
-   - Triggered by: `SummariesController#show` when data is missing
-   - Uses: Youtube::YoutubeVideoMetadataService, Youtube::YoutubeVideoTranscriptService, Ai::LlmSummaryService
-   - Pushes UI updates via Turbo Streams broadcast to `"summaries:#{video_id}"` using the built-in `Turbo::StreamsChannel` (no custom channel class required)
-   - Renders section partials with `locals: { summary: payload }`. Partials must use the `summary` local, not controller instance variables.
+## Key Changes
 
-2. cleanup_job.rb
-   - Scheduled task
-   - Uses: MongoCacheService
+1. **Added Persistable concern** - Unified data storage interface with consistent API across all services
+2. **Removed AsyncProcessable concern** - No more unused async processing pattern  
+3. **Standardized storage operations** - All services use the same storage methods through Persistable
+4. **Improved error handling** - Enhanced retry mechanism and graceful failure handling
+5. **Clearer naming** - Renamed from "cache" to "storage" to reflect MongoDB as primary data store
+6. **Simplified job scheduling** - JobSchedulable uses Rails.cache for duplicate prevention
+7. **Request locking** - RequestLockService uses Rails.cache for distributed locks
+8. **Cleaner architecture** - Consistent patterns reduce code duplication and improve maintainability
 
-Changes (2025-08-08):
-- Removed `SummariesController#check_status` and route. Live updates now use websockets (Turbo Streams).
-- `SummariesController#show` schedules `SummaryJob` only when data is missing/failing; otherwise it serves cached data.
-- Added `SummariesChannel` and `turbo_stream_from` usage in views.
+## Service Dependencies
 
-Changes (2025-08-10):
-- `Youtube::YoutubeChannelService` now requests `contentDetails` when fetching channel metadata and exposes `uploads_playlist_id`.
-- Channel video pagination switched from `search.list` to `playlistItems.list` using the uploads playlist for consistent `nextPageToken`/`prevPageToken` across all channels.
+All services now use the `Persistable` concern for consistent data storage operations:
 
-Notes (2025-08-12):
-- No controller behavior changes for the home updates; all adjustments were view-layer only (background, demo card tabs behavior and ordering).
+- **AI Services**: `LlmSummaryService`, `LlmTakeawayExpanderService`
+- **YouTube Services**: `YoutubeVideoMetadataService`, `YoutubeVideoTranscriptService`, `YoutubeChannelService`  
+- **User Services**: `UserDataService`
+
+This unified approach ensures consistent behavior, error handling, and API across the entire application using MongoDB as the primary data store.

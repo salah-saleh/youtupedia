@@ -1,10 +1,9 @@
 module Ai
   class ChatThreadService < BaseService
-    include Cacheable
-
+    include Persistable
     class << self
       def create_or_load_thread(video_id)
-        fetch_cached(thread_key_for(video_id)) do
+        fetch_stored(thread_key_for(video_id)) do
           {
             success: true,
             messages: [],
@@ -15,7 +14,7 @@ module Ai
 
       def save_message(video_id, role, content)
         thread_key = thread_key_for(video_id)
-        thread_data = fetch_cached(thread_key) do
+        thread_data = fetch_stored(thread_key) do
           { success: true, messages: [] }
         end
 
@@ -27,8 +26,8 @@ module Ai
           timestamp: Time.current
         }
 
-        # Cache the updated thread
-        cache_service.write(thread_key, thread_data)
+        # Store the updated thread
+        write_stored(thread_key, thread_data)
         thread_data
       end
 

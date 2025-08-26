@@ -1,14 +1,13 @@
 module Ai
   class ChatGptService < BaseService
-    include AsyncProcessable
-    include Cacheable
+    include Persistable
 
     class << self
-      # Fetches summary from cache
+      # Fetches summary from storage
       # @param video_id [String] The YouTube video ID
-      # @return [Hash, nil] Summary data if cached, nil if processing started
+      # @return [Hash, nil] Summary data if stored, nil if processing started
       def fetch_summary(video_id)
-        fetch_cached(video_id, expires_in: nil)
+        read_stored(video_id)
       end
 
       def answer_question(video_id, question, transcript, metadata)

@@ -1,33 +1,35 @@
 module Youtube
   class YoutubeVideoMetadataService < YoutubeBaseService
+    include Persistable
+    
     MAX_VIDEOS_PER_REQUEST = 50 # YouTube API limit
 
     def self.fetch_metadata(video_id)
-      # don't expire the cache
-      fetch_cached(video_id, expires_in: nil) do
+      # Persist metadata permanently
+      fetch_stored(video_id) do
         fetch_from_api([ video_id ])[video_id]
       end
     end
 
     def self.fetch_metadata_batch(video_ids)
-      # Filter out video IDs that are already in cache
-      uncached_ids = video_ids.select do |id|
-        !Rails.cache.exist?("#{default_cache_namespace}_#{id}")
+      # Filter out video IDs that are already stored
+      unstored_ids = video_ids.select do |id|
+        !stored?(id)
       end
 
-      # Fetch uncached videos in batches of 50 (YouTube API limit)
-      unless uncached_ids.empty?
-        uncached_ids.each_slice(MAX_VIDEOS_PER_REQUEST) do |batch|
+      # Fetch unstored videos in batches of 50 (YouTube API limit)
+      unless unstored_ids.empty?
+        unstored_ids.each_slice(MAX_VIDEOS_PER_REQUEST) do |batch|
           results = fetch_from_api(batch)
           results.each do |id, data|
-            write_cached(id, data, expires_in: nil)
+            write_stored(id, data)
           end
         end
       end
 
-      # Return all metadata (from cache and newly fetched)
+      # Return all metadata (from storage and newly fetched)
       video_ids.map do |id|
-        [ id, fetch_cached(id, expires_in: nil) { { success: false, error: "Video not found" } } ]
+        [ id, stored?(id) ? read_stored(id) : { success: false, error: "Video not found" } ]
       end.to_h
     end
 

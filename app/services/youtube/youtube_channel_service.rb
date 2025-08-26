@@ -2,7 +2,9 @@ module Youtube
   # Service for managing YouTube channel data and related video information
   # Handles channel metadata, video lists, and user channel associations
   class YoutubeChannelService < YoutubeBaseService
-    # Fetches all channels from the cache or fetches missing channels from the API
+    include Persistable
+    
+    # Fetches all channels from storage or fetches missing channels from the API
     # @param paginated_channel_names [Array<String>] List of channel names
     # @return [Array<Hash>] List of channel metadata
     def self.fetch_channels_metadata(paginated_channel_names)
@@ -13,7 +15,7 @@ module Youtube
     # @param channel_name [String] Channel name or handle
     # @return [Hash] Channel metadata with success status
     def self.fetch_channel_metadata(channel_name)
-      fetch_cached(channel_name, namespace: default_cache_namespace + "_channel_metadata", expires_in: nil) do
+      fetch_stored(channel_name, namespace: default_storage_namespace + "_channel_metadata") do
         fetch_channel_data(channel_name)
       end
     end
@@ -27,7 +29,7 @@ module Youtube
     def self.fetch_channel_videos(channel_name, channel_id, page_size = 9, page_token = nil)
       # first page should be always fetched from API
       force_block_execution = page_token.nil? ? true : false
-      fetch_cached("#{channel_name}_#{page_token}", namespace: default_cache_namespace + "_channel_videos", expires_in: nil, force_block_execution: force_block_execution) do
+      fetch_stored("#{channel_name}_#{page_token}", namespace: default_storage_namespace + "_channel_videos", force_block_execution: force_block_execution) do
         fetch_videos_from_api(channel_id, page_size, page_token)
       end
     end
@@ -42,8 +44,8 @@ module Youtube
     # @return [Hash]
     def self.fetch_channel_videos_search(channel_name, channel_id, query, page_size = 9, page_token = nil)
       force_block_execution = page_token.nil? ? true : false
-      cache_key = "#{channel_name}_#{query}_#{page_token}"
-      fetch_cached(cache_key, namespace: default_cache_namespace + "_channel_videos_search", expires_in: nil, force_block_execution: force_block_execution) do
+      storage_key = "#{channel_name}_#{query}_#{page_token}"
+      fetch_stored(storage_key, namespace: default_storage_namespace + "_channel_videos_search", force_block_execution: force_block_execution) do
         fetch_videos_search_from_api(channel_id, query, page_size, page_token)
       end
     end
@@ -199,13 +201,13 @@ module Youtube
     end
 
     # Returns the uploads playlist ID for a channel
-    # - Uses cache for efficiency and no expiry to minimize quota usage
+    # - Uses persistent storage for efficiency to minimize quota usage
     # - Falls back with a structured error if the channel cannot be found
     # @param channel_id [String]
     # @return [String] uploads playlist id or
     #         [Hash] error hash with { success: false, error: String }
     def self.fetch_uploads_playlist_id(channel_id)
-      fetch_cached(channel_id, namespace: default_cache_namespace + "_uploads_playlist", expires_in: nil) do
+      fetch_stored(channel_id, namespace: default_storage_namespace + "_uploads_playlist") do
         ch_response = youtube_client.list_channels("contentDetails", id: channel_id)
         if ch_response.items.empty?
           {

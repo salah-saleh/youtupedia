@@ -1,8 +1,7 @@
 module Ai
   class LlmSummaryService < BaseService
-    include AsyncProcessable
-    include Cacheable
     include LlmServiceBase
+    include Persistable
 
     def initialize(client_type = :gemini)
       @client = client_for(client_type)
@@ -11,7 +10,7 @@ module Ai
 
     class << self
       def fetch_summary(video_id)
-        fetch_cached(video_id, expires_in: nil)
+        read_stored(video_id)
       end
     end
 

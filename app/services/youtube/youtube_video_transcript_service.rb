@@ -2,15 +2,14 @@ module Youtube
   # Service for fetching and processing YouTube video transcripts
   # Uses Python script for transcript extraction and provides both segmented and full versions
   class YoutubeVideoTranscriptService < YoutubeBaseService
-    include AsyncProcessable
-    include Cacheable
     include PythonScriptable
+    include Persistable
 
     class << self
       def fetch_transcript(video_id, retry_on_failed: false)
-        result = fetch_cached(video_id, namespace: default_cache_namespace, expires_in: nil)
+        result = read_stored(video_id)
         if retry_on_failed && result&.dig(:success) == false
-          delete_cached(video_id, namespace: default_cache_namespace)
+          delete_stored(video_id)
           return nil
         end
         result

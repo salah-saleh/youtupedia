@@ -79,8 +79,8 @@ namespace :discover do
               end
             end
             
-            # Cache the transcript if successful
-            Youtube::YoutubeVideoTranscriptService.write_cached(video_id, transcript, expires_in: nil)
+            # Store the transcript if successful
+            Youtube::YoutubeVideoTranscriptService.write_stored(video_id, transcript)
           end
         rescue Timeout::Error
           puts "--> Timeout while fetching transcript for video #{video_id} after #{transcript_timeout} seconds."
@@ -106,8 +106,8 @@ namespace :discover do
               next
             end
             
-            # Cache the summary
-            Ai::LlmSummaryService.write_cached(video_id, result, expires_in: nil)
+            # Store the summary
+            Ai::LlmSummaryService.write_stored(video_id, result)
             
             # Add to master's summaries list
             UserServices::UserDataService.add_item("master", :summaries_sponsered, video_id)

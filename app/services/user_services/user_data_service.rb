@@ -1,18 +1,15 @@
-# require_relative "../concerns/cacheable"
-
+# Manages user-specific data storage and retrieval using MongoDB caching
+# Handles user's video summaries, channel subscriptions, and chat threads
+#
+# Data Structure:
+# {
+#   summaries: ["video_id1", "video_id2", ...],     # Recently viewed video summaries
+#   channels: ["channel_id1", "channel_id2", ...],  # Subscribed channels
+#   chat_threads: ["thread_id1", "thread_id2", ...] # Active chat threads
+# }
 module UserServices
-  # Manages user-specific data storage and retrieval using caching
-  # Handles user's video summaries, channel subscriptions, and chat threads
-  #
-  # Data Structure:
-  # {
-  #   summaries: ["video_id1", "video_id2", ...],     # Recently viewed video summaries
-  #   channels: ["channel_id1", "channel_id2", ...],  # Subscribed channels
-  #   chat_threads: ["thread_id1", "thread_id2", ...] # Active chat threads
-  # }
   class UserDataService < BaseService
-    include Cacheable
-
+    include Persistable
     class << self
       # Adds an item to the specified collection for a user
       # New items are added to the beginning of the list
@@ -24,9 +21,7 @@ module UserServices
       def add_item(user_id, type, item_id)
         log_info "Adding item", context: { user_id: user_id, type: type, item_id: item_id }
 
-        data = fetch_cached("user_#{user_id}") do
-          default_data
-        end
+        data = fetch_user_data(user_id)
         data[type] ||= []
 
         if data[type].include?(item_id)
@@ -40,7 +35,7 @@ module UserServices
         end
 
         data[type].unshift(item_id)
-        cache_service.write("user_#{user_id}", data)
+        write_stored("user_#{user_id}", data)
 
         log_info "Added new item", context: {
           user_id: user_id,
@@ -55,22 +50,17 @@ module UserServices
       def remove_item(user_id, type, item_id)
         log_info "Removing item", context: { user_id: user_id, type: type, item_id: item_id }
 
-        data = fetch_cached("user_#{user_id}") do
-          default_data
-        end
-
+        data = fetch_user_data(user_id)
         data[type]&.delete(item_id)
 
-        cache_service.write("user_#{user_id}", data)
+        write_stored("user_#{user_id}", data)
         log_info "Updated data", data
       end
 
       def user_items(user_id, type)
         log_info "Fetching items", context: { user_id: user_id, type: type }
 
-        data = fetch_cached("user_#{user_id}") do
-          default_data
-        end
+        data = fetch_user_data(user_id)
         items = data[type] || []
 
         log_info "Found items", items
@@ -83,9 +73,15 @@ module UserServices
 
       private
 
+      def fetch_user_data(user_id)
+        fetch_stored("user_#{user_id}") do
+          default_data
+        end
+      end
+
       def default_data
         {
-          success: true,  # Add success flag for Cacheable
+          success: true,
           summaries: [],
           channels: [],
           chat_threads: []

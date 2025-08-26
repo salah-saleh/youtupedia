@@ -38,10 +38,9 @@ module JobSchedulable
         log_info "Job already running: #{job_key}"
         return false
       end
-
+      
       # Set a cache key to indicate job is processing
-      # The 2-minutes expiry serves as a safety net for stalled jobs
-      Rails.cache.write(job_key, true, expires_in: 2.minutes)
+      Rails.cache.write(job_key, true)
       perform_later(*args)
       true
     end

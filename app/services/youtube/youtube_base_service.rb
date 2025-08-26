@@ -1,8 +1,6 @@
 module Youtube
   # Base class for YouTube services providing API client and error handling
   class YoutubeBaseService < BaseService
-    include Cacheable
-
     class << self
       def youtube_client
         @client ||= begin
