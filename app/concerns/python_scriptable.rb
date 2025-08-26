@@ -26,6 +26,9 @@
 #       # Handle result...
 #     end
 #   end
+
+require 'fcntl'
+
 module PythonScriptable
   extend ActiveSupport::Concern
 
@@ -77,7 +80,7 @@ module PythonScriptable
   # @param input_data [] Data to pass to the Python script
   # @param timeout [Integer] Timeout in seconds (defaults to SCRIPT_TIMEOUT)
   # @return [Hash] Result of script execution with success status
-    def run_python_script(script_name, input_data, timeout: PythonScriptConfig.script_timeout)
+  def run_python_script(script_name, input_data, timeout: PythonScriptConfig.script_timeout)
     script_path = Rails.root.join("lib", "python", script_name)
     command = "#{PythonScriptConfig.python_path} #{script_path}"
     status = nil
@@ -92,7 +95,7 @@ module PythonScriptable
           memory_mb: current_memory_mb
         }
 
-        # Use popen3 with explicit resource limits
+        # Use popen3 with explicit resource limits and non-blocking I/O
         Open3.popen3(
           {
             "PYTHONPATH" => ENV["PYTHONPATH"],
@@ -109,11 +112,17 @@ module PythonScriptable
           },
           command
         ) do |stdin, stdout, stderr, wait_thread|
+          # Store PID for cleanup
+          status = wait_thread
+          
+          # Write input data and close stdin
           stdin.write(input_data.to_json)
           stdin.close
 
-          output = stdout.read
-          error = stderr.read
+          # Use non-blocking I/O with timeout to prevent hanging
+          output, error = read_with_timeout(stdout, stderr, timeout, wait_thread)
+
+          # Get the exit status
           status = wait_thread.value
 
           # Check memory after process completion
@@ -156,6 +165,83 @@ module PythonScriptable
     end
   end
 
+  # Reads from stdout and stderr with timeout protection using IO.select
+  #
+  # This method prevents hanging on blocking read operations by using IO.select
+  # to check if data is available before attempting to read.
+  #
+  # @param stdout [IO] Standard output stream
+  # @param stderr [IO] Standard error stream  
+  # @param timeout [Integer] Timeout in seconds
+  # @param wait_thread [Thread] Process thread for cleanup
+  # @return [Array<String, String>] Output and error strings
+  def read_with_timeout(stdout, stderr, timeout, wait_thread)
+    output = ""
+    error = ""
+    deadline = Time.now + timeout
+    
+    # Set streams to non-blocking mode
+    stdout.fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    stderr.fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    
+    while Time.now < deadline
+      # Use IO.select to check if data is available within remaining time
+      remaining_time = deadline - Time.now
+      break if remaining_time <= 0
+      
+      # Check if process has finished
+      unless wait_thread.alive?
+        # Process finished, read any remaining output
+        begin
+          output += stdout.read_nonblock(65536) while stdout.ready?
+        rescue EOFError, Errno::EAGAIN, Errno::EWOULDBLOCK
+          # No more data available
+        end
+        
+        begin
+          error += stderr.read_nonblock(65536) while stderr.ready?
+        rescue EOFError, Errno::EAGAIN, Errno::EWOULDBLOCK
+          # No more data available
+        end
+        break
+      end
+      
+      # Wait for data to be available on either stream
+      ready = IO.select([stdout, stderr], nil, nil, [remaining_time, 0.1].min)
+      
+      if ready
+        ready[0].each do |stream|
+          begin
+            if stream == stdout
+              output += stream.read_nonblock(65536)
+            elsif stream == stderr
+              error += stream.read_nonblock(65536)
+            end
+          rescue EOFError
+            # Stream closed, continue
+          rescue Errno::EAGAIN, Errno::EWOULDBLOCK
+            # No data available right now, continue
+          end
+        end
+      end
+      
+      # Small sleep to prevent busy waiting
+      sleep(0.01)
+    end
+    
+    # If we reach here and process is still alive, it timed out
+    if wait_thread.alive?
+      kill_process_tree(wait_thread.pid)
+      raise Timeout::Error, "Process timed out and was terminated"
+    end
+    
+    [output, error]
+  rescue => e
+    # Ensure process is killed on any error
+    kill_process_tree(wait_thread.pid) if wait_thread&.alive?
+    raise e
+  end
+
   # Safely terminates a process and all its children
   #
   # @param pid [Integer] Process ID to terminate
@@ -165,10 +251,29 @@ module PythonScriptable
     begin
       # Send TERM signal to the process group
       Process.kill("-TERM", Process.getpgid(pid))
+      sleep(0.1)  # Give process time to terminate gracefully
+      
+      # If process is still running, send KILL signal
+      if process_exists?(pid)
+        Process.kill("-KILL", Process.getpgid(pid))
+      end
     rescue Errno::ESRCH, Errno::EPERM
       # Process already terminated or permission denied
       nil
     end
+  end
+  
+  # Check if a process exists
+  #
+  # @param pid [Integer] Process ID to check
+  # @return [Boolean] True if process exists
+  def process_exists?(pid)
+    Process.kill(0, pid)
+    true
+  rescue Errno::ESRCH
+    false
+  rescue Errno::EPERM
+    true  # Process exists but we don't have permission to signal it
   end
 
   private

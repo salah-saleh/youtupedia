@@ -139,6 +139,7 @@
     ├── captcha_verifiable.rb - reCAPTCHA verification
     ├── dev_route_protection.rb - Admin route protection
     ├── paginatable.rb - Pagination functionality
+    ├── python_scriptable.rb - Python script execution with timeout protection
     ├── request_lockable.rb - Request locking for concurrent operations
     ├── request_traceable.rb - Request tracking and logging
     ├── summary_data_helper.rb - Summary data building
@@ -164,7 +165,18 @@ The application uses a standardized MongoDB-based data persistence approach with
 5. **Clearer naming** - Renamed from "cache" to "storage" to reflect MongoDB as primary data store
 6. **Simplified job scheduling** - JobSchedulable uses Rails.cache for duplicate prevention
 7. **Request locking** - RequestLockService uses Rails.cache for distributed locks
-8. **Cleaner architecture** - Consistent patterns reduce code duplication and improve maintainability
+8. **Enhanced Python script execution** - PythonScriptable concern now uses non-blocking I/O with proper timeout protection
+9. **Cleaner architecture** - Consistent patterns reduce code duplication and improve maintainability
+
+## Python Script Timeout Improvements
+
+The `PythonScriptable` concern has been enhanced to prevent hanging issues:
+
+- **Non-blocking I/O**: Uses `IO.select` and `read_nonblock` to prevent hanging on stdout/stderr reads
+- **Aggressive timeouts**: YouTube transcript service uses 15-second timeout (configurable via `YOUTUBE_TRANSCRIPT_TIMEOUT`)
+- **Process cleanup**: Improved process termination with TERM followed by KILL signals
+- **Resource management**: Proper cleanup of file descriptors and process trees
+- **Error handling**: Comprehensive error handling with process cleanup on failures
 
 ## Service Dependencies
 

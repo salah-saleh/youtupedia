@@ -9,7 +9,7 @@ from random import uniform
 # https://github.com/jdepoix/youtube-transcript-api/issues/303
 # https://dashboard.nodemaven.com/
 
-def get_transcript_with_retry(video_id, languages=None, max_retries=2, initial_delay=1, max_delay=5):
+def get_transcript_with_retry(video_id, languages=None, max_retries=2, initial_delay=0.1, max_delay=0.1):
     """
     Fetch YouTube transcript with retry logic and multi-language support.
     

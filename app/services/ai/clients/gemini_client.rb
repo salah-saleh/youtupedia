@@ -22,7 +22,9 @@ module Ai
           }
         end
 
-        result = run_python_script(script_name, { "messages" => formatted_messages })
+        # Use a shorter timeout specifically for Gemini to prevent hanging
+        gemini_timeout = ENV.fetch("GEMINI_TIMEOUT", 40).to_i
+        result = run_python_script(script_name, { "messages" => formatted_messages }, timeout: gemini_timeout)
 
         if result[:success]
           { success: true, content: result[:content] }
