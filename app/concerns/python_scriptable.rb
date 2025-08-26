@@ -84,87 +84,202 @@ module PythonScriptable
     script_path = Rails.root.join("lib", "python", script_name)
     command = "#{PythonScriptConfig.python_path} #{script_path}"
     status = nil
+    start_time = Time.now
 
     # Check memory before starting new process
     check_memory_usage
 
     begin
-      Timeout.timeout(timeout) do
-        log_info "Running Python script", context: {
-          script_path: script_path,
-          memory_mb: current_memory_mb
-        }
+      log_info "Running Python script", context: {
+        script_path: script_path,
+        memory_mb: current_memory_mb,
+        timeout: timeout
+      }
 
-        # Use popen3 with explicit resource limits and non-blocking I/O
-        Open3.popen3(
+      # Use popen3 with explicit resource limits and non-blocking I/O
+      Open3.popen3(
+        {
+          "PYTHONPATH" => ENV["PYTHONPATH"],
+          # MALLOC_ARENA_MAX: Limits the number of memory pools
+          # - Lower = Less memory fragmentation but potentially slower
+          # - Higher = Better performance but more memory usage
+          # Formula: log2(MAX_MEMORY_MB/256), minimum 2
+          "MALLOC_ARENA_MAX" => PythonScriptConfig.malloc_arena_max.to_s,
+          # MMAP_THRESHOLD: Size threshold for using mmap
+          # - Lower = Less memory fragmentation
+          # - Higher = Better performance for large allocations
+          # Formula: MAX_MEMORY_MB * 256, minimum 128KB
+          "MMAP_THRESHOLD" => PythonScriptConfig.mmap_threshold.to_s
+        },
+        command
+      ) do |stdin, stdout, stderr, wait_thread|
+        # Store PID for cleanup
+        status = wait_thread
+        
+        log_info "Python process started", context: { pid: wait_thread.pid }
+        
+        # Write input data and close stdin
+        stdin.write(input_data.to_json)
+        stdin.close
+
+        # Use aggressive timeout mechanism that doesn't rely on Timeout.timeout
+        output, error = read_with_aggressive_timeout(stdout, stderr, timeout, wait_thread, start_time)
+
+        # Get the exit status if process completed normally
+        if wait_thread.alive?
+          log_error "Process still alive after timeout, force killing", context: { pid: wait_thread.pid }
+          kill_process_tree(wait_thread.pid)
+          return { success: false, error: "Python script timed out after #{timeout} seconds" }
+        end
+
+        status = wait_thread.value
+
+        # Check memory after process completion
+        check_memory_usage
+
+        if status.success?
+          JSON.parse(output, symbolize_names: true)
+        else
+          log_error "Python script failed", context: {
+            script_name: script_name,
+            pid: wait_thread.pid,
+            exit_code: status.exitstatus,
+            stderr: error,
+            stdout: output
+          }
           {
-            "PYTHONPATH" => ENV["PYTHONPATH"],
-            # MALLOC_ARENA_MAX: Limits the number of memory pools
-            # - Lower = Less memory fragmentation but potentially slower
-            # - Higher = Better performance but more memory usage
-            # Formula: log2(MAX_MEMORY_MB/256), minimum 2
-            "MALLOC_ARENA_MAX" => PythonScriptConfig.malloc_arena_max.to_s,
-            # MMAP_THRESHOLD: Size threshold for using mmap
-            # - Lower = Less memory fragmentation
-            # - Higher = Better performance for large allocations
-            # Formula: MAX_MEMORY_MB * 256, minimum 128KB
-            "MMAP_THRESHOLD" => PythonScriptConfig.mmap_threshold.to_s
-          },
-          command
-        ) do |stdin, stdout, stderr, wait_thread|
-          # Store PID for cleanup
-          status = wait_thread
-          
-          # Write input data and close stdin
-          stdin.write(input_data.to_json)
-          stdin.close
-
-          # Use non-blocking I/O with timeout to prevent hanging
-          output, error = read_with_timeout(stdout, stderr, timeout, wait_thread)
-
-          # Get the exit status
-          status = wait_thread.value
-
-          # Check memory after process completion
-          check_memory_usage
-
-          if status.success?
-            JSON.parse(output, symbolize_names: true)
-          else
-            log_error "Python script failed", context: {
-              script_name: script_name,
-              pid: wait_thread.pid,
-              exit_code: status.exitstatus,
-              stderr: error,
-              stdout: output
-            }
-            {
-              success: false,
-              error: error.presence || "Python script failed with exit code #{status.exitstatus}"
-            }
-          end
+            success: false,
+            error: error.presence || "Python script failed with exit code #{status.exitstatus}"
+          }
         end
       end
-    rescue Timeout::Error
-      kill_process_tree(status&.pid)
-      { success: false, error: "Python script timed out after #{timeout} seconds" }
-    rescue MemoryLimitExceededError => e
-      kill_process_tree(status&.pid)
-      { success: false, error: "Memory limit exceeded: #{e.message}" }
     rescue => e
+      elapsed = Time.now - start_time
+      log_error "Exception in Python script execution", context: {
+        error: e.message,
+        error_class: e.class.name,
+        elapsed_seconds: elapsed.round(2),
+        pid: status&.pid
+      }
+      kill_process_tree(status&.pid) if status&.pid
       { success: false, error: "Failed to run Python script: #{e.message}" }
     ensure
+      elapsed = Time.now - start_time
       if status&.pid
-        kill_process_tree(status.pid)
-        log_info "Cleaned up Python process", context: {
+        # Only attempt to kill if process is still running
+        if process_exists?(status.pid)
+          log_info "Process still running, attempting cleanup", context: { pid: status.pid }
+          kill_process_tree(status.pid)
+        end
+        
+        log_info "Python process completed", context: {
           pid: status.pid,
-          memory_mb: current_memory_mb
+          memory_mb: current_memory_mb,
+          elapsed_seconds: elapsed.round(2),
+          status: process_exists?(status.pid) ? "still_running" : "completed_normally"
         }
       end
       GC.start
     end
   end
 
+  # Aggressive timeout mechanism that actively monitors and kills processes
+  #
+  # This method uses a separate monitoring thread to enforce timeouts,
+  # ensuring that processes are terminated quickly even in containerized environments.
+  #
+  # @param stdout [IO] Standard output stream
+  # @param stderr [IO] Standard error stream  
+  # @param timeout [Integer] Timeout in seconds
+  # @param wait_thread [Thread] Process thread for cleanup
+  # @param start_time [Time] When the process started
+  # @return [Array<String, String>] Output and error strings
+  def read_with_aggressive_timeout(stdout, stderr, timeout, wait_thread, start_time)
+    output = ""
+    error = ""
+    deadline = start_time + timeout
+    
+    # Set streams to non-blocking mode
+    stdout.fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    stderr.fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
+    
+    # Start a separate thread to monitor timeout and kill process if needed
+    monitor_thread = Thread.new do
+      while wait_thread.alive? && Time.now < deadline
+        sleep(0.1)
+      end
+      
+      if wait_thread.alive?
+        log_error "Monitor thread detected timeout, killing process", context: { 
+          pid: wait_thread.pid,
+          elapsed: (Time.now - start_time).round(2)
+        }
+        kill_process_tree(wait_thread.pid)
+      end
+    end
+    
+    begin
+      while Time.now < deadline && wait_thread.alive?
+        # Use IO.select with very short timeout for responsiveness
+        remaining_time = deadline - Time.now
+        break if remaining_time <= 0
+        
+        # Wait for data to be available on either stream
+        ready = IO.select([stdout, stderr], nil, nil, [remaining_time, 0.05].min)
+        
+        if ready
+          ready[0].each do |stream|
+            begin
+              if stream == stdout
+                data = stream.read_nonblock(65536)
+                output += data if data
+              elsif stream == stderr
+                data = stream.read_nonblock(65536)
+                error += data if data
+              end
+            rescue EOFError
+              # Stream closed, continue
+            rescue Errno::EAGAIN, Errno::EWOULDBLOCK
+              # No data available right now, continue
+            end
+          end
+        end
+        
+        # Small sleep to prevent busy waiting
+        sleep(0.01)
+      end
+      
+      # If we reach here due to timeout, the monitor thread should have killed the process
+      if Time.now >= deadline && wait_thread.alive?
+        log_error "Process survived monitor thread kill attempt", context: { pid: wait_thread.pid }
+        kill_process_tree(wait_thread.pid)
+        raise Timeout::Error, "Process timed out and was terminated"
+      end
+      
+      # Read any remaining output if process finished normally
+      if !wait_thread.alive?
+        begin
+          output += stdout.read_nonblock(65536) while stdout.ready?
+        rescue EOFError, Errno::EAGAIN, Errno::EWOULDBLOCK
+          # No more data available
+        end
+        
+        begin
+          error += stderr.read_nonblock(65536) while stderr.ready?
+        rescue EOFError, Errno::EAGAIN, Errno::EWOULDBLOCK
+          # No more data available
+        end
+      end
+      
+      [output, error]
+    ensure
+      # Clean up monitor thread
+      monitor_thread.kill if monitor_thread.alive?
+      monitor_thread.join rescue nil
+    end
+  end
+
+  # Legacy method kept for backward compatibility
   # Reads from stdout and stderr with timeout protection using IO.select
   #
   # This method prevents hanging on blocking read operations by using IO.select
@@ -244,22 +359,121 @@ module PythonScriptable
 
   # Safely terminates a process and all its children
   #
+  # This method uses an extremely aggressive approach for Cloud Run environments
+  # where standard process signals might not be as effective. It uses multiple
+  # strategies and doesn't give up until the process is terminated.
+  #
   # @param pid [Integer] Process ID to terminate
   # @return [void]
   def kill_process_tree(pid)
     return unless pid
+    
+    start_time = Time.now
+    log_info "Terminating hanging process", context: { pid: pid }
+    
     begin
-      # Send TERM signal to the process group
-      Process.kill("-TERM", Process.getpgid(pid))
-      sleep(0.1)  # Give process time to terminate gracefully
+      # Strategy 1: Send TERM signal directly to the process (safer than process group)
+      log_info "Strategy 1: Sending TERM signal to process", context: { pid: pid }
+      Process.kill("TERM", pid)
       
-      # If process is still running, send KILL signal
-      if process_exists?(pid)
-        Process.kill("-KILL", Process.getpgid(pid))
+      # Wait with multiple checks for graceful termination (shorter wait)
+      3.times do |i|
+        sleep(0.05)  # Reduced sleep time
+        unless process_exists?(pid)
+          elapsed = (Time.now - start_time).round(3)
+          log_info "Process terminated gracefully", context: { pid: pid, attempts: i + 1, elapsed_seconds: elapsed }
+          return
+        end
       end
-    rescue Errno::ESRCH, Errno::EPERM
-      # Process already terminated or permission denied
-      nil
+      
+      # Strategy 2: Send KILL signal directly to process (force termination)
+      if process_exists?(pid)
+        log_info "Strategy 2: Process still alive, sending KILL signal", context: { pid: pid }
+        Process.kill("KILL", pid)
+        
+        # Wait with multiple checks for forceful termination
+        5.times do |i|
+          sleep(0.05)  # Reduced sleep time
+          unless process_exists?(pid)
+            elapsed = (Time.now - start_time).round(3)
+            log_info "Process killed forcefully", context: { pid: pid, attempts: i + 1, elapsed_seconds: elapsed }
+            return
+          end
+        end
+      end
+      
+      # Strategy 3: Try process group signals as last resort (with caution)
+      if process_exists?(pid)
+        log_info "Strategy 3: Direct signals failed, trying process group", context: { pid: pid }
+        begin
+          Process.kill("-TERM", Process.getpgid(pid))
+          sleep(0.1)
+          
+          if process_exists?(pid)
+            Process.kill("-KILL", Process.getpgid(pid))
+            sleep(0.1)
+          end
+        rescue Errno::ESRCH, Errno::EPERM
+          # Process group doesn't exist or permission denied, skip
+          log_info "Process group signals failed, skipping", context: { pid: pid }
+        end
+        
+        # Check if direct kill worked
+        3.times do |i|
+          sleep(0.05)
+          unless process_exists?(pid)
+            elapsed = (Time.now - start_time).round(3)
+            log_info "Process killed via process group", context: { pid: pid, attempts: i + 1, elapsed_seconds: elapsed }
+            return
+          end
+        end
+      end
+      
+      # Strategy 4: System-level kill commands (last resort)
+      if process_exists?(pid)
+        log_info "Strategy 4: Using system kill commands", context: { pid: pid }
+        begin
+          system("kill -9 #{pid} 2>/dev/null")
+          sleep(0.1)
+          
+          unless process_exists?(pid)
+            elapsed = (Time.now - start_time).round(3)
+            log_info "Process killed via system command", context: { pid: pid, elapsed_seconds: elapsed }
+            return
+          end
+        rescue => e
+          log_error "System kill command failed", context: { pid: pid, error: e.message }
+        end
+      end
+      
+      # Final status check
+      elapsed = (Time.now - start_time).round(3)
+      if process_exists?(pid)
+        log_error "CRITICAL: Failed to terminate process after all strategies", context: { 
+          pid: pid, 
+          elapsed_seconds: elapsed,
+          strategies_attempted: 4
+        }
+      else
+        log_info "Process finally terminated", context: { pid: pid, elapsed_seconds: elapsed }
+      end
+      
+    rescue Errno::ESRCH
+      # Process already terminated
+      elapsed = (Time.now - start_time).round(3)
+      log_info "Process already terminated", context: { pid: pid, elapsed_seconds: elapsed }
+    rescue Errno::EPERM
+      # Permission denied - process might be owned by different user
+      elapsed = (Time.now - start_time).round(3)
+      log_error "Permission denied when trying to kill process", context: { pid: pid, elapsed_seconds: elapsed }
+    rescue => e
+      elapsed = (Time.now - start_time).round(3)
+      log_error "Unexpected error during process termination", context: { 
+        pid: pid, 
+        error: e.message,
+        error_class: e.class.name,
+        elapsed_seconds: elapsed
+      }
     end
   end
   

@@ -187,3 +187,31 @@ All services now use the `Persistable` concern for consistent data storage opera
 - **User Services**: `UserDataService`
 
 This unified approach ensures consistent behavior, error handling, and API across the entire application using MongoDB as the primary data store.
+
+## Critical Production Fixes
+
+### Python Script Timeout Resolution (December 2024)
+The application experienced hanging issues in Cloud Run production where Python scripts (specifically `youtube_transcript.py`) would hang indefinitely despite timeout mechanisms. This was resolved with major improvements to the `PythonScriptable` concern:
+
+#### Problem Analysis
+- Production logs showed ~40-second hangs despite 5-second timeouts
+- Standard `Timeout.timeout` was ineffective with blocking I/O operations
+- Process termination signals were not working reliably in Cloud Run containers
+
+#### Solution Implementation
+1. **Removed dependency on `Timeout.timeout`** - Replaced with custom timeout logic
+2. **Implemented aggressive timeout monitoring** - Separate monitoring thread actively kills processes
+3. **Enhanced process termination with 4-strategy approach**:
+   - Strategy 1: TERM signal to process group (graceful)
+   - Strategy 2: KILL signal to process group (forceful)
+   - Strategy 3: Direct signals bypassing process group
+   - Strategy 4: System-level kill commands (last resort)
+4. **Added comprehensive logging** - Track every termination attempt with timing
+5. **Non-blocking I/O implementation** - Prevents hanging on stdout/stderr reads
+
+#### Key Components
+- `read_with_aggressive_timeout()` - New method with active monitoring
+- Enhanced `kill_process_tree()` - Multi-strategy process termination
+- Detailed process lifecycle logging for production debugging
+
+This ensures Python scripts are terminated within seconds rather than hanging for 40+ seconds in production.

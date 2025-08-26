@@ -18,7 +18,7 @@ module Youtube
       def fetch_from_python(video_id)
         # Use a shorter timeout specifically for transcript fetching to prevent hanging
         # YouTube transcript API can sometimes hang indefinitely
-        transcript_timeout = ENV.fetch("YOUTUBE_TRANSCRIPT_TIMEOUT", 5).to_i
+        transcript_timeout = ENV.fetch("YOUTUBE_TRANSCRIPT_TIMEOUT", 8).to_i
         run_python_script("youtube_transcript.py", { video_id: video_id }, timeout: transcript_timeout)
       end
 
