@@ -3,8 +3,8 @@ module Ai
     include LlmServiceBase
     include Persistable
 
-    def initialize(client_type = :gemini)
-      @client = client_for(client_type)
+    def initialize(client_type = :gemini, config = {})
+      @client = client_for(client_type, config)
       @client_type = client_type
     end
 
@@ -23,39 +23,15 @@ module Ai
       log_info "Processing summary for video #{video_id}"
       return { success: false, error: "Video is too short" } if transcript.length < 100
 
-      # Get appropriate prompt based on client type
-      prompt = get_prompt(@client_type, :summary_system_prompt)
-      messages = build_messages(prompt, transcript, metadata)
+      # Build messages using common method
+      user_content = "Please summarize this video transcript: #{transcript} with the following metadata: #{metadata}"
+      messages = build_system_user_messages(:summary_system_prompt, user_content)
 
-      # Pass video_id and operation_type for tracking
-      if @client_type == :gemini
-        response = @client.chat(messages, video_id: video_id, operation_type: "summary_generation")
-      else
-        response = @client.chat(messages)
-      end
-      
-      handle_llm_response(response)
+      # Process using common method
+      process_llm_task(messages, video_id, "summary_generation")
     end
 
     private
-
-    def build_messages(prompt, transcript, metadata)
-      [
-        { role: "system", content: prompt },
-        { role: "user", content: "Please summarize this video transcript: #{transcript} with the following metadata: #{metadata}" }
-      ]
-    end
-
-    def client_for(client_type)
-      case client_type
-      when :openai
-        Clients::OpenaiClient.new
-      when :gemini
-        Clients::GeminiClient.new
-      else
-        raise ArgumentError, "Unknown client type: #{client_type}"
-      end
-    end
 
     def validate_response(result)
       unless result[:tldr] && result[:contents] && result[:summary]

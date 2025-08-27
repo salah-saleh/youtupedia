@@ -4,8 +4,8 @@ module Ai
   class LlmTakeawayExpanderService < BaseService
     include LlmServiceBase
 
-    def initialize(client_type = :gemini)
-      @client = client_for(client_type)
+    def initialize(client_type = :gemini, config = {})
+      @client = client_for(client_type, config)
       @client_type = client_type
     end
 
@@ -36,28 +36,16 @@ module Ai
     end
 
     def process_expansion(transcript, topic, takeaway, video_id)
-      # Get appropriate prompt based on client type
-      prompt = get_prompt(@client_type, :takeaway_expansion_prompt)
-      messages = build_messages(prompt, transcript, topic, takeaway)
+      log_info "Processing takeaway expansion for video #{video_id}"
+      # Build messages using common method
+      user_content = "Please expand on this takeaway about '#{topic}' from the video transcript: #{takeaway}. Here's the full transcript for context: #{transcript}"
+      messages = build_system_user_messages(:takeaway_expansion_prompt, user_content)
 
-      # Pass video_id and operation_type for tracking
-      if @client_type == :gemini
-        response = @client.chat(messages, video_id: video_id, operation_type: "takeaway_expansion")
-      else
-        response = @client.chat(messages)
-      end
-      
-      handle_llm_response(response)
+      # Process using common method
+      process_llm_task(messages, video_id, "takeaway_expansion")
     end
 
     private
-
-    def build_messages(prompt, transcript, topic, takeaway)
-      [
-        { role: "system", content: prompt },
-        { role: "user", content: "Please expand on this takeaway about '#{topic}' from the video transcript: #{takeaway}. Here's the full transcript for context: #{transcript}" }
-      ]
-    end
 
     def validate_response(result)
       unless result[:expanded_takeaway]

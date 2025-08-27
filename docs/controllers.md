@@ -92,9 +92,9 @@
 │   ├── ai/
 │   │   ├── chat_gpt_service.rb
 │   │   ├── chat_thread_service.rb
-│   │   ├── llm_summary_service.rb
-│   │   ├── llm_takeaway_expander_service.rb
-│   │   ├── llm_service_base.rb
+│   │   ├── llm_summary_service.rb - Refactored to use LlmServiceBase directly
+│   │   ├── llm_takeaway_expander_service.rb - Refactored to use LlmServiceBase directly
+│   │   ├── llm_service_base.rb - Common LLM functionality (clients, prompts, response handling, task processing)
 │   │   ├── prompts/
 │   │   │   └── prompt_store.rb
 │   │   └── clients/
