@@ -17,8 +17,8 @@ class SummariesController < ApplicationController
     return redirect_to root_path, alert: "This video is not possible to summarize. #{@metadata[:error]}" unless @metadata[:success]
 
     # Prefill any cached data
-    @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id, retry_on_failed: true)
-    @summary = @transcript&.dig(:success) ? Ai::LlmSummaryService.fetch_summary(@video_id) : nil
+    @transcript = Youtube::YoutubeVideoTranscriptService.fetch_transcript(@video_id, reset_on_failed: true)
+    @summary = @transcript&.dig(:success) ? Ai::LlmSummaryService.fetch_summary(@video_id, reset_on_failed: true) : nil
 
     # Schedule compute only when needed
     needs_job = @transcript.nil? || @transcript[:success] == false || @summary.nil?

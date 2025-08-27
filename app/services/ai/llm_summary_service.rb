@@ -9,8 +9,13 @@ module Ai
     end
 
     class << self
-      def fetch_summary(video_id)
-        read_stored(video_id)
+      def fetch_summary(video_id, reset_on_failed: false)
+        result = read_stored(video_id)
+        if reset_on_failed && result&.dig(:success) == false
+          delete_stored(video_id)
+          return nil
+        end
+        result
       end
     end
 
@@ -22,7 +27,13 @@ module Ai
       prompt = get_prompt(@client_type, :summary_system_prompt)
       messages = build_messages(prompt, transcript, metadata)
 
-      response = @client.chat(messages)
+      # Pass video_id and operation_type for tracking
+      if @client_type == :gemini
+        response = @client.chat(messages, video_id: video_id, operation_type: "summary_generation")
+      else
+        response = @client.chat(messages)
+      end
+      
       handle_llm_response(response)
     end
 

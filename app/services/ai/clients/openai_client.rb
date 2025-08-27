@@ -5,7 +5,7 @@ module Ai
         @client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"])
       end
 
-      def chat(messages)
+      def chat(messages, video_id: nil, operation_type: nil)
         params = {
           model: "gpt-4o-mini",
           messages: messages,

@@ -94,13 +94,13 @@
 │   │   ├── chat_thread_service.rb
 │   │   ├── llm_summary_service.rb
 │   │   ├── llm_takeaway_expander_service.rb
-│   │   ├── clients/
-│   │   │   ├── base_client.rb
-│   │   │   ├── openai_client.rb
-│   │   │   └── gemini_client.rb
 │   │   ├── llm_service_base.rb
-│   │   └── prompts/
-│   │       └── prompt_store.rb
+│   │   ├── prompts/
+│   │   │   └── prompt_store.rb
+│   │   └── clients/
+│   │       ├── base_client.rb - Base interface for AI clients with video_id and operation_type tracking
+│   │       ├── openai_client.rb - OpenAI GPT-4 client implementation
+│   │       └── gemini_client.rb - Gemini client with token consumption tracking and detailed logging
 │   │
 │   ├── youtube/
 │   │   ├── youtube_base_service.rb
@@ -167,6 +167,7 @@ The application uses a standardized MongoDB-based data persistence approach with
 7. **Request locking** - RequestLockService uses Rails.cache for distributed locks
 8. **Enhanced Python script execution** - PythonScriptable concern now uses non-blocking I/O with proper timeout protection
 9. **Cleaner architecture** - Consistent patterns reduce code duplication and improve maintainability
+10. **Enhanced AI client tracking** - Added comprehensive token consumption tracking and model configuration logging for Gemini API calls
 
 ## Python Script Timeout Improvements
 
@@ -177,6 +178,28 @@ The `PythonScriptable` concern has been enhanced to prevent hanging issues:
 - **Process cleanup**: Improved process termination with TERM followed by KILL signals
 - **Resource management**: Proper cleanup of file descriptors and process trees
 - **Error handling**: Comprehensive error handling with process cleanup on failures
+
+## AI Client Token Tracking
+
+The AI services now include comprehensive tracking and logging for better monitoring and cost analysis:
+
+- **Token Consumption Tracking**: Estimates input/output tokens for Gemini API calls using character-based approximation
+- **Model Configuration Logging**: Logs all generation parameters (temperature, top_p, top_k, max_output_tokens)
+- **Video ID Association**: Links API calls to specific video IDs for better traceability
+- **Operation Type Tracking**: Categorizes API calls (summary_generation, takeaway_expansion)
+- **Detailed Logging**: Comprehensive logging before and after each API call with timing and token information
+- **Python Script Integration**: Enhanced Python scripts return token usage estimates and model configuration details
+
+### Supported Operations:
+- **Summary Generation**: `LlmSummaryService` with operation_type "summary_generation"
+- **Takeaway Expansion**: `LlmTakeawayExpanderService` with operation_type "takeaway_expansion"
+
+### Logging Output Example:
+```
+[GeminiClient] Gemini API call starting | script_name: gemini_summary_client.py, video_id: abc123, operation_type: summary_generation, model: gemini-2.0-flash, estimated_input_tokens: 1250, generation_config: {...}
+
+[GeminiClient] Gemini API call completed successfully | script_name: gemini_summary_client.py, video_id: abc123, operation_type: summary_generation, model: gemini-2.0-flash, elapsed_seconds: 2.345, success: true, input_tokens: 1250, output_tokens: 890, total_tokens: 2140
+```
 
 ## Service Dependencies
 

@@ -6,9 +6,9 @@ module Youtube
     include Persistable
 
     class << self
-      def fetch_transcript(video_id, retry_on_failed: false)
+      def fetch_transcript(video_id, reset_on_failed: false)
         result = read_stored(video_id)
-        if retry_on_failed && result&.dig(:success) == false
+        if reset_on_failed && result&.dig(:success) == false
           delete_stored(video_id)
           return nil
         end

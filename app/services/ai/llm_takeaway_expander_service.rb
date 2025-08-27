@@ -21,7 +21,7 @@ module Ai
         end
 
         # Process the expansion
-        expansion_result = new.process_expansion(transcript, topic, takeaway)
+        expansion_result = new.process_expansion(transcript, topic, takeaway, video_id)
         return expansion_result unless expansion_result[:success]
 
         # Update the contents array with the expanded takeaway
@@ -35,12 +35,18 @@ module Ai
       end
     end
 
-    def process_expansion(transcript, topic, takeaway)
+    def process_expansion(transcript, topic, takeaway, video_id)
       # Get appropriate prompt based on client type
       prompt = get_prompt(@client_type, :takeaway_expansion_prompt)
       messages = build_messages(prompt, transcript, topic, takeaway)
 
-      response = @client.chat(messages)
+      # Pass video_id and operation_type for tracking
+      if @client_type == :gemini
+        response = @client.chat(messages, video_id: video_id, operation_type: "takeaway_expansion")
+      else
+        response = @client.chat(messages)
+      end
+      
       handle_llm_response(response)
     end
 
