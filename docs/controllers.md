@@ -65,6 +65,18 @@
 │       └── Methods:
 │           └── format_subscriber_count
 │
+├── 🎮 javascript/controllers/
+│   ├── remove_item_controller.js
+│   │   └── Features:
+│   │       ├── Smooth remove animations with permanent deleted state
+│   │       ├── Blur effect and overlay that persists until page refresh
+│   │       ├── Maintains grid layout by keeping items in deleted state
+│   │       └── Success feedback with button state changes
+│   │   └── Methods:
+│   │       ├── remove - Handles remove button click with loading state
+│   │       ├── showDeletedState - Shows blurred deleted state with overlay
+│   │       └── checkEmptyState - Shows empty state when grid is empty
+│
 ├── 🔄 jobs/
 │   ├── application_job.rb
 │   │   └── Concerns:

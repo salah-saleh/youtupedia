@@ -21,7 +21,8 @@
 │   │       └── shared/_empty_state
 │   │   Notes:
 │   │   - Video cards include remove buttons when show_remove_button: true
-│   │   - Uses remove_item_controller.js for AJAX removal
+│   │   - Uses remove_item_controller.js for smooth removal with permanent deleted state
+│   │   - Shows blurred state with overlay that persists until page refresh
 │   │
 │   └── show.html.erb
 │       - Subscribes to Turbo Streams via `<%= turbo_stream_from "summaries:#{@summary_data[:video_id]}" %>`
@@ -47,7 +48,8 @@
 │   │       └── shared/_empty_state
 │   │   Notes:
 │   │   - Channel cards include remove buttons when show_remove_button: true
-│   │   - Uses remove_item_controller.js for AJAX removal
+│   │   - Uses remove_item_controller.js for smooth removal with permanent deleted state
+│   │   - Shows blurred state with overlay that persists until page refresh
 │   │
 │   └── show.html.erb
 │       └── Partials:

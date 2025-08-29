@@ -12,9 +12,9 @@ module Youtube
     end
 
     def self.fetch_metadata_batch(video_ids)
-      # Filter out video IDs that are already stored
+      # Filter out video IDs that are already stored or have failed
       unstored_ids = video_ids.select do |id|
-        !stored?(id)
+        !stored?(id) || read_stored(id)&.dig(:success) == false
       end
 
       # Fetch unstored videos in batches of 50 (YouTube API limit)

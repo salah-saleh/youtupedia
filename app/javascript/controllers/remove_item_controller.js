@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Remove Item Controller
 // Handles smooth animations when removing summaries and channels
-// Uses Turbo Streams for actual DOM removal, JavaScript only for animations
+// Shows deleted state permanently until page refresh/navigation
 export default class extends Controller {
   // Static values that can be set via data attributes
   static values = {
@@ -17,7 +17,7 @@ export default class extends Controller {
   }
 
   // Handles the remove button click with smooth animations
-  // Turbo Streams will handle the actual DOM removal
+  // Shows deleted state permanently until page refresh/navigation
   async remove(event) {
     event.preventDefault()
     event.stopPropagation()
@@ -33,15 +33,13 @@ export default class extends Controller {
     `
     button.disabled = true
 
-    // Add fade-out animation immediately
+    // Get the card element
     const cardId = `${this.typeValue}-card-${this.idValue}`
     const card = document.getElementById(cardId)
     
-    if (card) {
-      // Add fade-out animation
-      card.style.transition = "opacity 0.3s ease-out, transform 0.3s ease-out"
-      card.style.opacity = "0"
-      card.style.transform = "scale(0.95)"
+    if (!card) {
+      this.showError("Item not found.")
+      return
     }
 
     try {
@@ -58,9 +56,12 @@ export default class extends Controller {
       })
       
       if (response.ok) {
-        // Get the Turbo Stream response and execute it
-        const turboStreamHtml = await response.text()
-        Turbo.renderStreamMessage(turboStreamHtml)
+        // Show deleted state permanently - item stays in UI until page refresh
+        this.showDeletedState(card, button)
+        
+        // No need to remove from DOM - item stays in deleted state
+        // User will see the deleted state until they refresh or navigate away
+        
       } else {
         throw new Error(`HTTP ${response.status}`)
       }
@@ -72,15 +73,57 @@ export default class extends Controller {
       // Restore button and card state
       button.innerHTML = originalContent
       button.disabled = false
-      
-      if (card) {
-        card.style.opacity = "1"
-        card.style.transform = "scale(1)"
-      }
     }
   }
 
+  // Shows the deleted state with blur and overlay
+  // Item remains in this state until page refresh/navigation
+  showDeletedState(card, button) {
+    // Find the card content (the link element) to apply blur to
+    // The remove button is outside this element, so it won't be blurred
+    const cardContent = card.querySelector('a') || card.querySelector('[href]')
+    
+    if (cardContent) {
+      // Apply blur and opacity only to the main content area (link)
+      cardContent.style.transition = "all 0.3s ease-out"
+      cardContent.style.filter = "blur(2px)"
+      cardContent.style.opacity = "0.6"
+    }
+    
+    // Add deleted overlay with reduced opacity (0.1) - simplified as per user preference
+    const overlay = document.createElement("div")
+    overlay.className = "absolute inset-0 bg-red-500/10 rounded-lg z-20"
+    
+    // Position overlay absolutely within the card
+    card.style.position = "relative"
+    card.appendChild(overlay)
+    
+    // Hide the remove button completely after deletion
+    button.style.display = "none"
+    
+    // Show toast notice using the existing toast system
+    this.showToastNotice(`${this.typeValue === 'summary' ? 'Video' : 'Channel'} deleted`)
+    
+    // Store the deleted state in the card for reference
+    card.setAttribute('data-deleted', 'true')
+  }
+
+  // Shows a toast notice using the existing toast system
+  showToastNotice(message) {
+    // Create a custom event to trigger the toast
+    const toastEvent = new CustomEvent('showToast', {
+      detail: {
+        message: message,
+        type: 'success' // Use success styling (green)
+      }
+    })
+    
+    // Dispatch the event so the toast controller can handle it
+    document.dispatchEvent(toastEvent)
+  }
+
   // Check if the grid is empty and show appropriate empty state
+  // Note: This won't be called since items stay in deleted state
   checkEmptyState() {
     const grid = this.element.closest(".grid") || this.element.closest("[class*='grid']")
     if (grid && grid.children.length === 0) {
