@@ -1,5 +1,8 @@
 <!-- Right Column -->
 <div class="space-y-6">
+  <div data-summary-loader-target="audio">
+    <%= render "summaries/show/audio_summary_section", video_id: @summary_data[:video_id], audio_data: @existing_audio, summary: @summary_data unless @summary_data[:error] %>
+  </div>
   <%= render "summaries/show/player_section" %>
   <%= render "summaries/show/navigation_buttons" unless true %>
   <div data-summary-loader-target="transcript">

@@ -26,9 +26,12 @@
 │   │
 │   └── show.html.erb
 │       - Subscribes to Turbo Streams via `<%= turbo_stream_from "summaries:#{@summary_data[:video_id]}" %>`
+│       - Includes audio controller for TTS functionality
 │       └── Partials:
 │           ├── shared/_container
 │           ├── shared/_video_player
+│           ├── _audio_summary_section (audio generation and player with Turbo Stream updates)
+│           ├── _audio_generating_state (loading state for audio generation)
 │           ├── shared/_summary_section
 │           ├── shared/_takeaways
 │           ├── shared/_transcript
@@ -231,6 +234,7 @@ The application now uses a standardized MongoDB-based data persistence approach:
 6. **Loading States** - Skeleton loaders and spinners for better UX
 7. **Error Handling** - Graceful error display and recovery
 8. **Accessibility** - Proper ARIA labels and keyboard navigation
+9. **Turbo Stream Consistency** - All AJAX-like interactions use Turbo Streams instead of JSON
 
 ## JavaScript Controllers
 
@@ -244,3 +248,4 @@ The application now uses a standardized MongoDB-based data persistence approach:
 - **Email Reveal Controller** - Email address protection
 - **Nav Toggle Controller** - Mobile navigation
 - **Dropdown Controller** - Dropdown menu functionality
+- **Audio Controller** - Audio summary generation using Turbo Streams (no JSON responses)

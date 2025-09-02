@@ -3,8 +3,9 @@
 <%= turbo_stream_from "summaries:#{@summary_data[:video_id]}" %>
 
 <div class="bg-white/35 dark:bg-gray-800/35 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 space-y-8 p-4"
-     data-controller="youtube"
+     data-controller="youtube audio"
      data-youtube-video-id-value="<%= @summary_data[:video_id] %>"
+     data-audio-video-id-value="<%= @summary_data[:video_id] %>"
 >
 
   <!-- Video Header -->

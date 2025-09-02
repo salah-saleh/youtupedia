@@ -6,17 +6,35 @@
 │   │       └── request_traceable.rb
 │   │
 │   ├── summaries_controller.rb
+│   │   └── Concerns:
+│   │       ├── YoutubeUrlHelper
+│   │       ├── SummaryDataHelper
+│   │       ├── VideoSummariesHelper
+│   │       ├── Paginatable
+│   │       └── AudioResponseHandler (NEW - standardized audio response handling)
 │   │   └── Services:
 │   │       ├── Youtube::YoutubeVideoMetadataService
 │   │       ├── Youtube::YoutubeVideoTranscriptService
 │   │       ├── Ai::LlmSummaryService
+│   │       ├── Ai::TtsService
+│   │       ├── AudioGenerationService (NEW - business logic for audio generation)
 │   │       └── UserServices::UserDataService
 │   │   └── Actions:
 │   │       ├── show - Display video summary with metadata and transcript
 │   │       ├── index - List user's saved video summaries with pagination
 │   │       ├── create_from_url - Create summary from YouTube URL
-│   │       ├── expand_takeaway - Expand specific takeaway with AI
-│   │       └── remove_from_user - Remove summary from user's saved list
+│   │       ├── expand_takeaway - Expand specific takeaway with AI (uses Turbo Streams)
+│   │       ├── generate_audio - Generate audio summary using Gemini TTS (REFACTORED - now uses AudioGenerationService)
+│   │       └── remove_from_user - Remove summary from user's saved list (uses Turbo Streams)
+│   │
+│   ├── audio_controller.rb
+│   │   └── Concerns:
+│   │       └── AudioResponseHandler (NEW - standardized audio response handling)
+│   │   └── Actions:
+│   │       └── show - Serve generated TTS audio files by video ID (REFACTORED - simplified using concern methods)
+│   │   └── Response Pattern:
+│   │       ├── Success: Uses send_data to stream binary audio content
+│   │       └── Errors: Uses standardized audio error responses via AudioResponseHandler
 │   │
 │   ├── channels_controller.rb
 │   │   └── Services:
@@ -76,6 +94,17 @@
 │   │       ├── remove - Handles remove button click with loading state
 │   │       ├── showDeletedState - Shows blurred deleted state with overlay
 │   │       └── checkEmptyState - Shows empty state when grid is empty
+│   │
+│   ├── audio_controller.js
+│   │   └── Features:
+│   │       ├── Audio summary generation using Gemini TTS with Algenib voice
+│   │       ├── Loading states and progress feedback during requests
+│   │       ├── Full Turbo Stream integration (no JSON responses)
+│   │       └── Server-side UI updates via Turbo Stream responses
+│   │   └── Methods:
+│   │       ├── generateAudio - Sends Turbo Stream requests for audio generation
+│   │       ├── updateButtonState - Manages button loading states during requests
+│   │       └── resetGeneratingState - Resets state when job completes
 │
 ├── 🔄 jobs/
 │   ├── application_job.rb
@@ -89,6 +118,12 @@
 │   │       ├── Ai::LlmSummaryService
 │   │       └── Storage::MongoStorageService
 │   │
+│   ├── audio_summary_job.rb
+│   │   └── Services:
+│   │       ├── Ai::LlmSummaryService
+│   │       ├── Ai::TtsService
+│   │       └── Turbo::StreamsChannel
+│   │
 │   ├── async_job_processor.rb
 │   │   └── ❌ REMOVED - Unused async processing pattern
 │   │
@@ -97,6 +132,8 @@
 │           └── Storage::MongoStorageService
 │
 ├── 🛠️ services/
+│   ├── audio_generation_service.rb - (NEW) Business logic for audio generation and job scheduling
+│   │
 │   ├── cache/
 │   │   ├── base_cache_service.rb
 │   │   └── mongo_cache_service.rb - MongoDB-based caching with retry mechanism
@@ -107,6 +144,7 @@
 │   │   ├── llm_summary_service.rb - Refactored to use LlmServiceBase directly
 │   │   ├── llm_takeaway_expander_service.rb - Refactored to use LlmServiceBase directly
 │   │   ├── llm_service_base.rb - Common LLM functionality (clients, prompts, response handling, task processing)
+│   │   ├── tts_service.rb - (ENHANCED) Text-to-speech service with token usage tracking
 │   │   ├── prompts/
 │   │   │   └── prompt_store.rb
 │   │   └── clients/
@@ -148,6 +186,7 @@
 │
 └── 🔧 concerns/
     ├── authentication.rb - User authentication and session management
+    ├── audio_response_handler.rb - (NEW) Standardized audio response handling and validation
     ├── captcha_verifiable.rb - reCAPTCHA verification
     ├── dev_route_protection.rb - Admin route protection
     ├── paginatable.rb - Pagination functionality
@@ -180,6 +219,12 @@ The application uses a standardized MongoDB-based data persistence approach with
 8. **Enhanced Python script execution** - PythonScriptable concern now uses non-blocking I/O with proper timeout protection
 9. **Cleaner architecture** - Consistent patterns reduce code duplication and improve maintainability
 10. **Enhanced AI client tracking** - Added comprehensive token consumption tracking and model configuration logging for Gemini API calls
+11. **Added Audio Summary Feature** - New TTS service using Gemini 2.5 Preview TTS with Algenib voice for converting text summaries to audio
+12. **Turbo Stream Response Consistency** - Standardized all AJAX-like actions to use Turbo Streams instead of JSON responses for better Rails/Hotwire integration
+13. **Audio Controller Refactoring** - (NEW) Extracted common audio response patterns into AudioResponseHandler concern
+14. **Audio Generation Service** - (NEW) Created dedicated service for audio generation business logic
+15. **TTS Token Tracking** - (NEW) Added comprehensive token usage tracking to TTS operations with specialized estimation
+16. **Common Token Interface** - (NEW) Created GeminiTokenTracker base class for consistent token tracking across all Gemini clients
 
 ## Python Script Timeout Improvements
 
@@ -198,19 +243,32 @@ The AI services now include comprehensive tracking and logging for better monito
 - **Token Consumption Tracking**: Estimates input/output tokens for Gemini API calls using character-based approximation
 - **Model Configuration Logging**: Logs all generation parameters (temperature, top_p, top_k, max_output_tokens)
 - **Video ID Association**: Links API calls to specific video IDs for better traceability
-- **Operation Type Tracking**: Categorizes API calls (summary_generation, takeaway_expansion)
+- **Operation Type Tracking**: Categorizes API calls (summary_generation, takeaway_expansion, tts_generation)
 - **Detailed Logging**: Comprehensive logging before and after each API call with timing and token information
 - **Python Script Integration**: Enhanced Python scripts return token usage estimates and model configuration details
+- **TTS Token Tracking**: Specialized token estimation for Text-to-Speech operations including processing overhead
 
 ### Supported Operations:
 - **Summary Generation**: `LlmSummaryService` with operation_type "summary_generation"
 - **Takeaway Expansion**: `LlmTakeawayExpanderService` with operation_type "takeaway_expansion"
+- **TTS Generation**: `TtsService` with operation_type "tts_generation" (NEW)
+
+### TTS Token Estimation:
+TTS operations use a specialized token estimation that considers:
+- **Input Tokens**: Based on text length (similar to text generation)
+- **Processing Tokens**: Additional tokens for voice synthesis processing
+- **Voice Complexity**: Different voices may have different token costs
+- **Duration Factor**: Longer audio may require more processing tokens
 
 ### Logging Output Example:
 ```
 [GeminiClient] Gemini API call starting | script_name: gemini_summary_client.py, video_id: abc123, operation_type: summary_generation, model: gemini-2.0-flash, estimated_input_tokens: 1250, generation_config: {...}
 
 [GeminiClient] Gemini API call completed successfully | script_name: gemini_summary_client.py, video_id: abc123, operation_type: summary_generation, model: gemini-2.0-flash, elapsed_seconds: 2.345, success: true, input_tokens: 1250, output_tokens: 890, total_tokens: 2140
+
+[GeminiTtsClient] Gemini API call starting | operation_type: tts_generation, video_id: abc123, model: gemini-2.5-flash-preview-tts, voice_name: Algenib, estimated_input_tokens: 500, estimated_total_tokens: 750
+
+[GeminiTtsClient] Gemini API call completed | operation_type: tts_generation, video_id: abc123, model: gemini-2.5-flash-preview-tts, elapsed_seconds: 8.234, success: true, input_tokens: 500, processing_tokens: 250, total_tokens: 750
 ```
 
 ## Service Dependencies

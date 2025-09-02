@@ -74,6 +74,26 @@ class SummaryJob < ApplicationJob
         locals: { summary: payload }
       )
     end
+    
+    # Also update the audio section to show the "Create Audio Summary" button
+    # when summary generation is complete
+    update_audio_section(video_id)
+  end
+
+  def update_audio_section(video_id)
+    # Check if audio already exists
+    existing_audio = Ai::TtsService.fetch_audio(video_id)
+    
+    # Update the audio section to show either existing audio or the generate button
+    Turbo::StreamsChannel.broadcast_replace_to(
+      "summaries:#{video_id}",
+      target: "audio_summary",
+      partial: "summaries/show/audio_summary_section",
+      locals: { 
+        video_id: video_id, 
+        audio_data: existing_audio&.dig(:success) ? existing_audio : nil 
+      }
+    )
   end
 
   def build_summary_payload(video_id)

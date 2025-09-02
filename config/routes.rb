@@ -14,6 +14,7 @@ Rails.application.routes.draw do
     member do
       post :ask_gpt
       post :expand_takeaway
+      post :generate_audio
       delete :remove_from_user
     end
   end
@@ -27,6 +28,9 @@ Rails.application.routes.draw do
     end
   end
   post "/parse_youtube_url", to: "youtube_urls#parse"
+
+  # Audio serving routes
+  get "/audio/:id", to: "audio#show", as: :audio_file
 
   # Authentication routes
   resource :session, only: [ :new, :create, :destroy ]

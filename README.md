@@ -6,6 +6,7 @@ An AI-powered application that generates concise summaries of YouTube videos usi
 
 - 🎥 YouTube video summarization
 - 🤖 AI-powered content analysis
+- 🔊 Audio summaries using Gemini TTS with Algenib voice
 - 🔍 Full-text search across summaries
 - 📱 Mobile-responsive design
 

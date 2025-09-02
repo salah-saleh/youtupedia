@@ -1,3 +1,4 @@
 # ./venv/bin/pip install -r requirements.txt
 youtube_transcript_api==1.2.2
 google-generativeai==0.8.3
+google-genai==1.32.0

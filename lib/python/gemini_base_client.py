@@ -4,8 +4,9 @@ import os
 import google.generativeai as genai
 from google.ai.generativelanguage_v1beta.types import content
 from abc import ABC, abstractmethod
+from gemini_token_tracker import GeminiTokenTracker
 
-class GeminiBaseClient(ABC):
+class GeminiBaseClient(GeminiTokenTracker, ABC):
     """
     Base class for Gemini API interactions with common functionality.
     Handles initialization, configuration, and basic API calls.
@@ -18,6 +19,7 @@ class GeminiBaseClient(ABC):
         Args:
             config (dict): Configuration dictionary with Gemini parameters
         """
+        super().__init__()  # Initialize the token tracker
         self.config = config or self.get_default_config()
         self.model_name = self.config.get("model_name", "gemini-2.0-flash")
         
@@ -172,7 +174,7 @@ class GeminiBaseClient(ABC):
     def extract_token_usage(self, response, user_content, system_content):
         """
         Extract token usage information from the Gemini response.
-        Since Gemini doesn't provide direct token counts, we estimate them.
+        Uses the inherited token estimation methods from GeminiTokenTracker.
         
         Args:
             response: Gemini API response
@@ -183,13 +185,12 @@ class GeminiBaseClient(ABC):
             dict: Token usage information
         """
         try:
-            # Estimate input tokens (rough approximation: 1 token ≈ 4 characters)
-            input_chars = len(system_content or "") + len(user_content or "")
-            estimated_input_tokens = max(1, int(input_chars / 4.0))
+            # Combine input content for estimation
+            combined_input = (system_content or "") + (user_content or "")
+            estimated_input_tokens = self.estimate_tokens_from_text(combined_input)
             
             # Estimate output tokens from response
-            output_chars = len(response.text or "") if response else 0
-            estimated_output_tokens = max(1, int(output_chars / 4.0))
+            estimated_output_tokens = self.estimate_tokens_from_text(response.text if response else "")
             
             total_tokens = estimated_input_tokens + estimated_output_tokens
             
@@ -212,6 +213,7 @@ class GeminiBaseClient(ABC):
     def create_safe_generation_config(self, generation_config):
         """
         Create a JSON-serializable version of generation config.
+        Uses the inherited method from GeminiTokenTracker.
         
         Args:
             generation_config: Original generation config
@@ -219,13 +221,8 @@ class GeminiBaseClient(ABC):
         Returns:
             dict: Safe, serializable generation config
         """
-        return {
-            "temperature": generation_config.get("temperature"),
-            "top_p": generation_config.get("top_p"),
-            "top_k": generation_config.get("top_k"),
-            "max_output_tokens": generation_config.get("max_output_tokens"),
-            "response_mime_type": generation_config.get("response_mime_type")
-        }
+        # Use the inherited method for consistency
+        return self.create_safe_config_for_logging(generation_config)
     
     def create_success_response(self, clean_text, token_usage, video_id, operation_type, generation_config):
         """

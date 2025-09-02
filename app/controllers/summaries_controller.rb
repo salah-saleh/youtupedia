@@ -3,6 +3,7 @@ class SummariesController < ApplicationController
   include SummaryDataHelper
   include VideoSummariesHelper
   include Paginatable
+  include AudioResponseHandler
   public_actions [ :show, :create_from_url, :expand_takeaway ]
 
   def create_from_url
@@ -27,6 +28,9 @@ class SummariesController < ApplicationController
     UserServices::UserDataService.add_item(Current.user.id, :summaries, @video_id) if Current.user
     UserServices::UserDataService.add_item("master", :summaries, @video_id)
 
+    # Check for existing audio data
+    @existing_audio = Ai::TtsService.fetch_audio(@video_id)
+    
     # Build summary data used for initial paint
     @summary_data = build_summary_data(@video_id, @metadata, @transcript, @summary)
   end
@@ -76,6 +80,34 @@ class SummariesController < ApplicationController
       render turbo_stream: turbo_stream.update("expanded-takeaway-#{index}",
         partial: "shared/error_message",
         locals: { message: "Failed to expand takeaway. Please try again." })
+    end
+  end
+
+  # Generate audio summary from text summary using Gemini TTS
+  def generate_audio
+    video_id = params[:id]
+    voice = params[:voice] || "Algenib" # Default to Algenib voice
+    
+    # Validate inputs using concern methods
+    return unless validate_video_id_for_audio(video_id)
+    return unless check_audio_rate_limit
+    
+    # Use the audio generation service to handle the business logic
+    service = AudioGenerationService.new(video_id, voice)
+    result = service.generate_or_schedule_audio
+    
+    # Handle different result types with appropriate responses
+    if result[:success]
+      case result[:type]
+      when :existing_audio
+        render_audio_success(video_id, result[:audio_data], result[:message])
+      when :job_scheduled
+        render_audio_generating(video_id, result[:message])
+      when :job_already_running
+        render_audio_generating(video_id, result[:message], flash_type: "info")
+      end
+    else
+      render_audio_error(result[:error])
     end
   end
 
