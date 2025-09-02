@@ -26,6 +26,15 @@ class GeminiExpandedTakeawayClient(GeminiBaseClient):
         """Validate the expanded takeaway response structure."""
         assert "expanded_takeaway" in json_response, "Missing expanded_takeaway field"
         return True
+    
+    def get_operation_type(self):
+        """
+        Get the operation type for this client.
+        
+        Returns:
+            str: Operation type for takeaway expansion
+        """
+        return "takeaway_expansion"
 
 if __name__ == "__main__":
     # Read input from stdin

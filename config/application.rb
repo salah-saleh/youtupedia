@@ -58,5 +58,18 @@ module Youtupedia
         end
       end
     )
+
+    # Active Storage configuration for audio files
+    config.active_storage.content_types_allowed_inline = %w[
+      audio/wav
+      audio/mpeg
+      audio/mp3
+      audio/ogg
+    ]
+    
+    # Set default URL options for Active Storage
+    config.active_storage.default_url_options = { 
+      host: Rails.env.production? ? "youtupedia.com" : "localhost:3000" 
+    }
   end
 end

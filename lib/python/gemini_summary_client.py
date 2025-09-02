@@ -53,6 +53,15 @@ class GeminiSummaryClient(GeminiBaseClient):
             assert "takeaway" in item, "Missing takeaway in content item"
         
         return True
+    
+    def get_operation_type(self):
+        """
+        Get the operation type for this client.
+        
+        Returns:
+            str: Operation type for summary generation
+        """
+        return "summary_generation"
 
 if __name__ == "__main__":
     # Read input from stdin

@@ -31,10 +31,14 @@
 │   │   └── Concerns:
 │   │       └── AudioResponseHandler (NEW - standardized audio response handling)
 │   │   └── Actions:
-│   │       └── show - Serve generated TTS audio files by video ID (REFACTORED - simplified using concern methods)
+│   │       └── show - Serve generated TTS audio files by video ID (REFACTORED - now uses Active Storage redirects)
 │   │   └── Response Pattern:
-│   │       ├── Success: Uses send_data to stream binary audio content
+│   │       ├── Success: Redirects to Active Storage blob URL (serves from GCS in production)
 │   │       └── Errors: Uses standardized audio error responses via AudioResponseHandler
+│   │   └── Storage Architecture:
+│   │       ├── Metadata: Stored in MongoDB (without audio content)
+│   │       ├── Audio Files: Stored in Google Cloud Storage via Active Storage
+│   │       └── Access: Direct redirect to GCS URLs for optimal performance
 │   │
 │   ├── channels_controller.rb
 │   │   └── Services:
@@ -271,15 +275,46 @@ TTS operations use a specialized token estimation that considers:
 [GeminiTtsClient] Gemini API call completed | operation_type: tts_generation, video_id: abc123, model: gemini-2.5-flash-preview-tts, elapsed_seconds: 8.234, success: true, input_tokens: 500, processing_tokens: 250, total_tokens: 750
 ```
 
+## Audio Storage Architecture (NEW)
+
+The application now uses a hybrid storage approach for audio files:
+
+### Storage Strategy:
+- **Metadata**: Stored in MongoDB (video_id, voice, duration, token_usage, etc.)
+- **Audio Files**: Stored in Google Cloud Storage via Active Storage
+- **Access**: Direct redirect to GCS URLs for optimal performance
+
+### Benefits:
+- **Scalability**: No MongoDB document size limits (16MB)
+- **Performance**: Direct file serving from GCS CDN
+- **Cost**: ~90% cheaper than database storage
+- **Backup**: Smaller database backups, files in GCS
+- **CDN**: Automatic caching and global distribution
+
+### Migration:
+- **Existing Files**: Use `rails audio_migration:migrate_to_active_storage`
+- **Cleanup**: Use `rails audio_migration:cleanup_old_audio_content`
+- **Verification**: Use `rails audio_migration:verify_migration`
+
+### Configuration:
+```yaml
+# config/storage.yml
+google:
+  service: GCS
+  project: <%= Rails.application.credentials.dig(:gcs, :project_id) %>
+  credentials: <%= Rails.application.credentials.dig(:gcs, :keyfile_path) %>
+  bucket: youtupedia-audio-files-<%= Rails.env %>
+```
+
 ## Service Dependencies
 
 All services now use the `Persistable` concern for consistent data storage operations:
 
-- **AI Services**: `LlmSummaryService`, `LlmTakeawayExpanderService`
+- **AI Services**: `LlmSummaryService`, `LlmTakeawayExpanderService`, `TtsService` (with Active Storage)
 - **YouTube Services**: `YoutubeVideoMetadataService`, `YoutubeVideoTranscriptService`, `YoutubeChannelService`  
 - **User Services**: `UserDataService`
 
-This unified approach ensures consistent behavior, error handling, and API across the entire application using MongoDB as the primary data store.
+This unified approach ensures consistent behavior, error handling, and API across the entire application using MongoDB as the primary data store for metadata and Active Storage for file assets.
 
 ## Critical Production Fixes
 

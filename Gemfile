@@ -116,3 +116,6 @@ gem "recaptcha", require: "recaptcha/rails"
 
 # Mission Control - Jobs for monitoring Solid Queue
 gem "mission_control-jobs"
+
+# Google Cloud Storage for Active Storage
+gem "google-cloud-storage", "~> 1.44", require: false

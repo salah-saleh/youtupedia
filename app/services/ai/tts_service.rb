@@ -6,9 +6,10 @@
 #
 # Responsibilities:
 # 1) Convert text summaries to audio using Gemini TTS Python client
-# 2) Store audio files with proper metadata
-# 3) Handle audio formats and streaming
-# 4) Provide progress updates via Turbo Streams
+# 2) Store audio files in Google Cloud Storage via Active Storage
+# 3) Store metadata in MongoDB (without audio content)
+# 4) Handle audio formats and streaming
+# 5) Provide progress updates via Turbo Streams
 module Ai
   class TtsService < BaseService
     include Persistable
@@ -29,12 +30,27 @@ module Ai
           delete_stored(video_id)
           return nil
         end
+        
+        # If we have a blob_id, verify the blob still exists
+        if result&.dig(:success) && result[:blob_id]
+          begin
+            blob = ActiveStorage::Blob.find(result[:blob_id])
+            # Update URL in case it changed (e.g., after deployment)
+            result[:audio_url] = Rails.application.routes.url_helpers.rails_blob_path(blob, only_path: true)
+          rescue ActiveRecord::RecordNotFound
+            log_warn "Audio blob not found for video #{video_id}, blob_id: #{result[:blob_id]}"
+            # Clean up the orphaned metadata
+            delete_stored(video_id)
+            return nil
+          end
+        end
+        
         result
       end
 
       # Check if audio exists for a video
       def audio_exists?(video_id)
-        stored?(video_id)
+        stored?(video_id) && fetch_audio(video_id)&.dig(:success)
       end
     end
 
@@ -72,17 +88,20 @@ module Ai
       result = run_python_script("gemini_tts_client.py", input_data, timeout: tts_timeout)
       
       if result[:success]
-        # Build audio data with URL and metadata
+        # Create Active Storage blob for audio file
+        audio_blob = create_audio_blob(video_id, result[:audio_content], result[:mime_type] || "audio/wav")
+        
+        # Build audio data with Active Storage URL and metadata (no audio_content in MongoDB)
         audio_data = {
           success: true,
-          audio_url: "/audio/#{video_id}",
+          audio_url: Rails.application.routes.url_helpers.rails_blob_path(audio_blob, only_path: true),
+          blob_id: audio_blob.id,
           voice: result[:voice] || @voice,
           text_length: result[:text_length] || text.length,
           generated_at: Time.current,
           duration_seconds: result[:duration_seconds] || 0,
           mime_type: result[:mime_type] || "audio/wav",
           data_size: result[:data_size] || 0,
-          audio_content: result[:audio_content],  # Base64 encoded WAV audio
           # Token usage tracking for cost analysis
           token_usage: result[:token_usage] || {},
           model: result[:model] || "gemini-2.5-flash-preview-tts",
@@ -131,6 +150,64 @@ module Ai
         }
         result
       end
+    end
+
+    private
+
+    # Creates an Active Storage blob for audio content
+    # @param video_id [String] Video ID for filename
+    # @param base64_content [String] Base64 encoded audio content
+    # @param mime_type [String] MIME type of the audio
+    # @return [ActiveStorage::Blob] Created blob
+    def create_audio_blob(video_id, base64_content, mime_type)
+      # Decode base64 content to binary
+      audio_data = Base64.strict_decode64(base64_content)
+      
+      # Generate filename with appropriate extension
+      file_extension = case mime_type
+                      when /wav/ then "wav"
+                      when /mp3/ then "mp3"
+                      when /mpeg/ then "mp3"
+                      when /ogg/ then "ogg"
+                      else "wav"
+                      end
+      
+      filename = "#{video_id}.#{file_extension}"
+      
+      log_info "Creating Active Storage blob for audio", context: {
+        video_id: video_id,
+        filename: filename,
+        mime_type: mime_type,
+        data_size_mb: (audio_data.length / 1024.0 / 1024.0).round(2)
+      }
+      
+      # Create and upload blob to configured storage service (GCS in production, local in development)
+      blob = ActiveStorage::Blob.create_and_upload!(
+        io: StringIO.new(audio_data),
+        filename: filename,
+        content_type: mime_type,
+        metadata: {
+          video_id: video_id,
+          generated_at: Time.current.iso8601,
+          service: "tts_generation"
+        }
+      )
+      
+      log_info "Successfully created audio blob", context: {
+        video_id: video_id,
+        blob_id: blob.id,
+        blob_key: blob.key,
+        filename: filename
+      }
+      
+      blob
+    rescue => e
+      log_error "Failed to create audio blob", context: {
+        video_id: video_id,
+        error: e.message,
+        mime_type: mime_type
+      }
+      raise
     end
 
   end
