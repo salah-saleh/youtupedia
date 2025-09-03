@@ -65,7 +65,7 @@ group :development do
 
   # Static type checking
   gem "sorbet", "~> 0.5.11131"
-  gem "sorbet-runtime", "~> 0.5.11131"
+  gem "sorbet-runtime", "~> 0.5.12443"
   gem "tapioca", "~> 0.11.9", require: false
 end
 
