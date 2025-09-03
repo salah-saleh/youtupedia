@@ -26,11 +26,11 @@
 │   │
 │   └── show.html.erb
 │       - Subscribes to Turbo Streams via `<%= turbo_stream_from "summaries:#{@summary_data[:video_id]}" %>`
-│       - Includes audio controller for TTS functionality
+│       - Uses Rails forms with Turbo Streams for audio generation (no JavaScript controller needed)
 │       └── Partials:
 │           ├── shared/_container
 │           ├── shared/_video_player
-│           ├── _audio_summary_section (audio generation and player with Turbo Stream updates)
+│           ├── _audio_summary_section (SIMPLIFIED - now uses Rails forms with Turbo Stream updates)
 │           ├── _audio_generating_state (loading state for audio generation)
 │           ├── shared/_summary_section
 │           ├── shared/_takeaways
@@ -235,6 +235,7 @@ The application now uses a standardized MongoDB-based data persistence approach:
 7. **Error Handling** - Graceful error display and recovery
 8. **Accessibility** - Proper ARIA labels and keyboard navigation
 9. **Turbo Stream Consistency** - All AJAX-like interactions use Turbo Streams instead of JSON
+10. **Audio Generation Simplification** - (NEW) Replaced JavaScript controller with Rails forms for better Rails 8 integration
 
 ## JavaScript Controllers
 
@@ -248,4 +249,4 @@ The application now uses a standardized MongoDB-based data persistence approach:
 - **Email Reveal Controller** - Email address protection
 - **Nav Toggle Controller** - Mobile navigation
 - **Dropdown Controller** - Dropdown menu functionality
-- **Audio Controller** - Audio summary generation using Turbo Streams (no JSON responses)
+- **❌ REMOVED - Audio Controller** - Simplified to use Rails forms with Turbo Streams (no JavaScript needed)

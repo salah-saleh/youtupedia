@@ -24,7 +24,7 @@
 │   │       ├── index - List user's saved video summaries with pagination
 │   │       ├── create_from_url - Create summary from YouTube URL
 │   │       ├── expand_takeaway - Expand specific takeaway with AI (uses Turbo Streams)
-│   │       ├── generate_audio - Generate audio summary using Gemini TTS (REFACTORED - now uses AudioGenerationService)
+│   │       ├── generate_audio - Generate audio summary using Gemini TTS (SIMPLIFIED - now uses Rails forms with Turbo Streams)
 │   │       └── remove_from_user - Remove summary from user's saved list (uses Turbo Streams)
 │   │
 │   ├── audio_controller.rb
@@ -99,16 +99,7 @@
 │   │       ├── showDeletedState - Shows blurred deleted state with overlay
 │   │       └── checkEmptyState - Shows empty state when grid is empty
 │   │
-│   ├── audio_controller.js
-│   │   └── Features:
-│   │       ├── Audio summary generation using Gemini TTS with Algenib voice
-│   │       ├── Loading states and progress feedback during requests
-│   │       ├── Full Turbo Stream integration (no JSON responses)
-│   │       └── Server-side UI updates via Turbo Stream responses
-│   │   └── Methods:
-│   │       ├── generateAudio - Sends Turbo Stream requests for audio generation
-│   │       ├── updateButtonState - Manages button loading states during requests
-│   │       └── resetGeneratingState - Resets state when job completes
+│   └── ❌ REMOVED - audio_controller.js (simplified to use Rails forms with Turbo Streams)
 │
 ├── 🔄 jobs/
 │   ├── application_job.rb
@@ -240,6 +231,7 @@ The application uses a standardized MongoDB-based data persistence approach with
 15. **TTS Token Tracking** - (NEW) Added comprehensive token usage tracking to TTS operations with specialized estimation
 16. **Common Token Interface** - (NEW) Created GeminiTokenTracker base class for consistent token tracking across all Gemini clients
 17. **AudioUploadJob Logging Fix** - (NEW) Fixed log corruption issue by preventing base64 audio data from being logged in job arguments and cache keys
+18. **Audio Generation Simplification** - (NEW) Removed JavaScript controller in favor of Rails forms with Turbo Streams for better Rails 8 integration
 
 ## Python Script Timeout Improvements
 
