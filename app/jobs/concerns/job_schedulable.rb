@@ -16,10 +16,12 @@
 #   end
 #
 # The job status is tracked using Rails.cache with a key format of:
-# "job_name:arg1:arg2:..."
+# "job_name:sha256_hash_of_args"
 #
 # The status is automatically cleaned up after job completion or failure
 # using an around_perform callback.
+require 'digest'
+
 module JobSchedulable
   extend ActiveSupport::Concern
 
@@ -33,7 +35,7 @@ module JobSchedulable
     # @param args [Array] Arguments to pass to the job
     # @return [Boolean] true if job was scheduled, false if already running
     def schedule(*args)
-      job_key = "#{name.underscore}:#{args.join(':')}"
+      job_key = build_job_cache_key(*args)
       if Rails.cache.exist?(job_key)
         log_info "Job already running: #{job_key}"
         return false
@@ -49,7 +51,7 @@ module JobSchedulable
     # @param args [Array] Arguments that were passed to the job
     # @return [Boolean] true if key was deleted, false if it didn't exist
     def clear_job_cache(*args)
-      job_key = "#{name.underscore}:#{args.join(':')}"
+      job_key = build_job_cache_key(*args)
       deleted = Rails.cache.delete(job_key)
       log_info "Manually cleared job cache key: #{job_key}, deleted: #{deleted}"
       deleted
@@ -57,11 +59,21 @@ module JobSchedulable
 
     private
 
+    # Build a cache key using a hash of arguments to handle large data efficiently
+    # @param args [Array] Job arguments
+    # @return [String] Cache key
+    def build_job_cache_key(*args)
+      # Use SHA256 hash of arguments to create a consistent, short cache key
+      # This prevents issues with large arguments like base64 audio content
+      args_hash = Digest::SHA256.hexdigest(args.to_json)
+      "#{name.underscore}:#{args_hash}"
+    end
+
     # Generate a unique key for a job based on its class name and arguments
     # @param args [Array] Job arguments
     # @return [String] Cache key
     def job_key_for(*args)
-      "#{name.underscore}:#{args.join(':')}"
+      build_job_cache_key(*args)
     end
   end
 

@@ -128,6 +128,16 @@
 │   │       ├── Ai::TtsService
 │   │       └── Turbo::StreamsChannel
 │   │
+│   ├── audio_upload_job.rb (NEW)
+│   │   └── Services:
+│   │       ├── Ai::TtsService
+│   │       └── ActiveStorage::Blob
+│   │   └── Features:
+│   │       ├── Background upload of audio files to Google Cloud Storage
+│   │       ├── Prevents base64 audio data from corrupting logs (log_arguments? = false)
+│   │       ├── Updates metadata with permanent storage information
+│   │       └── Cleans up temporary cache after successful upload
+│   │
 │   ├── async_job_processor.rb
 │   │   └── ❌ REMOVED - Unused async processing pattern
 │   │
@@ -229,6 +239,7 @@ The application uses a standardized MongoDB-based data persistence approach with
 14. **Audio Generation Service** - (NEW) Created dedicated service for audio generation business logic
 15. **TTS Token Tracking** - (NEW) Added comprehensive token usage tracking to TTS operations with specialized estimation
 16. **Common Token Interface** - (NEW) Created GeminiTokenTracker base class for consistent token tracking across all Gemini clients
+17. **AudioUploadJob Logging Fix** - (NEW) Fixed log corruption issue by preventing base64 audio data from being logged in job arguments and cache keys
 
 ## Python Script Timeout Improvements
 
@@ -343,3 +354,46 @@ The application experienced hanging issues in Cloud Run production where Python 
 - Detailed process lifecycle logging for production debugging
 
 This ensures Python scripts are terminated within seconds rather than hanging for 40+ seconds in production.
+
+## JobSchedulable Hash-Based Cache Key Strategy (December 2024)
+
+The `JobSchedulable` concern has been completely rewritten to use hash-based cache keys, solving log corruption issues efficiently:
+
+### Problem Analysis
+- Jobs with large arguments (like base64 audio content) were corrupting logs
+- Cache keys included full argument values, causing massive log entries
+- `AudioUploadJob` was creating cache keys with entire base64 audio strings
+- The cache key itself became the problem, not just the logging
+
+### Solution Implementation
+1. **SHA256 Hash-Based Keys** - All job arguments are hashed using SHA256
+2. **Consistent Short Keys** - Cache keys are always predictable length regardless of argument size
+3. **Preserved Uniqueness** - Hash ensures different arguments produce different cache keys
+4. **Efficient Performance** - Hash calculation is fast and memory-efficient
+
+### Key Components
+- `build_job_cache_key(*args)` - Uses `Digest::SHA256.hexdigest(args.to_json)`
+- Enhanced `cleanup_job_cache` - All cache keys are now short and clean
+- Updated `schedule` and `clear_job_cache` - Use hash-based cache key generation
+- **No special cases needed** - Works uniformly for all job types
+
+### Cache Key Format
+All jobs now use: `job_name:sha256_hash_of_arguments`
+
+### Example Output
+```
+# Before (corrupted logs):
+Starting job with cache key: audio_upload_job:2_6ad9URawc:UklGRjJ3MA... [massive base64 string]
+
+# After (clean logs):
+Starting job with cache key: audio_upload_job:a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
+```
+
+### Benefits
+- **Log Cleanliness**: All cache keys are exactly 64 characters (SHA256 hex)
+- **Performance**: No string concatenation of large arguments
+- **Memory Efficiency**: No large strings stored in memory for cache keys
+- **Universal Solution**: Works for any job with any argument size
+- **Collision Resistance**: SHA256 provides excellent uniqueness guarantees
+
+This provides a robust, scalable solution that handles any job argument size efficiently.

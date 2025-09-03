@@ -31,6 +31,19 @@ module Ai
           return nil
         end
         
+        # Handle temporary storage case
+        if result&.dig(:success) && result[:temp_storage]
+          # Check if temp cache still exists
+          cache_key = "temp_audio:#{video_id}"
+          unless Rails.cache.exist?(cache_key)
+            log_warn "Temporary audio cache expired for video #{video_id}"
+            # Clean up the metadata
+            delete_stored(video_id)
+            return nil
+          end
+          return result
+        end
+        
         # If we have a blob_id, verify the blob still exists
         if result&.dig(:success) && result[:blob_id]
           begin
@@ -48,7 +61,7 @@ module Ai
         result
       end
 
-      # Check if audio exists for a video
+      # Check if audio exists for a video (including temporary)
       def audio_exists?(video_id)
         stored?(video_id) && fetch_audio(video_id)&.dig(:success)
       end
@@ -88,40 +101,43 @@ module Ai
       result = run_python_script("gemini_tts_client.py", input_data, timeout: tts_timeout)
       
       if result[:success]
-        # Create Active Storage blob for audio file
-        audio_blob = create_audio_blob(video_id, result[:audio_content], result[:mime_type] || "audio/wav")
+        # Store audio temporarily for immediate streaming
+        temp_audio_data = store_audio_temporarily(video_id, result[:audio_content], result[:mime_type] || "audio/wav")
         
-        # Build audio data with Active Storage URL and metadata (no audio_content in MongoDB)
+        # Build immediate response with temporary URL (no blob_id yet)
         audio_data = {
           success: true,
-          audio_url: Rails.application.routes.url_helpers.rails_blob_path(audio_blob, only_path: true),
-          blob_id: audio_blob.id,
+          audio_url: temp_audio_data[:temp_url],
+          temp_storage: true, # Flag to indicate temporary storage
           voice: result[:voice] || @voice,
           text_length: result[:text_length] || text.length,
           generated_at: Time.current,
           duration_seconds: result[:duration_seconds] || 0,
           mime_type: result[:mime_type] || "audio/wav",
           data_size: result[:data_size] || 0,
-          # Token usage tracking for cost analysis
           token_usage: result[:token_usage] || {},
           model: result[:model] || "gemini-2.5-flash-preview-tts",
           config: result[:config] || {}
         }
         
+        # Store temporary metadata in MongoDB
         self.class.write_stored(video_id, audio_data)
+        
+        # Schedule async upload to GCS
+        AudioUploadJob.schedule(video_id, result[:audio_content], result[:mime_type] || "audio/wav")
         
         elapsed_time = (Time.current - start_time).round(2)
         
-        # Enhanced logging with token usage information
+        # Enhanced logging
         log_context = { 
           duration: audio_data[:duration_seconds],
           elapsed_seconds: elapsed_time,
           data_size_mb: (audio_data[:data_size] / 1024.0 / 1024.0).round(2),
           voice: audio_data[:voice],
-          model: audio_data[:model]
+          model: audio_data[:model],
+          temp_storage: true
         }
         
-        # Add token usage to log context if available
         if result[:token_usage]
           log_context.merge!({
             input_tokens: result[:token_usage][:input_tokens],
@@ -131,7 +147,7 @@ module Ai
           })
         end
         
-        log_info "TTS generation completed for video #{video_id}", context: log_context
+        log_info "TTS generation completed for video #{video_id} (temp storage)", context: log_context
         
         audio_data
       else
@@ -203,6 +219,47 @@ module Ai
       blob
     rescue => e
       log_error "Failed to create audio blob", context: {
+        video_id: video_id,
+        error: e.message,
+        mime_type: mime_type
+      }
+      raise
+    end
+
+    # Store audio temporarily in Rails cache for immediate access
+    # @param video_id [String] Video ID for cache key
+    # @param base64_content [String] Base64 encoded audio content  
+    # @param mime_type [String] MIME type of the audio
+    # @return [Hash] Temporary storage info with URL
+    def store_audio_temporarily(video_id, base64_content, mime_type)
+      # Decode base64 content to binary
+      audio_data = Base64.strict_decode64(base64_content)
+      
+      # Store in Rails cache with 1 hour expiration (enough time for GCS upload)
+      cache_key = "temp_audio:#{video_id}"
+      cache_data = {
+        audio_data: audio_data,
+        mime_type: mime_type,
+        stored_at: Time.current
+      }
+      
+      # Use Rails cache with 1 hour expiration
+      Rails.cache.write(cache_key, cache_data, expires_in: 1.hour)
+      
+      log_info "Audio stored temporarily in cache", context: {
+        video_id: video_id,
+        cache_key: cache_key,
+        data_size_mb: (audio_data.length / 1024.0 / 1024.0).round(2),
+        mime_type: mime_type
+      }
+      
+      {
+        temp_url: "/audio/#{video_id}/temp", # Temporary streaming endpoint
+        cache_key: cache_key,
+        expires_at: 1.hour.from_now
+      }
+    rescue => e
+      log_error "Failed to store audio temporarily", context: {
         video_id: video_id,
         error: e.message,
         mime_type: mime_type

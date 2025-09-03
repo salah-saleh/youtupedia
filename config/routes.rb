@@ -30,7 +30,11 @@ Rails.application.routes.draw do
   post "/parse_youtube_url", to: "youtube_urls#parse"
 
   # Audio serving routes
-  get "/audio/:id", to: "audio#show", as: :audio_file
+  resources :audio, only: [:show] do
+    member do
+      get :temp # Temporary streaming endpoint
+    end
+  end
 
   # Authentication routes
   resource :session, only: [ :new, :create, :destroy ]
