@@ -121,13 +121,13 @@ GEM
     et-orbi (1.2.11)
       tzinfo
     event_stream_parser (1.0.0)
-    faraday (2.12.1)
+    faraday (2.13.4)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
-    faraday-multipart (1.0.4)
-      multipart-post (~> 2)
-    faraday-net_http (3.4.0)
+    faraday-multipart (1.1.1)
+      multipart-post (~> 2.0)
+    faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
     ffi (1.17.1-aarch64-linux-gnu)
     ffi (1.17.1-aarch64-linux-musl)
@@ -194,7 +194,7 @@ GEM
     jbuilder (2.13.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
-    json (2.8.2)
+    json (2.13.2)
     jwt (2.9.3)
       base64
     kamal (2.3.0)
@@ -214,7 +214,7 @@ GEM
       childprocess (~> 5.0)
     letter_opener (1.10.0)
       launchy (>= 2.2, < 4)
-    logger (1.6.1)
+    logger (1.7.0)
     loofah (2.23.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -247,7 +247,7 @@ GEM
     multi_json (1.15.0)
     multipart-post (2.4.1)
     mutex_m (0.3.0)
-    net-http (0.5.0)
+    net-http (0.6.0)
       uri
     net-imap (0.5.1)
       date
@@ -397,7 +397,7 @@ GEM
       sorbet-runtime (>= 0.5.10782)
     ruby-lsp-rails (0.3.29)
       ruby-lsp (>= 0.23.0, < 0.24.0)
-    ruby-openai (7.3.1)
+    ruby-openai (8.3.0)
       event_stream_parser (>= 0.3.0, < 2.0.0)
       faraday (>= 1)
       faraday-multipart (>= 1)
@@ -494,7 +494,7 @@ GEM
       concurrent-ruby (~> 1.0)
     uber (0.1.0)
     unicode-display_width (2.6.0)
-    uri (1.0.2)
+    uri (1.0.3)
     useragent (0.16.10)
     web-console (4.2.1)
       actionview (>= 6.0.0)
