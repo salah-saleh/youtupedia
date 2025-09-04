@@ -189,11 +189,39 @@
     ├── _image.html.erb
     ├── _layout.html.erb
     ├── _loading_context.html.erb
-    ├── _nav_links.html.erb
+    ├── _mobile_search_fab.html.erb (NEW - Mobile floating action button for quick search)
+    │   └── Features:
+    │       ├── Fixed position in bottom-right corner
+    │       ├── Only visible on mobile (lg:hidden)
+    │       ├── Purple theme with hover effects
+    │       ├── Accessible with proper ARIA labels
+    │       └── Triggers search overlay via global-search controller
+    │
+    ├── _nav_links.html.erb (UPDATED - Added Quick Search button)
+    │   └── Changes:
+    │       ├── Added "Quick Search" button that triggers overlay
+    │       ├── Uses magnifying_glass icon
+    │       ├── Button styling matches other nav items
+    │       ├── Shows keyboard shortcut hint (⌘K)
+    │       └── Triggers global-search#openOverlay action
+    │
     ├── _nav.html.erb
     ├── _page_header.html.erb
     ├── _pagination.html.erb
     ├── _search_form.html.erb
+    ├── _search_overlay.html.erb (NEW - Global YouTube URL search overlay)
+    │   └── Features:
+    │       ├── Modal overlay with backdrop
+    │       ├── Clean header with "Paste Your YouTube URL" title
+    │       ├── Keyboard shortcut hint in header (⌘+K)
+    │       ├── Escape key and click-outside to close
+    │       ├── Mobile-friendly design
+    │       ├── Consistent styling with home page
+    │       ├── Dark mode support
+    │       ├── Reuses home--search-animation controller
+    │       ├── Auto-focus on input when opened
+    │       └── Body scroll prevention when open
+    │
     ├── _search_results.html.erb
     ├── _section.html.erb
     ├── _sidebar.html.erb
@@ -213,16 +241,6 @@
         ├── _search_input.html.erb
         └── _url_input.html.erb
 
-## Data Storage Architecture Updates
-
-The application now uses a standardized MongoDB-based data persistence approach:
-
-- **Persistable Concern** - Unified data storage interface with consistent API across all services
-- **Standardized Methods** - All services use `fetch_stored`, `write_stored`, `read_stored`, `stored?`, `delete_stored`
-- **Enhanced Error Handling** - Improved retry mechanism and graceful failure handling
-- **Namespace Support** - Flexible namespace management with service-specific defaults
-- **Force Execution** - Ability to bypass storage and regenerate data when needed
-- **Clear Naming** - Renamed from "cache" terminology to "storage" to reflect MongoDB as primary data store
 
 ## Key View Features
 
@@ -230,23 +248,4 @@ The application now uses a standardized MongoDB-based data persistence approach:
 2. **Responsive Design** - Mobile-friendly with Tailwind CSS
 3. **Dark/Light Mode** - Consistent theming across all components
 4. **Modular Partials** - Reusable components for maintainability
-5. **Form Components** - Consistent input styling and behavior
-6. **Loading States** - Skeleton loaders and spinners for better UX
-7. **Error Handling** - Graceful error display and recovery
-8. **Accessibility** - Proper ARIA labels and keyboard navigation
-9. **Turbo Stream Consistency** - All AJAX-like interactions use Turbo Streams instead of JSON
-10. **Audio Generation Simplification** - (NEW) Replaced JavaScript controller with Rails forms for better Rails 8 integration
-
-## JavaScript Controllers
-
-- **Theme Controller** - Dark/light mode switching
-- **Copy Controller** - Text copying functionality
-- **Toast Controller** - Notification system
-- **Loading Controller** - Loading state management
-- **Search Controller** - Search functionality
-- **Tabs Controller** - Tab switching behavior
-- **Remove Item Controller** - Item removal with confirmation
-- **Email Reveal Controller** - Email address protection
-- **Nav Toggle Controller** - Mobile navigation
-- **Dropdown Controller** - Dropdown menu functionality
-- **❌ REMOVED - Audio Controller** - Simplified to use Rails forms with Turbo Streams (no JavaScript needed)
+5. **Turbo Stream Consistency** - All AJAX-like interactions use Turbo Streams instead of JSON

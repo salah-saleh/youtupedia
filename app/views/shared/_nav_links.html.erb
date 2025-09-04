@@ -2,8 +2,22 @@
     Contains the main navigation links used in both sidebar and mobile navigation.
 %>
 
+<!-- Quick Search - triggers overlay -->
+<button type="button"
+        class="flex items-center justify-between px-2 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-md w-full text-left"
+        data-action="click->global-search#openOverlay"
+        aria-label="Open quick search">
+  <div class="flex items-center">
+    <%= render_icon :magnifying_glass, class: "mr-4 h-5 w-5" %>
+    <span>Lookup URL</span>
+  </div>
+</button>
+
+<%# Divider %>
+<div class="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+
 <%= link_to root_path,
-    class: "flex items-center px-2 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-md
+    class: " space-y-1 flex items-center px-2 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-md
             #{current_page?(root_path) ? 'bg-gray-100 dark:bg-gray-700' : ''}" do %>
   <%= render_icon :home, class: "mr-4 h-5 w-5" %>
   <span>Home</span>

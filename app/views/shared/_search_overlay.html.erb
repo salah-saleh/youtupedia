@@ -1,0 +1,77 @@
+<%# YouTube URL Search Overlay
+    Reusable overlay component for quick YouTube URL search from anywhere in the app.
+    
+    Features:
+    - Modal overlay with backdrop
+    - Centered search form with logo and title
+    - Escape key and click-outside to close
+    - Mobile-friendly design
+    - Consistent styling with home page
+    - Dark mode support
+    
+    Dependencies:
+    - search-overlay Stimulus controller
+    - home--search-animation Stimulus controller
+    - Tailwind CSS
+    - Icon helper (magnifying_glass, x_mark icons)
+%>
+
+<div id="search-overlay" 
+     class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"
+     data-controller="search-overlay"
+     data-action="keydown->search-overlay#handleKeydown click->search-overlay#closeOnBackdrop">
+  
+  <!-- Overlay Content -->
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 transform transition-all duration-300"
+         data-search-overlay-target="modal"
+         data-action="click->search-overlay#preventClose">
+      
+      <!-- Header with Close Button -->
+      <div class="flex items-center justify-between p-6">
+        <div class="flex items-center gap-2">
+          <%= image_tag "youtupedia-inverted.png", class: "h-8 w-8 hidden dark:block", alt: "Youtupedia Logo Dark Mode" %>
+          <%= image_tag "youtupedia.png", class: "h-8 w-8 block dark:hidden", alt: "Youtupedia Logo Light Mode" %>
+          <span class="text-lg font-semibold text-gray-900 dark:text-white">Paste Your YouTube URL</span>
+          <kbd class="text-sm text-gray-600 dark:text-gray-400"> (⌘+K)</kbd>
+        </div>
+        
+        <button type="button"
+                class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                data-action="click->search-overlay#close"
+                aria-label="Close search overlay">
+          <%= render_icon :x_mark, class: "w-5 h-5" %>
+        </button>
+      </div>
+      
+      <!-- Search Form Content -->
+      <div class="px-8 pb-8">
+        <!-- Search Form -->
+        <section aria-label="YouTube URL Search">
+          <%= form_with url: parse_youtube_url_path, method: :post, class: "relative flex justify-center", data: { turbo: false } do |f| %>
+            <div class="search-container relative w-full max-w-xl" 
+                 data-controller="home--search-animation"
+                 data-action="focusin->home--search-animation#inputFocused focusout->home--search-animation#inputBlurred">
+              <%= f.label :url, "Enter YouTube URL", class: "sr-only" %>
+              <%= f.text_field :url,
+                  placeholder: "e.g https://www.youtube.com/watch?v=XyhhwVJB9Z4",
+                  class: "search-input block w-full px-5 py-4 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none text-base shadow-sm transition-all duration-200 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800",
+                  autofocus: true,
+                  "aria-label": "YouTube URL input",
+                  data: { 
+                    "home--search-animation-target": "input",
+                    action: "input->home--search-animation#inputChanged"
+                  } %>
+
+              <button type="submit"
+                      class="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 z-10"
+                      aria-label="Search">
+                <%= render_icon :magnifying_glass, class: "w-6 h-6" %>
+              </button>
+            </div>
+          <% end %>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>

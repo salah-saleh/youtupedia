@@ -1,0 +1,23 @@
+<%# Mobile Floating Action Button for Quick Search
+    Fixed position button in bottom-right corner for mobile devices.
+    
+    Features:
+    - Only visible on mobile (lg:hidden)
+    - Fixed positioning in bottom-right
+    - Rounded design with shadow
+    - Smooth hover and focus states
+    - Accessible with proper ARIA labels
+    
+    Dependencies:
+    - search-overlay Stimulus controller
+    - Tailwind CSS
+    - Icon helper (magnifying_glass icon)
+%>
+
+<!-- Mobile Floating Action Button -->
+<button type="button"
+        class="lg:hidden fixed bottom-6 right-6 z-40 bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800"
+        data-action="click->global-search#openOverlay"
+        aria-label="Open quick search">
+  <%= render_icon :magnifying_glass, class: "w-6 h-6" %>
+</button>
