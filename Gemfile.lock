@@ -87,7 +87,7 @@ GEM
       msgpack (~> 1.2)
     brakeman (6.2.2)
       racc
-    bson (5.0.2)
+    bson (5.1.1)
     builder (3.3.0)
     capybara (3.40.0)
       addressable
@@ -243,9 +243,10 @@ GEM
       railties (>= 7.1)
       stimulus-rails
       turbo-rails
-    mongo (2.21.0)
+    mongo (2.21.3)
+      base64
       bson (>= 4.14.1, < 6.0.0)
-    mongoid (9.0.3)
+    mongoid (9.0.8)
       activemodel (>= 5.1, < 8.1, != 7.0.0)
       concurrent-ruby (>= 1.0.5, < 2.0)
       mongo (>= 2.18.0, < 3.0.0)
