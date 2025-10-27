@@ -76,7 +76,7 @@ group :test do
 end
 
 # Tailwind
-gem "tailwindcss-rails", "~> 3.0"
+gem "tailwindcss-rails", "~> 4.4"
 # OpenAI
 gem "ruby-openai"
 # Google API
