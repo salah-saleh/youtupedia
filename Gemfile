@@ -118,4 +118,4 @@ gem "recaptcha", require: "recaptcha/rails"
 gem "mission_control-jobs"
 
 # Google Cloud Storage for Active Storage
-gem "google-cloud-storage", "~> 1.44", require: false
+gem "google-cloud-storage", "~> 1.57", require: false
